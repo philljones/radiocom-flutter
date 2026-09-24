@@ -4,11 +4,14 @@ import AVFoundation
 
 
 @UIApplicationMain
-class AppDelegate: FlutterAppDelegate {
+class AppDelegate: FlutterAppDelegate, FlutterImplicitEngineDelegate {
+
+    func didInitializeImplicitFlutterEngine(_ engineBridge: FlutterImplicitEngineBridge) {
+        GeneratedPluginRegistrant.register(with: engineBridge.pluginRegistry)
+    }
     
     override func application(_ application: UIApplication,
                               didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        GeneratedPluginRegistrant.register(with: self)
 
         if #available(iOS 10.0, *) {
             UNUserNotificationCenter.current().delegate = self
