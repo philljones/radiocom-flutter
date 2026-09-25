@@ -42,7 +42,7 @@ void main() {
       expect(station.longitude, equals(-3.0));
       expect(station.newsRss, equals('http://news.rss'));
       expect(station.streamUrl,
-          equals('https://stream.radiotyneside.co.uk/tyneside'));
+          equals('https://stream.aberradio.com/test.mp3'));
       expect(station.facebookUrl, equals('http://facebook.com/test'));
       expect(station.blueskyUrl, equals('http://bsky.app/test'));
     });

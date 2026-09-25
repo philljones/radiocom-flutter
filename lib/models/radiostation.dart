@@ -1,6 +1,6 @@
 class RadioStation {
   static const String liveStreamUrl =
-      "https://stream.radiotyneside.co.uk/tyneside";
+      "https://stream.aberradio.com/test.mp3";
 
   String stationName;
   String iconUrl;

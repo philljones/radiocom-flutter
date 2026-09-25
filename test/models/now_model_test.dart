@@ -51,7 +51,7 @@ void main() {
     test('that returns the stream url from injected radio station', () {
       final now = Now.mock();
       final url = now.streamUrl();
-      expect(url, equals('https://stream.radiotyneside.co.uk/tyneside'));
+      expect(url, equals('https://stream.aberradio.com/test.mp3'));
     });
   });
 }
