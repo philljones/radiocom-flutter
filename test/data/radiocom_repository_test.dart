@@ -30,7 +30,7 @@ void main() {
     Result<RadioStation> result = await repository.getRadioStationData();
 
     expect(result.status, equals(Status.ok));
-    expect(result.getData()?.stationName, equals("CUAC FM INSTRUMENT"));
+    expect(result.getData()?.stationName, equals("Aber Radio"));
   });
 
   test('that can fetch base station date if network fails', () async {
@@ -39,7 +39,7 @@ void main() {
     Result<RadioStation> result = await repository.getRadioStationData();
 
     expect(result.status, equals(Status.ok));
-    expect(result.getData()?.stationName, equals("CUAC FM"));
+    expect(result.getData()?.stationName, equals("Aber Radio"));
   });
 
   test('that can fetch now data from network', () async {
@@ -48,7 +48,7 @@ void main() {
     Result<Now> result = await repository.getLiveBroadcast();
 
     expect(result.status, equals(Status.ok));
-    expect(result.getData()?.name, equals("Spoiler"));
+    expect(result.getData()?.name, equals("Aber Radio Live"));
   });
 
   test('that can fetch empty now data from network', () async {
@@ -57,7 +57,7 @@ void main() {
     Result<Now> result = await repository.getLiveBroadcast();
 
     expect(result.status, equals(Status.fail));
-    expect(result.getData()?.name, equals("Continuidade CUAC FM"));
+    expect(result.getData()?.name, equals("Aber Radio Live"));
   });
 
   test('that can fetch timetable from network', () async {

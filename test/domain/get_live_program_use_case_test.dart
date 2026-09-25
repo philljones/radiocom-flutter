@@ -24,7 +24,7 @@ void main() {
 
     invoker.execute(useCase).listen(expectAsync1((result) {
       expect(result.status, equals(Status.ok));
-      expect((result.getData() as Now).name, equals("Spoiler"));
+      expect((result.getData() as Now).name, equals("Aber Radio Live"));
       expect(result is Success, equals(true));
     }));
   });
@@ -34,7 +34,7 @@ void main() {
 
     invoker.execute(useCase).listen(expectAsync1((result) {
       expect(result.status, equals(Status.fail));
-      expect((result.getData() as Now).name, contains("Continuidad"));
+      expect((result.getData() as Now).name, equals("Aber Radio Live"));
       expect(result is Error, equals(true));
     }));
   });

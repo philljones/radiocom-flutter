@@ -124,11 +124,11 @@ class CurrentPlayer implements CurrentPlayerContract {
     final hasName = name.isNotEmpty && name != ":";
     return MediaItem(
       id: urlToHashId(isPodcast ? episode?.audio ?? "" : now?.streamUrl() ?? ""),
-      album: isPodcast ? "Podcast CUAC FM" : "Directo CUAC FM",
+      album: isPodcast ? "Aber Radio Podcast" : "Aber Radio Live",
       title: isPodcast
           ? episode?.title ?? ""
           : (hasName ? name : "Streaming en directo"),
-      artist: isPodcast && hasName ? name : "CUAC FM",
+      artist: isPodcast && hasName ? name : "Aber Radio",
       artUri: _artUri,
     );
   }
@@ -233,7 +233,7 @@ class CurrentPlayer implements CurrentPlayerContract {
       FirebaseAnalytics.instance.logEvent(
         name: 'live_play',
         parameters: {
-          'program': live.isNotEmpty && live != ':' ? live : 'Continuidade CUAC FM',
+          'program': live.isNotEmpty && live != ':' ? live : 'Aber Radio Live',
           'source': playbackSource,
         },
       );

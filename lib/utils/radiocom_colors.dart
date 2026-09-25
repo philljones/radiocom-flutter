@@ -39,7 +39,7 @@ class RadiocomColorsLight implements RadiocomColorsConract {
   Color transparent = Color(0x00000000);
 
   @override
-  Color orange = Color(0xFFFFA726);
+  Color orange = Color(0xFFF7B500);
   @override
   Color palidwhite = Color(0xFFFAF9F6);
   @override
@@ -65,7 +65,7 @@ class RadiocomColorsLight implements RadiocomColorsConract {
   Color palidwhitegradient = Color(0x99F9F9F9);
 
   @override
-  Color yellow = Color(0xFFFDCC03); //f4c720
+  Color yellow = Color(0xFF68B64B);
 
   @override
   Color fontH1 = Color(0xFF1A1A1A);
@@ -76,7 +76,7 @@ class RadiocomColorsLight implements RadiocomColorsConract {
   @override
   Color fontGrey = Color(0xFF85858b);
   @override
-  Color fontPurple = Color(0xFF9B26AF);
+  Color fontPurple = Color(0xFF0B4C3B);
 
   @override
   Color grey = Colors.grey;
@@ -97,7 +97,7 @@ class RadiocomColorsDark implements RadiocomColorsConract {
   Color transparent = Color(0x00000000);
 
   @override
-  Color orange = Color(0xFF9B26AF);
+  Color orange = Color(0xFFF7B500);
   @override
   Color palidwhite = Color(0xFF1A1A1A);
   @override
@@ -123,7 +123,7 @@ class RadiocomColorsDark implements RadiocomColorsConract {
   Color palidwhitegradient = Color(0x99999999);
 
   @override
-  Color yellow = Color(0xFFFDCC03);
+  Color yellow = Color(0xFF68B64B);
 
   @override
   Color fontH1 = Colors.white;
@@ -134,7 +134,7 @@ class RadiocomColorsDark implements RadiocomColorsConract {
   @override
   Color fontGrey = Color(0xFFA0A0A6);
   @override
-  Color fontPurple = Color(0xFF9B26AF);
+  Color fontPurple = Color(0xFF68B64B);
 
   @override
   Color grey = Colors.grey.shade200;

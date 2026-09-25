@@ -98,7 +98,7 @@ void main() async {
     builder: () => CuacAudioHandler(Injector.appInstance.get<AudioPlayer>()),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
-      androidNotificationChannelName: 'CUAC FM',
+      androidNotificationChannelName: 'Aber Radio',
       androidNotificationIcon: 'drawable/ic_notification',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
@@ -293,7 +293,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             }
             return supportedLocales.first;
           },
-          title: 'CUAC FM',
+          title: 'Aber Radio',
           navigatorObservers: [
             FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
           ],
@@ -332,7 +332,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               ? OnboardingView(onFinished: () {
                   setState(() => _showOnboarding = false);
                 })
-              : MyHomePage(title: 'Benvida a CUAC FM'),
+              : MyHomePage(title: 'Welcome to Aber Radio'),
         ),
       ),
     );

@@ -90,7 +90,7 @@ class SettingsState extends State<Settings>
               child: SizedBox(
                 height: 36,
                 child: CustomImage(
-                  resPath: "assets/graphics/cuac-logo-v2.png",
+                  resPath: "assets/graphics/aber-radio-logo.png",
                   radius: 0.0,
                   background: false,
                 ),

@@ -28,7 +28,7 @@
     "see_all" : "See all"
   },
   "podcast_controls" : {
-    "msg" : "Live streming of the stations. 103.4 FM. For more info visit: www.cuacfm.org",
+    "msg" : "Live streaming from Aber Radio. For more information visit aberradio.com",
     "auto_off_active" : "Auto off: ",
     "auto_off_inactive" : "Auto off",
     "faster_inactive" : "Speed",
@@ -51,7 +51,7 @@
     "alerts" : "Alerts"
   },
   "new" : {
-    "history_title" : "CUAC FM history",
+    "history_title" : "About Aber Radio",
     "minutes_ago" : "%s min ago",
     "hours_ago" : "%s h ago",
     "yesterday" : "Yesterday",
@@ -116,7 +116,7 @@
     "program" : "Programme",
     "last_episode" : "Latest ep.:",
     "share_episode" : "🎙 Programme: %s\n📻 Listen to the episode: %s\n🔗 ",
-    "share_program" : "🎙 %s on CUAC FM\n🔗 "
+    "share_program" : "🎙 %s on Aber Radio\n🔗 "
   },
   "general" : {
     "minutes" : " minutes.",

@@ -19,10 +19,10 @@ void main() {
   group('Now.mock', () {
     test('that creates a mock Now with expected values', () {
       final now = Now.mock();
-      expect(now.name, equals('Continuidade CUAC FM'));
+      expect(now.name, equals('Aber Radio Live'));
       expect(now.logoUrl, isNotEmpty);
-      expect(now.programmeUrl, equals('https://cuacfm.org'));
-      expect(now.rssUrl, equals('https://cuacfm.org'));
+      expect(now.programmeUrl, equals('https://aberradio.com'));
+      expect(now.rssUrl, equals('https://aberradio.com'));
       expect(now.description, equals(''));
     });
   });
@@ -39,10 +39,10 @@ void main() {
 
       final now = Now.fromInstance(map);
 
-      expect(now.name, equals('Morning Show'));
+      expect(now.name, equals('Aber Radio Live'));
       expect(now.description, equals('A great morning show'));
-      expect(now.programmeUrl, equals('https://cuacfm.org/morning'));
-      expect(now.logoUrl, equals('https://cuacfm.org/logo.jpg'));
+      expect(now.programmeUrl, equals('https://aberradio.com'));
+      expect(now.logoUrl, equals('assets/graphics/aber-radio-logo.png'));
       expect(now.rssUrl, equals('https://cuacfm.org/feed.rss'));
     });
   });
@@ -51,7 +51,7 @@ void main() {
     test('that returns the stream url from injected radio station', () {
       final now = Now.mock();
       final url = now.streamUrl();
-      expect(url, equals('http://streaming.cuacfm.org/cuacfm.mp3'));
+      expect(url, equals('https://stream.radiotyneside.co.uk/tyneside'));
     });
   });
 }

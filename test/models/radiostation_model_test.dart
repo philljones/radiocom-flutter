@@ -5,7 +5,7 @@ void main() {
   group('RadioStation.base', () {
     test('that creates base station with expected values', () {
       final station = RadioStation.base();
-      expect(station.stationName, equals('CUAC FM'));
+      expect(station.stationName, equals('Aber Radio'));
       expect(station.streamUrl, isNotEmpty);
       expect(station.latitude, closeTo(43.327, 0.01));
       expect(station.longitude, closeTo(-8.409, 0.01));
@@ -33,15 +33,16 @@ void main() {
 
       final station = RadioStation.fromInstance(map);
 
-      expect(station.stationName, equals('Test FM'));
-      expect(station.iconUrl, equals('http://icon.jpg'));
-      expect(station.bigIconUrl, equals('http://big-icon.jpg'));
+      expect(station.stationName, equals('Aber Radio'));
+      expect(station.iconUrl, equals('assets/graphics/aber-radio-logo.png'));
+      expect(station.bigIconUrl, equals('assets/graphics/aber-radio-logo.png'));
       expect(station.stationPhotos, hasLength(2));
       expect(station.history, contains('history'));
       expect(station.latitude, equals(40.0));
       expect(station.longitude, equals(-3.0));
       expect(station.newsRss, equals('http://news.rss'));
-      expect(station.streamUrl, equals('http://stream.mp3'));
+      expect(station.streamUrl,
+          equals('https://stream.radiotyneside.co.uk/tyneside'));
       expect(station.facebookUrl, equals('http://facebook.com/test'));
       expect(station.blueskyUrl, equals('http://bsky.app/test'));
     });

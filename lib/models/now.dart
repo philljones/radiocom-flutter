@@ -9,17 +9,17 @@ class Now {
   String rssUrl;
 
   Now.mock()
-      : name = "Continuidade CUAC FM",
-        logoUrl = "assets/graphics/cuac_music_cover.png",
+      : name = "Aber Radio Live",
+        logoUrl = "assets/graphics/aber-radio-logo.png",
         description = "",
-        programmeUrl = "https://cuacfm.org",
-        rssUrl = "https://cuacfm.org";
+        programmeUrl = "https://aberradio.com",
+        rssUrl = "https://aberradio.com";
 
   Now.fromInstance(Map<String, dynamic> map)
-      : name = map["name"],
+      : name = "Aber Radio Live",
         description = map["description"],
-        programmeUrl = map["programme_url"],
-        logoUrl = map["logo_url"],
+        programmeUrl = "https://aberradio.com",
+        logoUrl = "assets/graphics/aber-radio-logo.png",
         rssUrl = map["rss_url"];
 
   String streamUrl() {

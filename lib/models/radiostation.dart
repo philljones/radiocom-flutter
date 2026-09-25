@@ -15,11 +15,9 @@ class RadioStation {
   String blueskyUrl;
 
   RadioStation.base()
-      : stationName = "CUAC FM",
-        iconUrl =
-            "https://cuacfm.org/wp-content/uploads/2018/03/Icon-marketing-1024x1024.png",
-        bigIconUrl =
-            "https://cuacfm.org/wp-content/uploads/2018/03/Icon-marketing-1024x1024.png",
+      : stationName = "Aber Radio",
+        iconUrl = "assets/graphics/aber-radio-logo.png",
+        bigIconUrl = "assets/graphics/aber-radio-logo.png",
         stationPhotos = [
           "https://cuacfm.org/wp-content/uploads/2017/02/onair-communityradiostations.jpeg",
           "https://cuacfm.org/wp-content/uploads/2015/04/highfreq.jpg",
@@ -36,9 +34,9 @@ class RadioStation {
         blueskyUrl = "https://bsky.app/profile/cuacfm.org";
 
   RadioStation.fromInstance(Map<String, dynamic> map)
-      : stationName = map["station_name"],
-        iconUrl = map["icon_url"],
-        bigIconUrl = map["big_icon_url"],
+      : stationName = "Aber Radio",
+        iconUrl = "assets/graphics/aber-radio-logo.png",
+        bigIconUrl = "assets/graphics/aber-radio-logo.png",
         stationPhotos = map["station_photos"],
         history = map["history"],
         latitude = map["latitude"],

@@ -134,7 +134,7 @@ class MyHomePageState extends State<MyHomePage>
             child: SizedBox(
               height: 36,
               child: CustomImage(
-                resPath: "assets/graphics/cuac-logo-v2.png",
+                resPath: "assets/graphics/aber-radio-logo.png",
                 radius: 0.0,
                 background: false,
               ),
@@ -164,7 +164,7 @@ class MyHomePageState extends State<MyHomePage>
             isPlayingAudio: _presenter.currentPlayer.isPlaying(),
             title: _presenter.currentPlayer.isPodcast
                 ? _presenter.currentPlayer.currentSong
-                : "On Air: ${_getCurrentTimeTable()?.name ?? (_timeTable.isNotEmpty ? 'Continuidade CUAC FM' : _nowProgram.name)}",
+                      : "On Air: ${_getCurrentTimeTable()?.name ?? (_timeTable.isNotEmpty ? 'Aber Radio Live' : _nowProgram.name)}",
             subtitle: _presenter.currentPlayer.isPodcast
                 ? (_presenter.currentPlayer.episode?.title ?? "")
                 : _getLiveSubtitle(),
@@ -668,7 +668,7 @@ class MyHomePageState extends State<MyHomePage>
   void _syncLivePlayerInfo() {
     if (!_presenter.currentPlayer.isPlaying() || _presenter.currentPlayer.isPodcast) return;
     final current = _getCurrentTimeTable();
-    const continuityName = "Continuidade CUAC FM";
+    const continuityName = "Aber Radio Live";
     final name = current?.name ?? (_timeTable.isNotEmpty ? continuityName : _nowProgram.name);
     final rawImage = current?.logoUrl ?? _nowProgram.logoUrl;
     final image = (rawImage.startsWith('assets/') || rawImage.contains('default-programme-photo'))
@@ -1008,7 +1008,7 @@ class MyHomePageState extends State<MyHomePage>
 Builder(builder: (context) {
             // Calcular o programa actual desde _timeTable
             final current = _getCurrentTimeTable();
-            const continuityName = "Continuidade CUAC FM";
+                const continuityName = "Aber Radio Live";
             final displayName = current?.name ?? (_timeTable.isNotEmpty ? continuityName : _nowProgram.name);
             final displayLogoUrl = current?.logoUrl ?? _nowProgram.logoUrl;
             Now liveNow;
@@ -1111,7 +1111,7 @@ Builder(builder: (context) {
                                     ),
                                     SizedBox(height: 4),
                                     Text(
-                                      "CUAC FM 103.4",
+                                      "Aber Radio",
                                       style: TextStyle(
                                         color: Color(0xFF1A1A1A).withValues(alpha: 0.6),
                                         fontSize: 13,
@@ -2292,7 +2292,7 @@ Builder(builder: (context) {
   String _getLiveSubtitle() {
     final current = _getCurrentTimeTable();
     final subtitle = current == null
-        ? "CUAC FM 103.4"
+        ? "Aber Radio"
         : "${DateFormat('HH:mm').format(current.start)} - ${DateFormat('HH:mm').format(current.end)}";
     _presenter.currentPlayer.currentSubtitle = subtitle;
     return subtitle;
