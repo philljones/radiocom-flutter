@@ -18,6 +18,7 @@ import 'package:cuacfm/main.dart' show appThemeModeNotifier;
 import 'package:in_app_review/in_app_review.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cuacfm/utils/push_notifications.dart';
 
 class Settings extends StatefulWidget {
   Settings({Key? key}) : super(key: key);
@@ -184,6 +185,7 @@ class SettingsState extends State<Settings>
   }
 
   Future<void> _toggleNotificationsPaused(bool paused) async {
+    if (!pushNotificationsEnabled) return;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('notifications_paused', paused);
     final keys = prefs.getKeys().where((k) => k.startsWith('notif_'));
@@ -625,7 +627,7 @@ class SettingsState extends State<Settings>
                             ),
                             Switch(
                               value: isLiveNotificationEnabled,
-                              onChanged: (value) {
+                              onChanged: !pushNotificationsEnabled ? null : (value) {
                                 _presenter.onLiveNotificationStatus(value);
                                 setState(() => isLiveNotificationEnabled = value);
                               },
@@ -648,7 +650,7 @@ class SettingsState extends State<Settings>
                             ),
                             Switch(
                               value: _notificationsPaused,
-                              onChanged: _toggleNotificationsPaused,
+                              onChanged: pushNotificationsEnabled ? _toggleNotificationsPaused : null,
                               activeTrackColor: _colors.yellow,
                               activeThumbColor: Color(0xFF1A1A1A),
                             ),

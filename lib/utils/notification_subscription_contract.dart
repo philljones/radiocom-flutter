@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart' as Foundation;
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cuacfm/utils/push_notifications.dart';
 
 abstract class NotificationSubscriptionContract {
   Future<void> subscribeToTopic(String channelName);
@@ -16,6 +17,7 @@ class NotificationSubscription implements NotificationSubscriptionContract {
 
   @override
   void getToken() {
+    if (!pushNotificationsEnabled) return;
     FirebaseMessaging.instance.getToken().then((token) {
       if (Foundation.kDebugMode) print('FCM token: $token');
     });
@@ -23,6 +25,7 @@ class NotificationSubscription implements NotificationSubscriptionContract {
 
   @override
   Future<void> subscribeToTopic(String channelName) async {
+    if (!pushNotificationsEnabled) return;
     final tag = _sanitizeTag(channelName);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('notif_$tag', true);
@@ -31,6 +34,7 @@ class NotificationSubscription implements NotificationSubscriptionContract {
 
   @override
   Future<void> unsubscribeFromTopic(String channelName) async {
+    if (!pushNotificationsEnabled) return;
     final tag = _sanitizeTag(channelName);
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('notif_$tag', false);
@@ -39,6 +43,7 @@ class NotificationSubscription implements NotificationSubscriptionContract {
 
   @override
   Future<bool> isSubscribed(String channelName) async {
+    if (!pushNotificationsEnabled) return false;
     final tag = _sanitizeTag(channelName);
     final prefs = await SharedPreferences.getInstance();
     return prefs.getBool('notif_$tag') ?? false;

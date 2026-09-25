@@ -22,6 +22,7 @@ import 'package:injector/injector.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cuacfm/ui/player/cuac_audio_handler.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:cuacfm/utils/push_notifications.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -52,11 +53,12 @@ void main() async {
   DependencyInjector().loadModules();
   await Firebase.initializeApp();
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await FirebaseMessaging.instance.requestPermission();
   await Injector.appInstance.get<AlertsRepositoryContract>().migratePending();
   Injector.appInstance.get<AlertsRepositoryContract>().cleanOldAlerts();
 
+  if (pushNotificationsEnabled) {
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  await FirebaseMessaging.instance.requestPermission();
   // Notificación cando a app estaba pechada
   final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
   if (initialMessage != null) {
@@ -87,6 +89,7 @@ void main() async {
     if (rssUrl != null) pendingNotificationRssUrl.value = rssUrl;
     if (episodeId != null) pendingNotificationEpisodeId.value = episodeId;
   });
+  }
   //Setting SystmeUIMode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge,
       overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);

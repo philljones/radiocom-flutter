@@ -6,6 +6,7 @@ import 'package:cuacfm/injector/dependency_injector.dart';
 import 'package:cuacfm/models/episode.dart';
 import 'package:cuacfm/models/program.dart';
 import 'package:cuacfm/utils/notification_subscription_contract.dart';
+import 'package:cuacfm/utils/push_notifications.dart';
 import 'package:cuacfm/translations/localizations.dart';
 import 'package:cuacfm/ui/home/home_presenter.dart';
 import 'package:cuacfm/ui/podcast/detail_podcast_presenter.dart';
@@ -513,7 +514,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
 
               // Botón notificacións
               GestureDetector(
-                onTap: () async {
+                onTap: !pushNotificationsEnabled ? null : () async {
                   if (_isNotificationEnabled) {
                     await _notificationService.unsubscribeFromTopic(widget.program.rssUrl);
                   } else {
