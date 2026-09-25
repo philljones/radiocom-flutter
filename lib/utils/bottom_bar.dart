@@ -43,10 +43,11 @@ class _AnimatedBarItemState extends State<_AnimatedBarItem> {
 enum BottomBarOption { HOME, SEARCH, NEWS, FAVOURITES, NONE, MENU }
 
 class BottomBar extends StatelessWidget {
-  BottomBar({required this.onOptionSelected, this.selectedOption = BottomBarOption.HOME});
+  BottomBar({required this.onOptionSelected, this.selectedOption = BottomBarOption.HOME, this.liveOnly = false});
 
   final MenuOptionCallback onOptionSelected;
   final BottomBarOption selectedOption;
+  final bool liveOnly;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +75,7 @@ class BottomBar extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: <Widget>[
-                  _AnimatedBarItem(
+                  if (!liveOnly) _AnimatedBarItem(
                       behaviorKey: "bottom_bar_item1",
                       onTap: () => onOptionSelected(BottomBarOption.HOME, false),
                       child: (scale) => NeumorphicButton(
@@ -84,7 +85,7 @@ class BottomBar extends StatelessWidget {
                         iconScale: scale,
                         iconSize: 23,
                       )),
-                  _AnimatedBarItem(
+                  if (!liveOnly) _AnimatedBarItem(
                       behaviorKey: "bottom_bar_item2",
                       onTap: () => onOptionSelected(BottomBarOption.SEARCH, false),
                       child: (scale) => NeumorphicButton(
@@ -93,7 +94,7 @@ class BottomBar extends StatelessWidget {
                         label: tabPodcasts,
                         iconScale: scale,
                       )),
-                  _AnimatedBarItem(
+                  if (!liveOnly) _AnimatedBarItem(
                       behaviorKey: "bottom_bar_item3",
                       onTap: () => onOptionSelected(BottomBarOption.NEWS, false),
                       child: (scale) => NeumorphicButton(
