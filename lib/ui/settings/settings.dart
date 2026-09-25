@@ -5,6 +5,7 @@ import 'package:cuacfm/injector/dependency_injector.dart';
 import 'package:cuacfm/models/radiostation.dart';
 import 'package:cuacfm/translations/localizations.dart';
 import 'package:cuacfm/utils/custom_image.dart';
+import 'package:cuacfm/utils/aber_radio_wordmark.dart';
 import 'package:cuacfm/utils/player_view.dart';
 import 'package:cuacfm/utils/radiocom_colors.dart';
 import 'package:cuacfm/utils/safe_map.dart';
@@ -89,11 +90,7 @@ class SettingsState extends State<Settings>
             child: Center(
               child: SizedBox(
                 height: 36,
-                child: CustomImage(
-                  resPath: "assets/graphics/aber-radio-logo.png",
-                  radius: 0.0,
-                  background: false,
-                ),
+                child: const AberRadioWordmark(),
               ),
             ),
           ),

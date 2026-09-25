@@ -18,6 +18,7 @@ import 'package:cuacfm/models/time_table.dart';
 import 'package:cuacfm/translations/localizations.dart';
 import 'package:cuacfm/ui/home/home_presenter.dart';
 import 'package:cuacfm/utils/bottom_bar.dart';
+import 'package:cuacfm/utils/aber_radio_wordmark.dart';
 import 'package:cuacfm/utils/custom_image.dart';
 import 'package:cuacfm/utils/player_view.dart';
 import 'package:cuacfm/utils/radiocom_colors.dart';
@@ -133,11 +134,7 @@ class MyHomePageState extends State<MyHomePage>
           child: Center(
             child: SizedBox(
               height: 36,
-              child: CustomImage(
-                resPath: "assets/graphics/aber-radio-logo.png",
-                radius: 0.0,
-                background: false,
-              ),
+              child: const AberRadioWordmark(),
             ),
           ),
         ),
