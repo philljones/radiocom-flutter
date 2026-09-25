@@ -1,4 +1,7 @@
 class RadioStation {
+  static const String liveStreamUrl =
+      "https://stream.radiotyneside.co.uk/tyneside";
+
   String stationName;
   String iconUrl;
   String bigIconUrl;
@@ -28,7 +31,7 @@ class RadioStation {
         latitude = 43.327552,
         longitude = -8.4090277,
         newsRss = "https://cuacfm.org/feed/",
-        streamUrl = "http://streaming.cuacfm.org/cuacfm.mp3",
+        streamUrl = liveStreamUrl,
         facebookUrl = "https://www.facebook.com/cuacfm/",
         blueskyUrl = "https://bsky.app/profile/cuacfm.org";
 
@@ -41,7 +44,7 @@ class RadioStation {
         latitude = map["latitude"],
         longitude = map["longitude"],
         newsRss = map["news_rss"],
-        streamUrl = map["stream_url"],
+        streamUrl = liveStreamUrl,
         facebookUrl = map["facebook_url"],
         blueskyUrl = map["twitter_url"];
 }
