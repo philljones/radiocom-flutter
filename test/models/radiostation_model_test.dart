@@ -33,9 +33,9 @@ void main() {
 
       final station = RadioStation.fromInstance(map);
 
-      expect(station.stationName, equals('Aber Radio'));
-      expect(station.iconUrl, equals('assets/graphics/aber-radio-logo.png'));
-      expect(station.bigIconUrl, equals('assets/graphics/aber-radio-logo.png'));
+      expect(station.stationName, equals('Test FM'));
+      expect(station.iconUrl, equals('http://icon.jpg'));
+      expect(station.bigIconUrl, equals('http://big-icon.jpg'));
       expect(station.stationPhotos, hasLength(2));
       expect(station.history, contains('history'));
       expect(station.latitude, equals(40.0));

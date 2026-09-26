@@ -39,10 +39,10 @@ void main() {
 
       final now = Now.fromInstance(map);
 
-      expect(now.name, equals('Aber Radio Live'));
+      expect(now.name, equals('Morning Show'));
       expect(now.description, equals('A great morning show'));
-      expect(now.programmeUrl, equals('https://aberradio.com'));
-      expect(now.logoUrl, equals('assets/graphics/aber-radio-logo.png'));
+      expect(now.programmeUrl, equals('https://cuacfm.org/morning'));
+      expect(now.logoUrl, equals('https://cuacfm.org/logo.jpg'));
       expect(now.rssUrl, equals('https://cuacfm.org/feed.rss'));
     });
   });

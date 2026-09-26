@@ -16,10 +16,10 @@ class Now {
         rssUrl = "https://aberradio.com";
 
   Now.fromInstance(Map<String, dynamic> map)
-      : name = "Aber Radio Live",
+      : name = map["name"] ?? "Aber Radio Live",
         description = map["description"],
-        programmeUrl = "https://aberradio.com",
-        logoUrl = "assets/graphics/aber-radio-logo.png",
+        programmeUrl = map["programme_url"] ?? "https://aberradio.com",
+        logoUrl = map["logo_url"] ?? "assets/graphics/aber-radio-logo.png",
         rssUrl = map["rss_url"];
 
   String streamUrl() {

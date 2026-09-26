@@ -34,9 +34,10 @@ class RadioStation {
         blueskyUrl = "https://bsky.app/profile/cuacfm.org";
 
   RadioStation.fromInstance(Map<String, dynamic> map)
-      : stationName = "Aber Radio",
-        iconUrl = "assets/graphics/aber-radio-logo.png",
-        bigIconUrl = "assets/graphics/aber-radio-logo.png",
+      : stationName = map["station_name"] ?? "Aber Radio",
+        iconUrl = map["icon_url"] ?? "assets/graphics/aber-radio-logo.png",
+        bigIconUrl =
+            map["big_icon_url"] ?? "assets/graphics/aber-radio-logo.png",
         stationPhotos = map["station_photos"],
         history = map["history"],
         latitude = map["latitude"],
