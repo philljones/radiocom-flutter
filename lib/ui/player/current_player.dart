@@ -36,8 +36,7 @@ abstract class CurrentPlayerContract {
   AudioPlayer audioPlayer = Injector.appInstance.get<AudioPlayer>();
   String currentSong = ":";
   String currentSubtitle = "";
-  String currentImage =
-      "https://cuacfm.org/wp-content/uploads/2026/04/cuac_music_cover.png";
+  String currentImage = "https://aberradio.com/fb_cover_photo.png";
   bool isPodcast = false;
   String playbackSource = 'app';
   Duration duration = Duration(seconds: 0);
@@ -91,8 +90,7 @@ class CurrentPlayer implements CurrentPlayerContract {
   @override
   String currentSubtitle = "";
 
-  String _currentImage =
-      "https://cuacfm.org/wp-content/uploads/2026/04/cuac_music_cover.png";
+  String _currentImage = "https://aberradio.com/fb_cover_photo.png";
   @override
   String get currentImage => _currentImage;
   @override
@@ -102,10 +100,12 @@ class CurrentPlayer implements CurrentPlayerContract {
     _refreshNotificationMetadata();
   }
 
-  static const _fallbackArtUrl = "https://cuacfm.org/wp-content/uploads/2026/04/cuac_music_cover.png";
+  static const _fallbackArtUrl = "https://aberradio.com/fb_cover_photo.png";
   Uri get _artUri {
     final img = currentImage;
-    if (img.startsWith('assets/') || img.contains('default-programme-photo') || img.isEmpty) {
+    if (img.startsWith('assets/') ||
+        img.contains('default-programme-photo') ||
+        img.isEmpty) {
       return Uri.parse(_fallbackArtUrl);
     }
     return Uri.parse(img);
@@ -123,7 +123,8 @@ class CurrentPlayer implements CurrentPlayerContract {
     final name = currentSong.trim();
     final hasName = name.isNotEmpty && name != ":";
     return MediaItem(
-      id: urlToHashId(isPodcast ? episode?.audio ?? "" : now?.streamUrl() ?? ""),
+      id: urlToHashId(
+          isPodcast ? episode?.audio ?? "" : now?.streamUrl() ?? ""),
       album: isPodcast ? "Aber Radio Podcast" : "Aber Radio Live",
       title: isPodcast
           ? episode?.title ?? ""
@@ -197,19 +198,27 @@ class CurrentPlayer implements CurrentPlayerContract {
   }
 
   void _startWrappedSession() {
-    Injector.appInstance.get<Invoker>().execute(
-        Injector.appInstance.get<StartSessionUseCase>().withParams(
-            StartSessionParams(
+    Injector.appInstance
+        .get<Invoker>()
+        .execute(Injector.appInstance
+            .get<StartSessionUseCase>()
+            .withParams(StartSessionParams(
               isPodcast: isPodcast,
-              programName: isPodcast ? (currentSong.isNotEmpty ? currentSong : episode?.title ?? '') : '',
+              programName: isPodcast
+                  ? (currentSong.isNotEmpty
+                      ? currentSong
+                      : episode?.title ?? '')
+                  : '',
               category: '',
               episodeTitle: isPodcast ? episode?.title ?? '' : '',
               episodeId: isPodcast ? episode?.audio ?? '' : '',
-            ))).drain();
+            )))
+        .drain();
   }
 
   void _endWrappedSession() {
-    Injector.appInstance.get<Invoker>()
+    Injector.appInstance
+        .get<Invoker>()
         .execute(Injector.appInstance.get<EndSessionUseCase>())
         .drain();
   }
@@ -346,13 +355,19 @@ class CurrentPlayer implements CurrentPlayerContract {
   Future<void> _playNextInPlaylist() async {
     final invoker = Injector.appInstance.get<Invoker>();
     List<Map<String, dynamic>> items = [];
-    await for (final result in invoker.execute(Injector.appInstance.get<GetPlaylistUseCase>())) {
-      if (result is Success) items = List<Map<String, dynamic>>.from(result.data ?? []);
+    await for (final result
+        in invoker.execute(Injector.appInstance.get<GetPlaylistUseCase>())) {
+      if (result is Success)
+        items = List<Map<String, dynamic>>.from(result.data ?? []);
     }
     if (items.isEmpty) return;
 
     final next = items.first;
-    invoker.execute(Injector.appInstance.get<RemoveFromPlaylistUseCase>().withParams(next['audio'] as String)).drain();
+    invoker
+        .execute(Injector.appInstance
+            .get<RemoveFromPlaylistUseCase>()
+            .withParams(next['audio'] as String))
+        .drain();
 
     final nextEpisode = Episode.fromMap(next);
     isPodcast = true;
@@ -406,22 +421,24 @@ class CurrentPlayer implements CurrentPlayerContract {
           playerState = AudioPlayerState.play;
           if (onUpdate != null) onUpdate!();
           if (onConnection != null) onConnection!(false);
-        } else if (!event.playing && playerState == AudioPlayerState.play &&
+        } else if (!event.playing &&
+            playerState == AudioPlayerState.play &&
             event.processingState != ProcessingState.completed) {
           playerState = AudioPlayerState.pause;
           if (onUpdate != null) onUpdate!();
           if (onConnection != null) onConnection!(false);
         }
       }, onError: (Object e, StackTrace s) {
-        if (!isPodcast && !_userPaused &&
+        if (!isPodcast &&
+            !_userPaused &&
             playerState != AudioPlayerState.stop) {
           _scheduleLiveRetry();
         }
       });
 
       if (isPodcast) {
-
-        _durationSubscription = audioPlayer.durationStream.listen((Duration? d) {
+        _durationSubscription =
+            audioPlayer.durationStream.listen((Duration? d) {
           duration = d ?? Duration(hours: 1);
           if (onUpdate != null && duration > Duration.zero) {
             onUpdate!();

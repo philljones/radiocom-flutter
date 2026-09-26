@@ -75,7 +75,8 @@ class SettingsState extends State<Settings>
         statusBarIconBrightness: _isDark ? Brightness.light : Brightness.dark,
         systemNavigationBarColor: Colors.transparent,
         systemNavigationBarContrastEnforced: false,
-        systemNavigationBarIconBrightness: _isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness:
+            _isDark ? Brightness.light : Brightness.dark,
       ),
       child: Scaffold(
         key: scaffoldKey,
@@ -83,7 +84,8 @@ class SettingsState extends State<Settings>
           preferredSize: Size.fromHeight(60),
           child: Container(
             width: double.infinity,
-            padding: EdgeInsets.fromLTRB(0.0, _queryData.padding.top + 12.0, 0.0, 12.0),
+            padding: EdgeInsets.fromLTRB(
+                0.0, _queryData.padding.top + 12.0, 0.0, 12.0),
             decoration: BoxDecoration(
               color: _colors.palidwhite,
             ),
@@ -109,11 +111,15 @@ class SettingsState extends State<Settings>
                     ? _presenter.currentPlayer.currentSong
                     : null,
                 onDetailClicked: () {
-                  _presenter.onPodcastControlsClicked(_presenter.currentPlayer.episode);
+                  _presenter.onPodcastControlsClicked(
+                      _presenter.currentPlayer.episode);
                 },
                 onCloseClicked: () {
                   _presenter.currentPlayer.stop();
-                  if (mounted) setState(() { shouldShowPlayer = false; });
+                  if (mounted)
+                    setState(() {
+                      shouldShowPlayer = false;
+                    });
                 },
                 onMultimediaClicked: (isPlaying) {
                   if (!mounted) return;
@@ -270,10 +276,16 @@ class SettingsState extends State<Settings>
   @override
   void onDarkModeStatus(bool status) {
     _presenter.getThemeModeValue().then((value) {
-      if (mounted) setState(() { _themeValue = value; });
+      if (mounted)
+        setState(() {
+          _themeValue = value;
+        });
     });
     _presenter.getLocaleValue().then((value) {
-      if (mounted) setState(() { _localeValue = value; });
+      if (mounted)
+        setState(() {
+          _localeValue = value;
+        });
     });
   }
 
@@ -302,21 +314,34 @@ class SettingsState extends State<Settings>
 
   String _getLocaleLabel() {
     switch (_localeValue) {
-      case 'gl': return 'Galego';
-      case 'es': return 'Español';
-      case 'en': return 'English';
-      case 'pt': return 'Português';
-      default: return SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item3_system"]);
+      case 'gl':
+        return 'Galego';
+      case 'es':
+        return 'Español';
+      case 'en':
+        return 'English';
+      case 'pt':
+        return 'Português';
+      case 'cy':
+        return 'Cymraeg';
+      default:
+        return SafeMap.safe(_localization.translateMap("settings"),
+            ["config_section", "item3_system"]);
     }
   }
 
   void _showLanguageDialog() {
     final options = [
-      [null, SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item3_system"])],
+      [
+        null,
+        SafeMap.safe(_localization.translateMap("settings"),
+            ["config_section", "item3_system"])
+      ],
       ['gl', 'Galego'],
       ['es', 'Español'],
       ['en', 'English'],
       ['pt', 'Português'],
+      ['cy', 'Cymraeg'],
     ];
     showDialog(
       context: context,
@@ -324,8 +349,13 @@ class SettingsState extends State<Settings>
         backgroundColor: _colors.palidwhite,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
-          SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item3"]),
-          style: TextStyle(color: _colors.font, fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 0),
+          SafeMap.safe(_localization.translateMap("settings"),
+              ["config_section", "item3"]),
+          style: TextStyle(
+              color: _colors.font,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0),
         ),
         contentPadding: const EdgeInsets.symmetric(vertical: 8),
         content: Column(
@@ -341,7 +371,8 @@ class SettingsState extends State<Settings>
                 if (mounted) setState(() => _localeValue = value);
               },
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -350,11 +381,13 @@ class SettingsState extends State<Settings>
                       style: TextStyle(
                         color: selected ? _colors.yellow : _colors.font,
                         fontSize: 16,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w400,
                         letterSpacing: 0,
                       ),
                     ),
-                    if (selected) Icon(Icons.check, color: _colors.yellow, size: 20),
+                    if (selected)
+                      Icon(Icons.check, color: _colors.yellow, size: 20),
                   ],
                 ),
               ),
@@ -381,49 +414,55 @@ class SettingsState extends State<Settings>
             duration: const Duration(milliseconds: 120),
             curve: Curves.easeInOut,
             child: Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: isDark ? Color(0xFF6C5A13) : Color(0xFFF3E29C),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                FaIcon(FontAwesomeIcons.seedling, size: 32, color: isDark ? Color(0xFFFDCC03) : Color(0xFF1A1A1A)),
-                SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        SafeMap.safe(_localization.translateMap("settings"), ["rating_title"]),
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: _colors.font,
-                          letterSpacing: 0,
-                          height: 1.3,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: isDark ? Color(0xFF6C5A13) : Color(0xFFF3E29C),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  FaIcon(FontAwesomeIcons.seedling,
+                      size: 32,
+                      color: isDark ? Color(0xFFFDCC03) : Color(0xFF1A1A1A)),
+                  SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          SafeMap.safe(_localization.translateMap("settings"),
+                              ["rating_title"]),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: _colors.font,
+                            letterSpacing: 0,
+                            height: 1.3,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 6),
-                      Text(
-                        SafeMap.safe(_localization.translateMap("settings"), ["rating_body"]),
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w400,
-                          color: _colors.font,
-                          letterSpacing: 0,
-                          height: 1.4,
+                        SizedBox(height: 6),
+                        Text(
+                          SafeMap.safe(_localization.translateMap("settings"),
+                              ["rating_body"]),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w400,
+                            color: _colors.font,
+                            letterSpacing: 0,
+                            height: 1.4,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                Icon(Icons.chevron_right, color: isDark ? Color(0xFFFDCC03) : Color(0xFF1A1A1A), size: 32),
-              ],
+                  Icon(Icons.chevron_right,
+                      color: isDark ? Color(0xFFFDCC03) : Color(0xFF1A1A1A),
+                      size: 32),
+                ],
+              ),
             ),
-          ),
           ),
         ),
         Positioned(
@@ -488,559 +527,654 @@ class SettingsState extends State<Settings>
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                  SizedBox(height: 20),
-                  // ── RATING CARD ───────────────────────────────────────────
-                  if (_showRatingCard) ...[
-                    _buildRatingCard(),
-                    SizedBox(height: 16),
-                  ],
-                  // ── ALERTAS ──────────────────────────────────────────────
-                  Material(
-                    color: _colors.transparent,
-                    child: InkWell(
-                      onTap: () {
-                        setState(() => _alertsUnread = 0);
-                        _presenter.onAlertsClicked();
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: _colors.palidwhitedark,
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              SafeMap.safe(_localization.translateMap("settings"), ["alerts_section", "name"]),
-                              style: TextStyle(letterSpacing: 0, color: _colors.font, fontWeight: FontWeight.w600, fontSize: 18),
+                      SizedBox(height: 20),
+                      // ── RATING CARD ───────────────────────────────────────────
+                      if (_showRatingCard) ...[
+                        _buildRatingCard(),
+                        SizedBox(height: 16),
+                      ],
+                      // ── ALERTAS ──────────────────────────────────────────────
+                      Material(
+                        color: _colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            setState(() => _alertsUnread = 0);
+                            _presenter.onAlertsClicked();
+                          },
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: _colors.palidwhitedark,
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            Row(
-                              children: [
-                                if (_alertsUnread > 0)
-                                  Container(
-                                    width: 20,
-                                    height: 20,
-                                    decoration: const BoxDecoration(
-                                      color: Colors.red,
-                                      shape: BoxShape.circle,
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Text(
-                                      '$_alertsUnread',
-                                      style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w700),
-                                    ),
-                                  ),
-                                if (_alertsUnread > 0) const SizedBox(width: 8),
-                                Icon(Icons.chevron_right, color: _colors.grey, size: 22),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  // ── CONFIGURATION ────────────────────────────────────────
-                  Container(
-                    decoration: BoxDecoration(
-                      color: _colors.palidwhitedark,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          SafeMap.safe(_localization.translateMap("settings"),
-                              ["config_section", "name"]),
-                          style: TextStyle(
-                              letterSpacing: 0,
-                              color: _colors.font,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 18),
-                        ),
-                        SizedBox(height: 14),
-                        // Tema
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item1"]),
-                              style: TextStyle(letterSpacing: 0, color: _colors.font, fontWeight: FontWeight.w400, fontSize: 16),
-                            ),
-                            Row(
-                              children: [
-                                _themeChip('light', SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item1_light"])),
-                                SizedBox(width: 6),
-                                _themeChip('dark', SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item1_dark"])),
-                                SizedBox(width: 6),
-                                _themeChip('system', SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item1_system"])),
-                              ],
-                            ),
-                          ],
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Divider(height: 1, color: _colors.grey.withValues(alpha: 0.2)),
-                        ),
-                        // Idioma
-                        GestureDetector(
-                          onTap: () => _showLanguageDialog(),
-                          child: SizedBox(
-                            height: 48,
+                            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item3"]),
-                                  style: TextStyle(letterSpacing: 0, color: _colors.font, fontWeight: FontWeight.w400, fontSize: 16),
+                                  SafeMap.safe(
+                                      _localization.translateMap("settings"),
+                                      ["alerts_section", "name"]),
+                                  style: TextStyle(
+                                      letterSpacing: 0,
+                                      color: _colors.font,
+                                      fontWeight: FontWeight.w600,
+                                      fontSize: 18),
                                 ),
                                 Row(
                                   children: [
-                                    Text(
-                                      _getLocaleLabel(),
-                                      style: TextStyle(letterSpacing: 0, color: _colors.font, fontWeight: FontWeight.w400, fontSize: 16),
-                                    ),
-                                    SizedBox(width: 4),
-                                    Icon(Icons.keyboard_arrow_down, color: _colors.font, size: 20),
+                                    if (_alertsUnread > 0)
+                                      Container(
+                                        width: 20,
+                                        height: 20,
+                                        decoration: const BoxDecoration(
+                                          color: Colors.red,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          '$_alertsUnread',
+                                          style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700),
+                                        ),
+                                      ),
+                                    if (_alertsUnread > 0)
+                                      const SizedBox(width: 8),
+                                    Icon(Icons.chevron_right,
+                                        color: _colors.grey, size: 22),
                                   ],
                                 ),
                               ],
                             ),
                           ),
                         ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Divider(height: 1, color: _colors.grey.withValues(alpha: 0.2)),
-                        ),
-                        // Schedule info
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item2"]),
-                              style: TextStyle(letterSpacing: 0, color: _colors.font, fontWeight: FontWeight.w400, fontSize: 16),
-                            ),
-                            Switch(
-                              value: isLiveNotificationEnabled,
-                              onChanged: !pushNotificationsEnabled ? null : (value) {
-                                _presenter.onLiveNotificationStatus(value);
-                                setState(() => isLiveNotificationEnabled = value);
-                              },
-                              activeTrackColor: _colors.yellow,
-                              activeThumbColor: Color(0xFF1A1A1A),
-                            ),
-                          ],
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 10),
-                          child: Divider(height: 1, color: _colors.grey.withValues(alpha: 0.2)),
-                        ),
-                        // Pausar alertas
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              SafeMap.safe(_localization.translateMap("settings"), ["config_section", "item4"]),
-                              style: TextStyle(letterSpacing: 0, color: _colors.font, fontWeight: FontWeight.w400, fontSize: 16),
-                            ),
-                            Switch(
-                              value: _notificationsPaused,
-                              onChanged: pushNotificationsEnabled ? _toggleNotificationsPaused : null,
-                              activeTrackColor: _colors.yellow,
-                              activeThumbColor: Color(0xFF1A1A1A),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  // ── JOIN US ──────────────────────────────────────────────
-                  GestureDetector(
-                    onTap: () => _presenter.onWebPageClicked(
-                        "https://cuacfm.org/asociacion-cuac/unete/"),
-                    child: Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        color: _isDark ? Color(0xFF6C5A13) : Color(0xFFF3E29C),
-                        borderRadius: BorderRadius.circular(16),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 16),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
+                      SizedBox(height: 16),
+                      // ── CONFIGURATION ────────────────────────────────────────
+                      Container(
+                        decoration: BoxDecoration(
+                          color: _colors.palidwhitedark,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              SafeMap.safe(
+                                  _localization.translateMap("settings"),
+                                  ["config_section", "name"]),
+                              style: TextStyle(
+                                  letterSpacing: 0,
+                                  color: _colors.font,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 18),
+                            ),
+                            SizedBox(height: 14),
+                            // Tema
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  SafeMap.safe(
+                                      _localization.translateMap("settings"),
+                                      ["config_section", "item1"]),
+                                  style: TextStyle(
+                                      letterSpacing: 0,
+                                      color: _colors.font,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16),
+                                ),
+                                Row(
+                                  children: [
+                                    _themeChip(
+                                        'light',
+                                        SafeMap.safe(
+                                            _localization
+                                                .translateMap("settings"),
+                                            ["config_section", "item1_light"])),
+                                    SizedBox(width: 6),
+                                    _themeChip(
+                                        'dark',
+                                        SafeMap.safe(
+                                            _localization
+                                                .translateMap("settings"),
+                                            ["config_section", "item1_dark"])),
+                                    SizedBox(width: 6),
+                                    _themeChip(
+                                        'system',
+                                        SafeMap.safe(
+                                            _localization
+                                                .translateMap("settings"),
+                                            [
+                                              "config_section",
+                                              "item1_system"
+                                            ])),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Divider(
+                                  height: 1,
+                                  color: _colors.grey.withValues(alpha: 0.2)),
+                            ),
+                            // Idioma
+                            GestureDetector(
+                              onTap: () => _showLanguageDialog(),
                               child: SizedBox(
-                                width: double.infinity,
-                                height: 180,
-                                child: CustomImage(
-                                  radius: 0,
-                                  background: false,
-                                  fit: BoxFit.cover,
-                                  resPath: "assets/graphics/joinus.jpg",
+                                height: 48,
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      SafeMap.safe(
+                                          _localization
+                                              .translateMap("settings"),
+                                          ["config_section", "item3"]),
+                                      style: TextStyle(
+                                          letterSpacing: 0,
+                                          color: _colors.font,
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 16),
+                                    ),
+                                    Row(
+                                      children: [
+                                        Text(
+                                          _getLocaleLabel(),
+                                          style: TextStyle(
+                                              letterSpacing: 0,
+                                              color: _colors.font,
+                                              fontWeight: FontWeight.w400,
+                                              fontSize: 16),
+                                        ),
+                                        SizedBox(width: 4),
+                                        Icon(Icons.keyboard_arrow_down,
+                                            color: _colors.font, size: 20),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-                            child: RichText(
-                              text: TextSpan(
-                                style: TextStyle(letterSpacing: 0, color: _colors.font, fontSize: 16),
-                                children: [
-                                  TextSpan(
-                                    text: SafeMap.safe(_localization.translateMap("home"), ["join_msg_detail"]),
-                                    style: TextStyle(fontWeight: FontWeight.w400),
-                                  ),
-                                  TextSpan(
-                                    text: ' · ',
-                                    style: TextStyle(fontWeight: FontWeight.w400),
-                                  ),
-                                  TextSpan(
-                                    text: SafeMap.safe(_localization.translateMap("home"), ["join_msg"]).toUpperCase(),
-                                    style: TextStyle(fontWeight: FontWeight.w700),
-                                  ),
-                                ],
-                              ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Divider(
+                                  height: 1,
+                                  color: _colors.grey.withValues(alpha: 0.2)),
                             ),
-                          ),
-                        ],
+                            // Schedule info
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  SafeMap.safe(
+                                      _localization.translateMap("settings"),
+                                      ["config_section", "item2"]),
+                                  style: TextStyle(
+                                      letterSpacing: 0,
+                                      color: _colors.font,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16),
+                                ),
+                                Switch(
+                                  value: isLiveNotificationEnabled,
+                                  onChanged: !pushNotificationsEnabled
+                                      ? null
+                                      : (value) {
+                                          _presenter
+                                              .onLiveNotificationStatus(value);
+                                          setState(() =>
+                                              isLiveNotificationEnabled =
+                                                  value);
+                                        },
+                                  activeTrackColor: _colors.yellow,
+                                  activeThumbColor: Color(0xFF1A1A1A),
+                                ),
+                              ],
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10),
+                              child: Divider(
+                                  height: 1,
+                                  color: _colors.grey.withValues(alpha: 0.2)),
+                            ),
+                            // Pausar alertas
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  SafeMap.safe(
+                                      _localization.translateMap("settings"),
+                                      ["config_section", "item4"]),
+                                  style: TextStyle(
+                                      letterSpacing: 0,
+                                      color: _colors.font,
+                                      fontWeight: FontWeight.w400,
+                                      fontSize: 16),
+                                ),
+                                Switch(
+                                  value: _notificationsPaused,
+                                  onChanged: pushNotificationsEnabled
+                                      ? _toggleNotificationsPaused
+                                      : null,
+                                  activeTrackColor: _colors.yellow,
+                                  activeThumbColor: Color(0xFF1A1A1A),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  // ── STATION ──────────────────────────────────────────────
-                  Text(
-                    SafeMap.safe(_localization.translateMap("settings"),
-                        ["station_section", "name"]),
-                    maxLines: 1,
-                    textAlign: TextAlign.left,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        letterSpacing: 0,
-                        color: _colors.font,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18),
-                  ),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter.onHistoryClicked(_radioStation.history);
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["station_section", "item1"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
+                      SizedBox(height: 20),
+                      // ── JOIN US ──────────────────────────────────────────────
+                      GestureDetector(
+                        onTap: () => _presenter.onWebPageClicked(
+                            "https://cuacfm.org/asociacion-cuac/unete/"),
+                        child: Container(
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color:
+                                _isDark ? Color(0xFF6C5A13) : Color(0xFFF3E29C),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              SizedBox(height: 16),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: SizedBox(
+                                    width: double.infinity,
+                                    height: 180,
+                                    child: CustomImage(
+                                      radius: 0,
+                                      background: false,
+                                      fit: BoxFit.cover,
+                                      resPath: "assets/graphics/joinus.jpg",
+                                    ),
+                                  ),
+                                ),
                               ),
-                              trailing: Icon(Icons.radio,
-                                  color: _colors.grey, size: 25.0)))),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter.onGalleryClicked();
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["station_section", "item2"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                                child: RichText(
+                                  text: TextSpan(
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontSize: 16),
+                                    children: [
+                                      TextSpan(
+                                        text: SafeMap.safe(
+                                            _localization.translateMap("home"),
+                                            ["join_msg_detail"]),
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w400),
+                                      ),
+                                      TextSpan(
+                                        text: ' · ',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w400),
+                                      ),
+                                      TextSpan(
+                                        text: SafeMap.safe(
+                                            _localization.translateMap("home"),
+                                            ["join_msg"]).toUpperCase(),
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.w700),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ),
-                              trailing: FaIcon(FontAwesomeIcons.images,
-                                  color: _colors.grey, size: 25.0)))),
-                  SizedBox(height: 20),
-                  Text(
-                    SafeMap.safe(_localization.translateMap("settings"),
-                        ["social_section", "name"]),
-                    maxLines: 1,
-                    textAlign: TextAlign.left,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        letterSpacing: 0,
-                        color: _colors.font,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18),
-                  ),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter
-                                .onFacebookClicked(_radioStation.facebookUrl);
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["social_section", "item1"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: FaIcon(FontAwesomeIcons.facebook,
-                                  color: _colors.grey, size: 25.0)))),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter
-                                .onTwitterClicked(_radioStation.blueskyUrl);
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["social_section", "item2"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: FaIcon(FontAwesomeIcons.comment,
-                                  color: _colors.grey, size: 25.0)))),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter.onInstagramClicked();
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["social_section", "item3"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: FaIcon(FontAwesomeIcons.instagram,
-                                  color: _colors.grey, size: 25.0)))),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter.onTikTokClicked();
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["social_section", "item4"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: FaIcon(FontAwesomeIcons.tiktok,
-                                  color: _colors.grey, size: 25.0)))),
-                  SizedBox(height: 15),
-                  Text(
-                    SafeMap.safe(_localization.translateMap("settings"),
-                        ["more_info_section", "name"]),
-                    maxLines: 1,
-                    textAlign: TextAlign.left,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        letterSpacing: 0,
-                        color: _colors.font,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18),
-                  ),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter.onWebPageClicked("https://cuacfm.org");
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["more_info_section", "item1"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: Icon(Icons.language,
-                                  color: _colors.grey, size: 25.0)))),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter.onMapsClicked(_radioStation.latitude,
-                                _radioStation.longitude);
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["more_info_section", "item2"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: FaIcon(FontAwesomeIcons.map,
-                                  color: _colors.grey, size: 25.0)))),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () => _presenter.onMailClicked("comunicacion@cuacfm.org"),
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(_localization.translateMap("settings"), ["more_info_section", "item3"]),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: FaIcon(FontAwesomeIcons.envelope,
-                                  color: _colors.grey, size: 25.0)))),
-                  SizedBox(height: 15),
-                  Text(
-                    SafeMap.safe(_localization.translateMap("settings"),
-                        ["legal_info_section", "name"]),
-                    maxLines: 1,
-                    textAlign: TextAlign.left,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        letterSpacing: 0,
-                        color: _colors.font,
-                        fontWeight: FontWeight.w600,
-                        fontSize: 18),
-                  ),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter.onPrivacyClicked();
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["legal_info_section", "item1"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: FaIcon(FontAwesomeIcons.userSecret,
-                                  color: _colors.grey, size: 25.0)))),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter.onTermsClicked();
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["legal_info_section", "item2"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: FaIcon(
-                                  FontAwesomeIcons.fileContract,
-                                  color: _colors.grey,
-                                  size: 25.0)))),
-                  Material(
-                      color: _colors.transparent,
-                      child: InkWell(
-                          onTap: () {
-                            _presenter.onSoftwareLicenseClicked();
-                          },
-                          child: ListTile(
-                              contentPadding: EdgeInsets.symmetric(horizontal: 0),
-                              title: Text(
-                                SafeMap.safe(
-                                    _localization.translateMap("settings"),
-                                    ["legal_info_section", "item3"]),
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    letterSpacing: 0,
-                                    color: _colors.font,
-                                    fontWeight: FontWeight.w400,
-                                    fontSize: 16),
-                              ),
-                              trailing: FaIcon(FontAwesomeIcons.fileCode,
-                                  color: _colors.grey, size: 25.0)))),
-                  SizedBox(height: 32),
-                  Center(
-                    child: Image.asset(
-                      "assets/graphics/cuac-utilidade-publica.png",
-                      width: 120,
-                      height: 120,
-                    ),
-                  ),
-                  SizedBox(height: 80)
-                ]))));
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+                      // ── STATION ──────────────────────────────────────────────
+                      Text(
+                        SafeMap.safe(_localization.translateMap("settings"),
+                            ["station_section", "name"]),
+                        maxLines: 1,
+                        textAlign: TextAlign.left,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            letterSpacing: 0,
+                            color: _colors.font,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18),
+                      ),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter
+                                    .onHistoryClicked(_radioStation.history);
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["station_section", "item1"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: Icon(Icons.radio,
+                                      color: _colors.grey, size: 25.0)))),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter.onGalleryClicked();
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["station_section", "item2"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(FontAwesomeIcons.images,
+                                      color: _colors.grey, size: 25.0)))),
+                      SizedBox(height: 20),
+                      Text(
+                        SafeMap.safe(_localization.translateMap("settings"),
+                            ["social_section", "name"]),
+                        maxLines: 1,
+                        textAlign: TextAlign.left,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            letterSpacing: 0,
+                            color: _colors.font,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18),
+                      ),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter.onFacebookClicked(
+                                    _radioStation.facebookUrl);
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["social_section", "item1"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(FontAwesomeIcons.facebook,
+                                      color: _colors.grey, size: 25.0)))),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter
+                                    .onTwitterClicked(_radioStation.blueskyUrl);
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["social_section", "item2"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(FontAwesomeIcons.comment,
+                                      color: _colors.grey, size: 25.0)))),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter.onInstagramClicked();
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["social_section", "item3"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(FontAwesomeIcons.instagram,
+                                      color: _colors.grey, size: 25.0)))),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter.onTikTokClicked();
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["social_section", "item4"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(FontAwesomeIcons.tiktok,
+                                      color: _colors.grey, size: 25.0)))),
+                      SizedBox(height: 15),
+                      Text(
+                        SafeMap.safe(_localization.translateMap("settings"),
+                            ["more_info_section", "name"]),
+                        maxLines: 1,
+                        textAlign: TextAlign.left,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            letterSpacing: 0,
+                            color: _colors.font,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18),
+                      ),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter
+                                    .onWebPageClicked("https://aberradio.com");
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["more_info_section", "item1"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: Icon(Icons.language,
+                                      color: _colors.grey, size: 25.0)))),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter.onMapsClicked(_radioStation.latitude,
+                                    _radioStation.longitude);
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["more_info_section", "item2"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(FontAwesomeIcons.map,
+                                      color: _colors.grey, size: 25.0)))),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () => _presenter
+                                  .onMailClicked("studio@aberradio.com"),
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["more_info_section", "item3"]),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(FontAwesomeIcons.envelope,
+                                      color: _colors.grey, size: 25.0)))),
+                      SizedBox(height: 15),
+                      Text(
+                        SafeMap.safe(_localization.translateMap("settings"),
+                            ["legal_info_section", "name"]),
+                        maxLines: 1,
+                        textAlign: TextAlign.left,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            letterSpacing: 0,
+                            color: _colors.font,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 18),
+                      ),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter.onPrivacyClicked();
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["legal_info_section", "item1"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(FontAwesomeIcons.userSecret,
+                                      color: _colors.grey, size: 25.0)))),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter.onTermsClicked();
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["legal_info_section", "item2"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(
+                                      FontAwesomeIcons.fileContract,
+                                      color: _colors.grey,
+                                      size: 25.0)))),
+                      Material(
+                          color: _colors.transparent,
+                          child: InkWell(
+                              onTap: () {
+                                _presenter.onSoftwareLicenseClicked();
+                              },
+                              child: ListTile(
+                                  contentPadding:
+                                      EdgeInsets.symmetric(horizontal: 0),
+                                  title: Text(
+                                    SafeMap.safe(
+                                        _localization.translateMap("settings"),
+                                        ["legal_info_section", "item3"]),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                        letterSpacing: 0,
+                                        color: _colors.font,
+                                        fontWeight: FontWeight.w400,
+                                        fontSize: 16),
+                                  ),
+                                  trailing: FaIcon(FontAwesomeIcons.fileCode,
+                                      color: _colors.grey, size: 25.0)))),
+                      SizedBox(height: 80)
+                    ]))));
   }
-
 }

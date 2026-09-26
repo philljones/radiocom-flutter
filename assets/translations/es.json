@@ -1,147 +1,152 @@
 {
-  "home" : {
-    "welcome_msg_1" : "Buenos días",
-    "welcome_msg_2" : "Buenas tardes",
-    "welcome_msg_3" : "Buenas noches",
-    "outstanding_msg" : "Actualidad",
-    "live_msg" : "Escuchar en Directo",
-    "recent_msg" : "Nuevo esta semana",
-    "podcast_recent_msg" : "Podcasts recientes",
-    "join_msg" : "Únete",
-    "join_msg_detail" : "¿Quieres hacer radio?",
-    "podcast_of_day_msg" : "Descubre podcasts",
-    "now_msg" : "Programación",
-    "schedule_now" : "Ahora",
-    "schedule_next" : "A continuación",
-    "tab_home" : "Inicio",
-    "tab_podcasts" : "Podcasts",
-    "tab_news" : "Noticias",
-    "tab_favourites" : "Favoritos",
-    "tab_menu" : "Menú",
-    "favourites_empty" : "Aún no tienes favoritos.",
-    "empty_podcast" : "No hay podcast recientes ahora mismo.",
-    "news" : "Noticias",
-    "news_error" : "No podemos cargar las noticias ahora mismo.",
-    "podcast" : "Podcasts",
-    "podcast_error" : "No podemos cargar los podcast en este momento",
-    "categories" : "Categorías",
-    "see_all" : "Ver todos"
+  "home": {
+    "welcome_msg_1": "Buenos días",
+    "welcome_msg_2": "Buenas tardes",
+    "welcome_msg_3": "Buenas noches",
+    "outstanding_msg": "Actualidad",
+    "live_msg": "Escuchar en Directo",
+    "recent_msg": "Nuevo esta semana",
+    "podcast_recent_msg": "Podcasts recientes",
+    "join_msg": "Únete",
+    "join_msg_detail": "¿Quieres hacer radio?",
+    "podcast_of_day_msg": "Descubre podcasts",
+    "now_msg": "Programación",
+    "schedule_now": "Ahora",
+    "schedule_next": "A continuación",
+    "tab_home": "Inicio",
+    "tab_podcasts": "Podcasts",
+    "tab_news": "Noticias",
+    "tab_favourites": "Favoritos",
+    "tab_menu": "Menú",
+    "favourites_empty": "Aún no tienes favoritos.",
+    "empty_podcast": "No hay podcast recientes ahora mismo.",
+    "news": "Noticias",
+    "news_error": "No podemos cargar las noticias ahora mismo.",
+    "podcast": "Podcasts",
+    "podcast_error": "No podemos cargar los podcast en este momento",
+    "categories": "Categorías",
+    "see_all": "Ver todos"
   },
-  "podcast_controls" : {
-    "msg" : "Streming en directo de la radio comunitaria de A Coruña. 103.4 FM. Para más información visita: www.cuacfm.org",
-    "auto_off_active" : "Apagado: ",
-    "auto_off_inactive" : "Autoapagado",
-    "faster_inactive" : "Velocidad",
-    "faster_active" : "Faster: "
+  "podcast_controls": {
+    "msg": "Emisión en directo de Aber Radio. Para más información visita aberradio.com",
+    "auto_off_active": "Apagado: ",
+    "auto_off_inactive": "Autoapagado",
+    "faster_inactive": "Velocidad",
+    "faster_active": "Faster: "
   },
-  "timetable" : {
-    "title" : "Programación",
-    "mon" : "Lun", "tue" : "Mar", "wed" : "Mie",
-    "thu" : "Jue", "fri" : "Vie", "sat" : "Sáb", "sun" : "Dom"
+  "timetable": {
+    "title": "Programación",
+    "mon": "Lun",
+    "tue": "Mar",
+    "wed": "Mie",
+    "thu": "Jue",
+    "fri": "Vie",
+    "sat": "Sáb",
+    "sun": "Dom"
   },
-  "all_podcast" : {
-    "title" :  "Todos los podcasts",
-    "search" : "Buscar podcast"
+  "all_podcast": {
+    "title": "Todos los podcasts",
+    "search": "Buscar podcast"
   },
-  "podcast_detail" : {
-    "empty_msg" : "<p> No hay descripción todavía.</p> <br/><br/><img src=\"https://cuacfm.org/wp-content/uploads/2025/05/cuacfm-banner-top-2.png\">",
-    "empty_episodes_msg" : "No hay episodios en este momento.",
-    "no_description" : "Todavía no hay descripción para este episodio.",
-    "no_news_description" : "Todavía no hay contenido para esta noticia.",
-    "alerts" : "Alertas"
+  "podcast_detail": {
+    "empty_msg": "",
+    "empty_episodes_msg": "No hay episodios en este momento.",
+    "no_description": "Todavía no hay descripción para este episodio.",
+    "no_news_description": "Todavía no hay contenido para esta noticia.",
+    "alerts": "Alertas"
   },
-  "new" : {
-    "history_title" : "Historia de CUAC FM",
-    "minutes_ago" : "Hace %s min",
-    "hours_ago" : "Hace %s h",
-    "yesterday" : "Ayer",
-    "days_ago" : "Hace %s días"
+  "new": {
+    "history_title": "Acerca de Aber Radio",
+    "minutes_ago": "Hace %s min",
+    "hours_ago": "Hace %s h",
+    "yesterday": "Ayer",
+    "days_ago": "Hace %s días"
   },
-  "settings" : {
-    "rating_title" : "¿Estás disfrutando de la app y de nuestras emisiones?",
-    "rating_body" : "Por favor, considera valorarnos en la tienda de aplicaciones para que más gente descubra CUAC.",
-    "station_section" : {
-      "name" : "EMISORA",
-      "item1" : "Historia",
-      "item2" : "Galería"
+  "settings": {
+    "rating_title": "¿Estás disfrutando de la app y de nuestras emisiones?",
+    "rating_body": "Considera valorarnos en la tienda de aplicaciones para que más gente descubra Aber Radio.",
+    "station_section": {
+      "name": "EMISORA",
+      "item1": "Historia",
+      "item2": "Galería"
     },
-    "alerts_section" : {
-      "name" : "Alertas",
-      "empty" : "No hay alertas este mes."
+    "alerts_section": {
+      "name": "Alertas",
+      "empty": "No hay alertas este mes."
     },
-    "config_section" : {
-      "name" : "CONFIGURACIÓN",
-      "item1" : "Tema",
-      "item1_light" : "Claro",
-      "item1_dark" : "Oscuro",
-      "item1_system" : "Sistema",
-      "item2" : "Información de parrilla",
-      "item4" : "Pausar alertas",
-      "item3" : "Idioma",
-      "item3_system" : "Sistema"
+    "config_section": {
+      "name": "CONFIGURACIÓN",
+      "item1": "Tema",
+      "item1_light": "Claro",
+      "item1_dark": "Oscuro",
+      "item1_system": "Sistema",
+      "item2": "Información de parrilla",
+      "item4": "Pausar alertas",
+      "item3": "Idioma",
+      "item3_system": "Sistema"
     },
-    "social_section" : {
-      "name" : "REDES SOCIALES",
-      "item1" : "Facebook",
-      "item2" : "Bluesky",
-      "item3" : "Instagram",
-      "item4" : "TikTok"
+    "social_section": {
+      "name": "REDES SOCIALES",
+      "item1": "Facebook",
+      "item2": "Bluesky",
+      "item3": "Instagram",
+      "item4": "TikTok"
     },
-    "more_info_section" : {
-      "name" : "MÁS INFORMACIÓN",
-      "item1" : "Página web",
-      "item2" : "Localización",
-      "item3" : "Contactar"
+    "more_info_section": {
+      "name": "MÁS INFORMACIÓN",
+      "item1": "Página web",
+      "item2": "Localización",
+      "item3": "Contactar"
     },
-    "legal_info_section" : {
-      "name" : "LEGAL",
-      "item1" : "Política de privacidad",
-      "item2" : "Términos de uso",
-      "item3" : "Licencias de software"
+    "legal_info_section": {
+      "name": "LEGAL",
+      "item1": "Política de privacidad",
+      "item2": "Términos de uso",
+      "item3": "Licencias de software"
     }
   },
-  "error" : {
-    "title" : "Error",
-    "message" : "Whooops hubo un problema no esperado :(",
-    "internet_error" : "No dispones de conexión a internet",
-    "connection_error" : "No podemos conectar con el servidor en este momento",
-    "podcast_not_ready" : "El contenido aún está cargando, inténtalo en unos instantes"
+  "error": {
+    "title": "Error",
+    "message": "Whooops hubo un problema no esperado :(",
+    "internet_error": "No dispones de conexión a internet",
+    "connection_error": "No podemos conectar con el servidor en este momento",
+    "podcast_not_ready": "El contenido aún está cargando, inténtalo en unos instantes"
   },
-  "actions" : {
-    "close" : "Cerrar",
-    "see_more" : "Ver más",
-    "see_less" : "Ver menos",
-    "add_favourite" : "Favorito",
-    "share" : "Compartir",
-    "program" : "Programa",
-    "last_episode" : "Último ep.:",
-    "share_episode" : "🎙 Programa: %s\n📻 Escucha el episodio: %s\n🔗 ",
-    "share_program" : "🎙 %s en CUAC FM\n🔗 "
+  "actions": {
+    "close": "Cerrar",
+    "see_more": "Ver más",
+    "see_less": "Ver menos",
+    "add_favourite": "Favorito",
+    "share": "Compartir",
+    "program": "Programa",
+    "last_episode": "Último ep.:",
+    "share_episode": "🎙 Programa: %s\n📻 Escucha el episodio: %s\n🔗 ",
+    "share_program": "🎙 %s en Aber Radio\n🔗 "
   },
-  "general" : {
-    "minutes" : " minutos.",
-    "seconds" : " segundos.",
-    "from" : "De ",
-    "to" : " a ",
-    "season" : "Temporada",
-    "episode" : "Episodio"
+  "general": {
+    "minutes": " minutos.",
+    "seconds": " segundos.",
+    "from": "De ",
+    "to": " a ",
+    "season": "Temporada",
+    "episode": "Episodio"
   },
-  "categories" : {
-    "others" : "Otros",
-    "tv" : "Cine y series",
-    "news" : "Noticias y política",
-    "sport" : "Deportes",
-    "magazine" : "Magazine",
-    "edu" : "Educativo",
-    "comedy" : "Humor",
-    "music" : "Música",
-    "science" : "Ciencia",
-    "art" : "Arte",
-    "goverment" : "Gobierno y Org.",
-    "health" : "Salud",
-    "tech" : "Tecnología"
+  "categories": {
+    "others": "Otros",
+    "tv": "Cine y series",
+    "news": "Noticias y política",
+    "sport": "Deportes",
+    "magazine": "Magazine",
+    "edu": "Educativo",
+    "comedy": "Humor",
+    "music": "Música",
+    "science": "Ciencia",
+    "art": "Arte",
+    "goverment": "Gobierno y Org.",
+    "health": "Salud",
+    "tech": "Tecnología"
   },
-  "days" : {
+  "days": {
     "mon": "Lunes",
     "tue": "Martes",
     "wed": "Miércoles",
@@ -150,18 +155,18 @@
     "sat": "Sábado",
     "sun": "Domingo"
   },
-  "months" : {
-    "jan" : "ene",
-    "feb" : "feb",
-    "mar" : "mar",
-    "apr" : "abr",
-    "may" : "may",
-    "jun" : "jun",
-    "jul" : "jul",
-    "ago" : "ago",
-    "sep" : "sep",
-    "oct" : "oct",
-    "nov" : "nov",
-    "dec" : "dec"
+  "months": {
+    "jan": "ene",
+    "feb": "feb",
+    "mar": "mar",
+    "apr": "abr",
+    "may": "may",
+    "jun": "jun",
+    "jul": "jul",
+    "ago": "ago",
+    "sep": "sep",
+    "oct": "oct",
+    "nov": "nov",
+    "dec": "dec"
   }
 }

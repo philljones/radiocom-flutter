@@ -29,7 +29,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (message.data['type'] == 'new_episode') {
     await AlertsLocalDataSource.saveFromBackground({
       'programName': message.notification?.title ?? '',
-      'programLogoUrl': message.notification?.android?.imageUrl ?? message.data['logo_url'] ?? '',
+      'programLogoUrl': message.notification?.android?.imageUrl ??
+          message.data['logo_url'] ??
+          '',
       'rssUrl': message.data['rss_url'] ?? '',
       'episodeTitle': message.notification?.body ?? '',
       'episodeId': message.data['episode_id'] ?? '',
@@ -57,38 +59,42 @@ void main() async {
   Injector.appInstance.get<AlertsRepositoryContract>().cleanOldAlerts();
 
   if (pushNotificationsEnabled) {
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await FirebaseMessaging.instance.requestPermission();
-  // Notificación cando a app estaba pechada
-  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-  if (initialMessage != null) {
-    final rssUrl = initialMessage.data['rss_url'] as String?;
-    final episodeId = initialMessage.data['episode_id'] as String?;
-    if (rssUrl != null) pendingNotificationRssUrl.value = rssUrl;
-    if (episodeId != null) pendingNotificationEpisodeId.value = episodeId;
-  }
-
-  // Notificación en primeiro plano — gardar no historial
-  FirebaseMessaging.onMessage.listen((message) {
-    if (message.data['type'] == 'new_episode') {
-      Injector.appInstance.get<AlertsRepositoryContract>().saveFromForeground({
-        'programName': message.notification?.title ?? '',
-        'programLogoUrl': message.notification?.android?.imageUrl ?? message.data['logo_url'] ?? '',
-        'rssUrl': message.data['rss_url'] ?? '',
-        'episodeTitle': message.notification?.body ?? '',
-        'episodeId': message.data['episode_id'] ?? '',
-        'receivedAt': DateTime.now().toIso8601String(),
-      });
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    await FirebaseMessaging.instance.requestPermission();
+    // Notificación cando a app estaba pechada
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      final rssUrl = initialMessage.data['rss_url'] as String?;
+      final episodeId = initialMessage.data['episode_id'] as String?;
+      if (rssUrl != null) pendingNotificationRssUrl.value = rssUrl;
+      if (episodeId != null) pendingNotificationEpisodeId.value = episodeId;
     }
-  });
 
-  // Notificación cando a app estaba en segundo plano
-  FirebaseMessaging.onMessageOpenedApp.listen((message) {
-    final rssUrl = message.data['rss_url'] as String?;
-    final episodeId = message.data['episode_id'] as String?;
-    if (rssUrl != null) pendingNotificationRssUrl.value = rssUrl;
-    if (episodeId != null) pendingNotificationEpisodeId.value = episodeId;
-  });
+    // Notificación en primeiro plano — gardar no historial
+    FirebaseMessaging.onMessage.listen((message) {
+      if (message.data['type'] == 'new_episode') {
+        Injector.appInstance
+            .get<AlertsRepositoryContract>()
+            .saveFromForeground({
+          'programName': message.notification?.title ?? '',
+          'programLogoUrl': message.notification?.android?.imageUrl ??
+              message.data['logo_url'] ??
+              '',
+          'rssUrl': message.data['rss_url'] ?? '',
+          'episodeTitle': message.notification?.body ?? '',
+          'episodeId': message.data['episode_id'] ?? '',
+          'receivedAt': DateTime.now().toIso8601String(),
+        });
+      }
+    });
+
+    // Notificación cando a app estaba en segundo plano
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      final rssUrl = message.data['rss_url'] as String?;
+      final episodeId = message.data['episode_id'] as String?;
+      if (rssUrl != null) pendingNotificationRssUrl.value = rssUrl;
+      if (episodeId != null) pendingNotificationEpisodeId.value = episodeId;
+    });
   }
   //Setting SystmeUIMode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge,
@@ -113,7 +119,8 @@ void main() async {
 }
 
 // Notifiers globais para tema e locale — as pantallas subscribense a estes
-final ValueNotifier<ThemeMode> appThemeModeNotifier = ValueNotifier(ThemeMode.system);
+final ValueNotifier<ThemeMode> appThemeModeNotifier =
+    ValueNotifier(ThemeMode.system);
 final ValueNotifier<Locale?> appLocaleNotifier = ValueNotifier(null);
 final ValueNotifier<String?> pendingNotificationRssUrl = ValueNotifier(null);
 final ValueNotifier<String?> pendingNotificationEpisodeId = ValueNotifier(null);
@@ -121,7 +128,8 @@ final ValueNotifier<String?> pendingNotificationEpisodeId = ValueNotifier(null);
 void _applyThemeModeToApp(ThemeMode mode) {
   final isDark = mode == ThemeMode.dark ||
       (mode == ThemeMode.system &&
-          WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
+          WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+              Brightness.dark);
   Injector.appInstance.registerSingleton<RadiocomColorsConract>(
     () => isDark ? RadiocomColorsDark() : RadiocomColorsLight(),
     override: true,
@@ -132,7 +140,8 @@ void _applyThemeModeToApp(ThemeMode mode) {
     systemNavigationBarColor: Colors.transparent,
     systemNavigationBarContrastEnforced: false,
     systemNavigationBarDividerColor: Colors.transparent,
-    systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    systemNavigationBarIconBrightness:
+        isDark ? Brightness.light : Brightness.dark,
     statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
   ));
 }
@@ -175,7 +184,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final completed = prefs.getBool('onboarding_completed') ?? false;
     if (!completed) return;
     final lastVersion = prefs.getInt('onboarding_version') ?? 0;
-    if (mounted && onboardingVersion <= lastVersion) setState(() => _showOnboarding = false);
+    if (mounted && onboardingVersion <= lastVersion)
+      setState(() => _showOnboarding = false);
   }
 
   Future<void> _loadLocale() async {
@@ -186,11 +196,18 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   static Locale? _parseLocale(String? value) {
     switch (value) {
-      case 'gl': return const Locale('gl', 'ES');
-      case 'es': return const Locale('es', 'ES');
-      case 'en': return const Locale('en', 'US');
-      case 'pt': return const Locale('pt', 'PT');
-      default: return null; // sistema
+      case 'gl':
+        return const Locale('gl', 'ES');
+      case 'es':
+        return const Locale('es', 'ES');
+      case 'en':
+        return const Locale('en', 'US');
+      case 'pt':
+        return const Locale('pt', 'PT');
+      case 'cy':
+        return const Locale('cy', 'GB');
+      default:
+        return null; // sistema
     }
   }
 
@@ -217,17 +234,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   static ThemeMode _parseThemeMode(String value) {
     switch (value) {
-      case 'light': return ThemeMode.light;
-      case 'dark': return ThemeMode.dark;
-      default: return ThemeMode.system;
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
     }
   }
 
   @override
   void didChangePlatformBrightness() {
-    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final brightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
     if (brightness != _brightness) {
-      setState(() { _brightness = brightness; });
+      setState(() {
+        _brightness = brightness;
+      });
       _applySystemChrome(brightness);
     }
   }
@@ -239,7 +262,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       statusBarColor: Colors.transparent,
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarDividerColor: Colors.transparent,
-      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
       statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
   }
@@ -274,7 +298,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             const Locale('gl', 'ES'),
             const Locale('es', 'ES'),
             const Locale('en', 'US'),
-            const Locale('pt', 'PT')
+            const Locale('pt', 'PT'),
+            const Locale('cy', 'GB')
           ],
           localizationsDelegates: [
             LocalizationDelegate(),

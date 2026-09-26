@@ -18,20 +18,15 @@ class RadioStation {
       : stationName = "Aber Radio",
         iconUrl = "assets/graphics/aber-radio-logo.png",
         bigIconUrl = "assets/graphics/aber-radio-logo.png",
-        stationPhotos = [
-          "https://cuacfm.org/wp-content/uploads/2017/02/onair-communityradiostations.jpeg",
-          "https://cuacfm.org/wp-content/uploads/2015/04/highfreq.jpg",
-          "https://i1.wp.com/cuacfm.org/wp-content/uploads/2017/09/CUAC_ASAMBLEA_PECHEFM02.jpg",
-          "https://cuacfm.org/wp-content/uploads/2015/04/cousomicros1.jpg"
-        ],
+        stationPhotos = ["https://aberradio.com/fb_cover_photo.png"],
         history =
-            "<h3>Benvid@ a radio comunitaria da Coruña.</h3><p>Cuac FM é unha radio comunitaria. Unha radio comunitaria é unha emisora privada, sen ánimo de lucro, que ten un fin social: garantir o exercicio do dereito de acceso á comunicación e a liberdade de expresión da cidadanía.</p><img src=\"https://cuacfm.org/wp-content/uploads/2016/05/equipo-cuacfm-ciencia-en-la-calle-2016.jpg\" alt=\"Smiley face\"><br/><p>Diríxese e débese á comunidade, cumpre unha finalidade social e está aberta á participación o máis ampla posible respecto á propiedade do medio e o acceso á emisión, así coma ás diversas decisións de programación, administración, financiamento e avaliación, que non ten fins de lucro e que non realiza proselitismo relixioso nin partidista.</p><img src=\"https://i1.wp.com/cuacfm.org/wp-content/uploads/2015/05/asamblea-cuac.jpg?w=886&ssl=1\" alt=\"Smiley face\"><br/><p>En CUAC FM participan persoas físicas e xurídicas, funciona dun xeito participativo e horizontal, a través da asemblea, das coordenadoras e dos grupos de traballo. Todo o que facemos en CUAC FM facémolo dende a colaboración e o voluntariado. Non hai xefes nin persoal contratado. </p><img src=\"http://fotos00.laopinioncoruna.es/2015/12/10/646x260/cuac-fm.jpg\" alt=\"Smiley face\"><br/><p>CUAC FM emitindo no 103.4 FM desde 1996. Se tes interés en facer un programa de radio contacta a través do correo electrónico e te mandaremos a información.<br/><br/><a href=\"mailto:comunicacion@cuacfm.org\">comunicacion@cuacfm.org</a></p><img src=\"https://cuacfm.org/wp-content/uploads/2015/04/alexandreb%C3%B3veda.jpg\" alt=\"Smiley face\">",
-        latitude = 43.327552,
-        longitude = -8.4090277,
-        newsRss = "https://cuacfm.org/feed/",
+            "<h3>Welcome to Aber Radio.</h3><p>Aber Radio is the Abergavenny Radio Project, building a community radio service for Abergavenny and the surrounding area.</p><p>Visit <a href=\"https://aberradio.com\">aberradio.com</a> or email <a href=\"mailto:studio@aberradio.com\">studio@aberradio.com</a> to find out more.</p>",
+        latitude = 51.8254,
+        longitude = -3.0194,
+        newsRss = "https://aberradio.com/feed/",
         streamUrl = fallbackStreamUrl,
-        facebookUrl = "https://www.facebook.com/cuacfm/",
-        blueskyUrl = "https://bsky.app/profile/cuacfm.org";
+        facebookUrl = "https://aberradio.com",
+        blueskyUrl = "https://aberradio.com";
 
   RadioStation.fromInstance(Map<String, dynamic> map)
       : stationName = map["station_name"] ?? "Aber Radio",

@@ -7,7 +7,8 @@ class LocalizationDelegate extends LocalizationsDelegate<CuacLocalization> {
   const LocalizationDelegate();
 
   @override
-  bool isSupported(Locale locale) => ['en', 'es', 'gl','pt'].contains(locale.languageCode);
+  bool isSupported(Locale locale) =>
+      ['en', 'es', 'gl', 'pt', 'cy'].contains(locale.languageCode);
 
   @override
   Future<CuacLocalization> load(Locale locale) async {
@@ -20,7 +21,9 @@ class LocalizationDelegate extends LocalizationsDelegate<CuacLocalization> {
     } catch (_) {}
     CuacLocalization localizations = new CuacLocalization(locale);
     await localizations.load();
-    Injector.appInstance.registerSingleton<CuacLocalization>(() => localizations, override: true);
+    Injector.appInstance.registerSingleton<CuacLocalization>(
+        () => localizations,
+        override: true);
     return localizations;
   }
 

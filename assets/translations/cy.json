@@ -1,0 +1,32 @@
+{
+  "home": {
+    "welcome_msg_1": "Bore da", "welcome_msg_2": "Prynhawn da", "welcome_msg_3": "Noswaith dda",
+    "outstanding_msg": "Y newyddion diweddaraf", "live_msg": "Darllediad byw", "recent_msg": "Newydd yr wythnos hon",
+    "podcast_recent_msg": "Podlediadau diweddar", "join_msg": "Ymunwch â ni", "join_msg_detail": "Eisiau eich rhaglen radio eich hun?",
+    "podcast_of_day_msg": "Darganfod podlediadau", "now_msg": "Amserlen", "schedule_now": "Nawr", "schedule_next": "Nesaf",
+    "tab_home": "Hafan", "tab_podcasts": "Podlediadau", "tab_news": "Newyddion", "tab_favourites": "Ffefrynnau", "tab_menu": "Dewislen",
+    "favourites_empty": "Nid ydych wedi ychwanegu unrhyw ffefrynnau eto.", "empty_podcast": "Nid oes podlediad ar hyn o bryd.",
+    "news": "Newyddion", "news_error": "Nid oes newyddion ar hyn o bryd.", "podcast": "Podlediadau", "podcast_error": "Nid oes podlediad ar hyn o bryd.",
+    "categories": "Categorïau", "see_all": "Gweld pob un"
+  },
+  "podcast_controls": {"msg": "Ffrwd fyw o Aber Radio. I gael rhagor o wybodaeth ewch i aberradio.com", "auto_off_active": "Diffodd awtomatig: ", "auto_off_inactive": "Diffodd awtomatig", "faster_inactive": "Cyflymder", "faster_active": "Cyflymach: "},
+  "timetable": {"title": "Amserlen", "mon": "Llun", "tue": "Maw", "wed": "Mer", "thu": "Iau", "fri": "Gwe", "sat": "Sad", "sun": "Sul"},
+  "all_podcast": {"title": "Pob podlediad", "search": "Chwilio podlediadau"},
+  "podcast_detail": {"empty_msg": "", "empty_episodes_msg": "Nid oes penodau ar hyn o bryd.", "no_description": "Nid oes disgrifiad o’r bennod hon eto.", "no_news_description": "Nid oes cynnwys ar gyfer y newyddion hwn eto.", "alerts": "Hysbysiadau"},
+  "new": {"history_title": "Am Aber Radio", "minutes_ago": "%s munud yn ôl", "hours_ago": "%s awr yn ôl", "yesterday": "Ddoe", "days_ago": "%s diwrnod yn ôl"},
+  "settings": {
+    "rating_title": "Ydych chi’n mwynhau’r ap a’n darllediadau?", "rating_body": "Ystyriwch roi sgôr i ni yn y siop apiau fel y gall mwy o bobl ddarganfod Aber Radio.",
+    "station_section": {"name": "YR ORSAF", "item1": "Hanes", "item2": "Oriel"},
+    "alerts_section": {"name": "Hysbysiadau", "empty": "Dim hysbysiadau y mis hwn."},
+    "config_section": {"name": "GOSODIADAU", "item1": "Thema", "item1_light": "Golau", "item1_dark": "Tywyll", "item1_system": "System", "item2": "Gwybodaeth yr amserlen", "item4": "Oedi hysbysiadau", "item3": "Iaith", "item3_system": "System"},
+    "social_section": {"name": "RHWYDWEITHIAU CYMDEITHASOL", "item1": "Facebook", "item2": "Bluesky", "item3": "Instagram", "item4": "TikTok"},
+    "more_info_section": {"name": "RHAGOR O WYBODAETH", "item1": "Gwefan", "item2": "Lleoliad", "item3": "Cysylltu"},
+    "legal_info_section": {"name": "CYFREITHIOL", "item1": "Polisi preifatrwydd", "item2": "Telerau ac amodau", "item3": "Trwydded meddalwedd"}
+  },
+  "error": {"title": "Gwall", "message": "Mae rhywbeth wedi mynd o’i le :(", "internet_error": "Nid oes cysylltiad rhyngrwyd", "connection_error": "Ni allwn gysylltu â’n gweinyddion", "podcast_not_ready": "Mae’r cynnwys yn dal i lwytho; rhowch gynnig arall arni mewn eiliad"},
+  "actions": {"close": "Cau", "see_more": "Gweld mwy", "see_less": "Gweld llai", "add_favourite": "Ffefryn", "share": "Rhannu", "program": "Rhaglen", "last_episode": "Pennod ddiweddaraf:", "share_episode": "🎙 Rhaglen: %s\n📻 Gwrandewch ar y bennod: %s\n🔗 ", "share_program": "🎙 %s ar Aber Radio\n🔗 "},
+  "general": {"minutes": " munud.", "seconds": " eiliad.", "from": "O ", "to": " i ", "season": "Cyfres", "episode": "Pennod"},
+  "categories": {"others": "Eraill", "tv": "Teledu a Ffilm", "news": "Newyddion a Gwleidyddiaeth", "sport": "Chwaraeon", "magazine": "Cymdeithas a Diwylliant", "edu": "Addysg", "comedy": "Comedi", "music": "Cerddoriaeth", "science": "Gwyddoniaeth", "art": "Celfyddydau", "goverment": "Llywodraeth a Sefydliadau", "health": "Iechyd", "tech": "Technoleg"},
+  "days": {"mon": "Dydd Llun", "tue": "Dydd Mawrth", "wed": "Dydd Mercher", "thu": "Dydd Iau", "fri": "Dydd Gwener", "sat": "Dydd Sadwrn", "sun": "Dydd Sul"},
+  "months": {"jan": "Ion", "feb": "Chwe", "mar": "Maw", "apr": "Ebr", "may": "Mai", "jun": "Meh", "jul": "Gor", "ago": "Aws", "sep": "Medi", "oct": "Hyd", "nov": "Tach", "dec": "Rhag"}
+}

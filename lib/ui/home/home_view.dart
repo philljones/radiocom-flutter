@@ -31,7 +31,12 @@ import 'package:intl/intl.dart';
 import 'package:cuacfm/ui/episode-detail/episode_detail_view.dart';
 import 'package:html/parser.dart' as html_parser;
 import 'dart:convert';
-import 'package:cuacfm/main.dart' show appThemeModeNotifier, appLocaleNotifier, pendingNotificationRssUrl, pendingNotificationEpisodeId;
+import 'package:cuacfm/main.dart'
+    show
+        appThemeModeNotifier,
+        appLocaleNotifier,
+        pendingNotificationRssUrl,
+        pendingNotificationEpisodeId;
 import 'package:firebase_analytics/firebase_analytics.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -59,7 +64,8 @@ class MyHomePageState extends State<MyHomePage>
   Now _nowProgram = Now.mock();
   Outstanding? _outstanding;
   Outstanding? _outstanding2;
-  final PageController _outstandingPageController = PageController(viewportFraction: 0.92);
+  final PageController _outstandingPageController =
+      PageController(viewportFraction: 0.92);
   int _currentOutstandingPage = 0;
   List<Program> _podcast = [];
   List<Program> _favorites = [];
@@ -107,7 +113,8 @@ class MyHomePageState extends State<MyHomePage>
     }
     final themeMode = appThemeModeNotifier.value;
     final isDark = themeMode == ThemeMode.dark ||
-        (themeMode == ThemeMode.system && queryData.platformBrightness == Brightness.dark);
+        (themeMode == ThemeMode.system &&
+            queryData.platformBrightness == Brightness.dark);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
@@ -116,108 +123,111 @@ class MyHomePageState extends State<MyHomePage>
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         systemNavigationBarColor: Colors.transparent,
         systemNavigationBarContrastEnforced: false,
-        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
       ),
       child: Stack(
         children: [
           Scaffold(
-      key: scaffoldKey,
-      backgroundColor: _colors.palidwhite,
-      appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60),
-        child: Container(
-          width: double.infinity,
-          padding: EdgeInsets.fromLTRB(0.0, queryData.padding.top + 12.0, 0.0, 12.0),
-          decoration: BoxDecoration(
-            color: _colors.palidwhite,
-          ),
-          child: Center(
-            child: SizedBox(
-              height: 36,
-              child: const AberRadioWordmark(),
+            key: scaffoldKey,
+            backgroundColor: _colors.palidwhite,
+            appBar: PreferredSize(
+              preferredSize: Size.fromHeight(60),
+              child: Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(
+                    0.0, queryData.padding.top + 12.0, 0.0, 12.0),
+                decoration: BoxDecoration(
+                  color: _colors.palidwhite,
+                ),
+                child: Center(
+                  child: SizedBox(
+                    height: 36,
+                    child: const AberRadioWordmark(),
+                  ),
+                ),
+              ),
+            ),
+            body: PageTransitionSwitcher(
+              transitionBuilder: (
+                Widget child,
+                Animation<double> animation,
+                Animation<double> secondaryAnimation,
+              ) {
+                return FadeThroughTransition(
+                  animation: animation,
+                  secondaryAnimation: secondaryAnimation,
+                  child: child,
+                );
+              },
+              child: _getBodyLayout(),
+            ),
+            bottomNavigationBar: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                PlayerView(
+                  shouldShow: shouldShowPlayer,
+                  isPlayingAudio: _presenter.currentPlayer.isPlaying(),
+                  title: _presenter.currentPlayer.isPodcast
+                      ? _presenter.currentPlayer.currentSong
+                      : "On Air: ${_getCurrentTimeTable()?.name ?? (_timeTable.isNotEmpty ? 'Aber Radio Live' : _nowProgram.name)}",
+                  subtitle: _presenter.currentPlayer.isPodcast
+                      ? (_presenter.currentPlayer.episode?.title ?? "")
+                      : _getLiveSubtitle(),
+                  onDetailClicked: () {
+                    _presenter.onPodcastControlsClicked(
+                      _presenter.currentPlayer.episode,
+                      liveProgram: _presenter.currentPlayer.isPodcast
+                          ? null
+                          : _getCurrentTimeTable(),
+                    );
+                  },
+                  onCloseClicked: () {
+                    _presenter.onStopPlayer();
+                  },
+                  onMultimediaClicked: (isPlaying) {
+                    if (isPlaying) {
+                      _presenter.onPausePlayer();
+                    } else {
+                      if (_presenter.currentPlayer.isPodcast) {
+                        _presenter.onSelectedEpisode();
+                      } else {
+                        _presenter.onLiveSelected(_nowProgram);
+                      }
+                    }
+                  },
+                ),
+                BottomBar(
+                  selectedOption: bottomBarOption,
+                  onOptionSelected: (option, isMenu) {
+                    if (isMenu) {
+                      _presenter.onMenuClicked();
+                    } else {
+                      if (!mounted) return;
+                      if (bottomBarOption == BottomBarOption.HOME &&
+                          _homeScrollController.hasClients) {
+                        _homeScrollOffset = _homeScrollController.offset;
+                      }
+                      setState(() {
+                        bottomBarOption = option;
+                      });
+                      _logTabScreen(option);
+                      if (option == BottomBarOption.FAVOURITES) {
+                        _presenter.loadFavorites();
+                      }
+                      if (option == BottomBarOption.HOME) {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_homeScrollController.hasClients) {
+                            _homeScrollController.jumpTo(_homeScrollOffset);
+                          }
+                        });
+                      }
+                    }
+                  },
+                ),
+              ],
             ),
           ),
-        ),
-      ),
-      body: PageTransitionSwitcher(
-        transitionBuilder: (
-          Widget child,
-          Animation<double> animation,
-          Animation<double> secondaryAnimation,
-        ) {
-          return FadeThroughTransition(
-            animation: animation,
-            secondaryAnimation: secondaryAnimation,
-            child: child,
-          );
-        },
-        child: _getBodyLayout(),
-      ),
-      bottomNavigationBar: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          PlayerView(
-            shouldShow: shouldShowPlayer,
-            isPlayingAudio: _presenter.currentPlayer.isPlaying(),
-            title: _presenter.currentPlayer.isPodcast
-                ? _presenter.currentPlayer.currentSong
-                      : "On Air: ${_getCurrentTimeTable()?.name ?? (_timeTable.isNotEmpty ? 'Aber Radio Live' : _nowProgram.name)}",
-            subtitle: _presenter.currentPlayer.isPodcast
-                ? (_presenter.currentPlayer.episode?.title ?? "")
-                : _getLiveSubtitle(),
-            onDetailClicked: () {
-              _presenter.onPodcastControlsClicked(
-                _presenter.currentPlayer.episode,
-                liveProgram: _presenter.currentPlayer.isPodcast
-                    ? null
-                    : _getCurrentTimeTable(),
-              );
-            },
-            onCloseClicked: () {
-              _presenter.onStopPlayer();
-            },
-            onMultimediaClicked: (isPlaying) {
-              if (isPlaying) {
-                _presenter.onPausePlayer();
-              } else {
-                if (_presenter.currentPlayer.isPodcast) {
-                  _presenter.onSelectedEpisode();
-                } else {
-                  _presenter.onLiveSelected(_nowProgram);
-                }
-              }
-            },
-          ),
-          BottomBar(
-            selectedOption: bottomBarOption,
-            onOptionSelected: (option, isMenu) {
-              if (isMenu) {
-                _presenter.onMenuClicked();
-              } else {
-                if (!mounted) return;
-                if (bottomBarOption == BottomBarOption.HOME && _homeScrollController.hasClients) {
-                  _homeScrollOffset = _homeScrollController.offset;
-                }
-                setState(() {
-                  bottomBarOption = option;
-                });
-                _logTabScreen(option);
-                if (option == BottomBarOption.FAVOURITES) {
-                  _presenter.loadFavorites();
-                }
-                if (option == BottomBarOption.HOME) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (_homeScrollController.hasClients) {
-                      _homeScrollController.jumpTo(_homeScrollOffset);
-                    }
-                  });
-                }
-              }
-            },
-          ),
-        ],
-      ),
-    ),
           if (_navigatingFromNotification)
             Container(
               color: _colors.palidwhite.withValues(alpha: 0.85),
@@ -283,9 +293,8 @@ class MyHomePageState extends State<MyHomePage>
     _podcastByCategory = {};
     int index = 0;
     categories.forEach((category) {
-      List<Program> categoryPodcast = _podcast
-          .where((e) => e.categoryType == category)
-          .toList();
+      List<Program> categoryPodcast =
+          _podcast.where((e) => e.categoryType == category).toList();
       if (categoryPodcast.isNotEmpty) {
         categoryPodcast.shuffle(Random(DateTime.now().day));
       }
@@ -301,11 +310,11 @@ class MyHomePageState extends State<MyHomePage>
   @override
   void initState() {
     super.initState();
-   if (!Foundation.kIsWeb && Platform.isAndroid) {
-  MethodChannel(
-    'cuacfm.flutter.io/changeScreen',
-  ).invokeMethod('changeScreen', {"currentScreen": "main", "close": false});
-}
+    if (!Foundation.kIsWeb && Platform.isAndroid) {
+      MethodChannel(
+        'cuacfm.flutter.io/changeScreen',
+      ).invokeMethod('changeScreen', {"currentScreen": "main", "close": false});
+    }
     _presenter = Injector.appInstance.get<HomePresenter>();
     _loadCachedPrograms();
     _presenter.init();
@@ -316,7 +325,8 @@ class MyHomePageState extends State<MyHomePage>
     categories.shuffle(Random(DateTime.now().day));
 
     _presenter.onGetToken();
-    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final brightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
     final isDark = brightness == Brightness.dark;
     SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
       systemStatusBarContrastEnforced: false,
@@ -326,18 +336,27 @@ class MyHomePageState extends State<MyHomePage>
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarContrastEnforced: false,
       systemNavigationBarDividerColor: Colors.transparent,
-      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
     ));
 
     connectionSubscription = Connectivity().onConnectivityChanged.listen((
       List<ConnectivityResult> connections,
     ) {
-      final connection = connections.isNotEmpty ? connections.first : ConnectivityResult.none;
-      if (connections.isEmpty || connections.contains(ConnectivityResult.none) && connections.length == 1) {
+      final connection =
+          connections.isNotEmpty ? connections.first : ConnectivityResult.none;
+      if (connections.isEmpty ||
+          connections.contains(ConnectivityResult.none) &&
+              connections.length == 1) {
         new Timer(new Duration(milliseconds: 1200), () {
-          Connectivity().checkConnectivity().then((List<ConnectivityResult> results) {
-            final currentValue = results.isNotEmpty ? results.first : ConnectivityResult.none;
-            if (results.isEmpty || (results.contains(ConnectivityResult.none) && results.length == 1)) {
+          Connectivity()
+              .checkConnectivity()
+              .then((List<ConnectivityResult> results) {
+            final currentValue =
+                results.isNotEmpty ? results.first : ConnectivityResult.none;
+            if (results.isEmpty ||
+                (results.contains(ConnectivityResult.none) &&
+                    results.length == 1)) {
               _presenter.currentPlayer.restorePlayer(currentValue);
               if (!mounted) return;
               setState(() {});
@@ -368,9 +387,11 @@ class MyHomePageState extends State<MyHomePage>
     });
 
     _presenter.currentPlayer.onUpdate = () {
-      if (mounted) setState(() {
-        shouldShowPlayer = _presenter.currentPlayer.isPlaying() || _presenter.currentPlayer.isPaused();
-      });
+      if (mounted)
+        setState(() {
+          shouldShowPlayer = _presenter.currentPlayer.isPlaying() ||
+              _presenter.currentPlayer.isPaused();
+        });
     };
 
     WidgetsBinding.instance.addObserver(this);
@@ -399,8 +420,11 @@ class MyHomePageState extends State<MyHomePage>
       try {
         final sanitized = rssUrl.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_');
         program = _podcast.firstWhere((p) =>
-            p.rssUrl.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_').startsWith(sanitized) ||
-            sanitized.startsWith(p.rssUrl.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')));
+            p.rssUrl
+                .replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')
+                .startsWith(sanitized) ||
+            sanitized.startsWith(
+                p.rssUrl.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '_')));
       } catch (_) {}
     }
     if (program == null) {
@@ -557,7 +581,8 @@ class MyHomePageState extends State<MyHomePage>
     _tryNavigateToNotificationProgram();
     try {
       final box = Hive.box('episodes_cache');
-      box.put('programmes_list', jsonEncode(podcasts.map((p) => p.toMap()).toList()));
+      box.put('programmes_list',
+          jsonEncode(podcasts.map((p) => p.toMap()).toList()));
     } catch (_) {}
     if (bottomBarOption == BottomBarOption.SEARCH) {
       if (!mounted) return;
@@ -650,26 +675,31 @@ class MyHomePageState extends State<MyHomePage>
   void onLoadTimetable(List<TimeTable> programsTimeTable) {
     if (!mounted) return;
     final now = DateTime.now();
-    final monday = DateTime(now.year, now.month, now.day).subtract(Duration(days: now.weekday - 1));
+    final monday = DateTime(now.year, now.month, now.day)
+        .subtract(Duration(days: now.weekday - 1));
     final nextMonday = monday.add(const Duration(days: 7));
     setState(() {
       isTimeTableEmpty = programsTimeTable.isEmpty;
       _timeTable = programsTimeTable
-          .where((t) => !t.start.isBefore(monday) && t.start.isBefore(nextMonday))
+          .where(
+              (t) => !t.start.isBefore(monday) && t.start.isBefore(nextMonday))
           .toList()
-          ..sort((a, b) => a.start.compareTo(b.start));
+        ..sort((a, b) => a.start.compareTo(b.start));
       _syncLivePlayerInfo();
     });
   }
 
   void _syncLivePlayerInfo() {
-    if (!_presenter.currentPlayer.isPlaying() || _presenter.currentPlayer.isPodcast) return;
+    if (!_presenter.currentPlayer.isPlaying() ||
+        _presenter.currentPlayer.isPodcast) return;
     final current = _getCurrentTimeTable();
     const continuityName = "Aber Radio Live";
-    final name = current?.name ?? (_timeTable.isNotEmpty ? continuityName : _nowProgram.name);
+    final name = current?.name ??
+        (_timeTable.isNotEmpty ? continuityName : _nowProgram.name);
     final rawImage = current?.logoUrl ?? _nowProgram.logoUrl;
-    final image = (rawImage.startsWith('assets/') || rawImage.contains('default-programme-photo'))
-        ? "https://cuacfm.org/wp-content/uploads/2026/04/cuac_music_cover.png"
+    final image = (rawImage.startsWith('assets/') ||
+            rawImage.contains('default-programme-photo'))
+        ? "https://aberradio.com/fb_cover_photo.png"
         : rawImage;
     _presenter.currentPlayer.currentSong = name;
     _presenter.currentPlayer.currentImage = image;
@@ -776,7 +806,8 @@ class MyHomePageState extends State<MyHomePage>
 
   void setBrightness() {
     final themeMode = appThemeModeNotifier.value;
-    final systemBrightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final systemBrightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
     final isDark = themeMode == ThemeMode.dark ||
         (themeMode == ThemeMode.system && systemBrightness == Brightness.dark);
     if (!isDark) {
@@ -999,188 +1030,198 @@ class MyHomePageState extends State<MyHomePage>
                 ),
               ),
 
-
               // 1. EN DIRECTO
 
-Builder(builder: (context) {
-            // Calcular o programa actual desde _timeTable
-            final current = _getCurrentTimeTable();
+              Builder(builder: (context) {
+                // Calcular o programa actual desde _timeTable
+                final current = _getCurrentTimeTable();
                 const continuityName = "Aber Radio Live";
-            final displayName = current?.name ?? (_timeTable.isNotEmpty ? continuityName : _nowProgram.name);
-            final displayLogoUrl = current?.logoUrl ?? _nowProgram.logoUrl;
-            Now liveNow;
-            if (current != null) {
-              liveNow = Now.mock();
-              liveNow.name = current.name;
-              liveNow.logoUrl = current.logoUrl;
-              liveNow.rssUrl = current.rssUrl;
-            } else {
-              liveNow = Now.mock();
-              liveNow.name = _timeTable.isNotEmpty ? continuityName : _nowProgram.name;
-              liveNow.logoUrl = _nowProgram.logoUrl;
-              liveNow.rssUrl = _nowProgram.rssUrl;
-            }
+                final displayName = current?.name ??
+                    (_timeTable.isNotEmpty ? continuityName : _nowProgram.name);
+                final displayLogoUrl = current?.logoUrl ?? _nowProgram.logoUrl;
+                Now liveNow;
+                if (current != null) {
+                  liveNow = Now.mock();
+                  liveNow.name = current.name;
+                  liveNow.logoUrl = current.logoUrl;
+                  liveNow.rssUrl = current.rssUrl;
+                } else {
+                  liveNow = Now.mock();
+                  liveNow.name =
+                      _timeTable.isNotEmpty ? continuityName : _nowProgram.name;
+                  liveNow.logoUrl = _nowProgram.logoUrl;
+                  liveNow.rssUrl = _nowProgram.rssUrl;
+                }
 
-            return Padding(
-              padding: EdgeInsets.fromLTRB(20.0, 12.0, 20.0, 0.0),
-              child: Container(
-                  width: queryData.size.width,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    color: Color(0xFFFCD444),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.12),
-                        offset: Offset(0, 6),
-                        blurRadius: 16,
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: Opacity(
-                            opacity: 0.12,
-                            child: displayLogoUrl.contains('default-programme-photo')
-                              ? Image.asset('assets/graphics/default_programme_cover.png', fit: BoxFit.cover)
-                              : displayLogoUrl.contains('http')
-                                ? Image.network(
-                                    displayLogoUrl,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => SizedBox.shrink(),
-                                  )
-                                : Image.asset(
-                                    displayLogoUrl,
-                                    fit: BoxFit.cover,
-                                  ),
-                          ),
-                        ),
-                        Padding(
-                          padding: EdgeInsets.all(20.0),
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Container(
-                                      padding: EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 5,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: Color(0xFF1F1E23),
-                                        borderRadius: BorderRadius.circular(100),
-                                      ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          _LiveDot(),
-                                          SizedBox(width: 5),
-                                          Text(
-                                            "En directo",
-                                            style: TextStyle(
-                                              color: Color(0xFF00C853),
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w600,
-                                              letterSpacing: 0,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    SizedBox(height: 12),
-                                    Text(
-                                      displayName,
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        color: Color(0xFF1A1A1A),
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 0,
-                                      ),
-                                    ),
-                                    SizedBox(height: 4),
-                                    Text(
-                                      "Aber Radio",
-                                      style: TextStyle(
-                                        color: Color(0xFF1A1A1A).withValues(alpha: 0.6),
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w400,
-                                        letterSpacing: 0,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(width: 16),
-                              GestureDetector(
-                                onTapDown: (_) {
-                                  setState(() => _playButtonScale = 0.85);
-                                },
-                                onTapUp: (_) {
-                                  setState(() => _playButtonScale = 1.0);
-                                  final isPlayingLive = _presenter.currentPlayer.isPlaying() &&
-                                      !_presenter.currentPlayer.isPodcast;
-                                  if (isPlayingLive) {
-                                    _presenter.onPausePlayer();
-                                  } else {
-                                    if (!mounted) return;
-                                    setState(() {
-                                      isLoadingPlay = true;
-                                      _presenter.onLiveSelected(liveNow);
-                                    });
-                                  }
-                                },
-                                onTapCancel: () {
-                                  setState(() => _playButtonScale = 1.0);
-                                },
-                                child: AnimatedScale(
-                                  scale: _playButtonScale,
-                                  duration: const Duration(milliseconds: 120),
-                                  curve: Curves.easeOut,
-                                  child: Container(
-                                    width: 52,
-                                    height: 52,
-                                    decoration: BoxDecoration(
-                                      color: Color(0xFF1F1E23),
-                                      shape: BoxShape.circle,
-                                    ),
-                                    child: isLoadingPlay
-                                        ? Padding(
-                                            padding: const EdgeInsets.all(14),
-                                            child: CircularProgressIndicator(
-                                              color: Colors.white,
-                                              strokeWidth: 2,
-                                            ),
-                                          )
-                                        : Icon(
-                                            _presenter.currentPlayer.isPlaying() &&
-                                                    !_presenter.currentPlayer.isPodcast
-                                                ? Icons.pause
-                                                : Icons.play_arrow,
-                                            color: Colors.white,
-                                            size: 28,
-                                          ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
+                return Padding(
+                  padding: EdgeInsets.fromLTRB(20.0, 12.0, 20.0, 0.0),
+                  child: Container(
+                    width: queryData.size.width,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      color: Color(0xFFFCD444),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          offset: Offset(0, 6),
+                          blurRadius: 16,
                         ),
                       ],
                     ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: Stack(
+                        children: [
+                          Positioned.fill(
+                            child: Opacity(
+                              opacity: 0.12,
+                              child: displayLogoUrl
+                                      .contains('default-programme-photo')
+                                  ? Image.asset(
+                                      'assets/graphics/default_programme_cover.png',
+                                      fit: BoxFit.cover)
+                                  : displayLogoUrl.contains('http')
+                                      ? Image.network(
+                                          displayLogoUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (_, __, ___) =>
+                                              SizedBox.shrink(),
+                                        )
+                                      : Image.asset(
+                                          displayLogoUrl,
+                                          fit: BoxFit.cover,
+                                        ),
+                            ),
+                          ),
+                          Padding(
+                            padding: EdgeInsets.all(20.0),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Color(0xFF1F1E23),
+                                          borderRadius:
+                                              BorderRadius.circular(100),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            _LiveDot(),
+                                            SizedBox(width: 5),
+                                            Text(
+                                              "En directo",
+                                              style: TextStyle(
+                                                color: Color(0xFF00C853),
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w600,
+                                                letterSpacing: 0,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      SizedBox(height: 12),
+                                      Text(
+                                        displayName,
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: TextStyle(
+                                          color: Color(0xFF1A1A1A),
+                                          fontSize: 22,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 0,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(
+                                        "Aber Radio",
+                                        style: TextStyle(
+                                          color: Color(0xFF1A1A1A)
+                                              .withValues(alpha: 0.6),
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w400,
+                                          letterSpacing: 0,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(width: 16),
+                                GestureDetector(
+                                  onTapDown: (_) {
+                                    setState(() => _playButtonScale = 0.85);
+                                  },
+                                  onTapUp: (_) {
+                                    setState(() => _playButtonScale = 1.0);
+                                    final isPlayingLive =
+                                        _presenter.currentPlayer.isPlaying() &&
+                                            !_presenter.currentPlayer.isPodcast;
+                                    if (isPlayingLive) {
+                                      _presenter.onPausePlayer();
+                                    } else {
+                                      if (!mounted) return;
+                                      setState(() {
+                                        isLoadingPlay = true;
+                                        _presenter.onLiveSelected(liveNow);
+                                      });
+                                    }
+                                  },
+                                  onTapCancel: () {
+                                    setState(() => _playButtonScale = 1.0);
+                                  },
+                                  child: AnimatedScale(
+                                    scale: _playButtonScale,
+                                    duration: const Duration(milliseconds: 120),
+                                    curve: Curves.easeOut,
+                                    child: Container(
+                                      width: 52,
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        color: Color(0xFF1F1E23),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: isLoadingPlay
+                                          ? Padding(
+                                              padding: const EdgeInsets.all(14),
+                                              child: CircularProgressIndicator(
+                                                color: Colors.white,
+                                                strokeWidth: 2,
+                                              ),
+                                            )
+                                          : Icon(
+                                              _presenter.currentPlayer
+                                                          .isPlaying() &&
+                                                      !_presenter.currentPlayer
+                                                          .isPodcast
+                                                  ? Icons.pause
+                                                  : Icons.play_arrow,
+                                              color: Colors.white,
+                                              size: 28,
+                                            ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-            );
-          }),
-
+                );
+              }),
 
               // 2. PROGRAMACIÓN
               Padding(
@@ -1197,7 +1238,8 @@ Builder(builder: (context) {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        SafeMap.safe(_localization.translateMap("home"), ["now_msg"]),
+                        SafeMap.safe(
+                            _localization.translateMap("home"), ["now_msg"]),
                         style: TextStyle(
                           letterSpacing: 0,
                           color: _colors.font,
@@ -1223,16 +1265,21 @@ Builder(builder: (context) {
                     return _buildScheduleCardSkeleton();
                   }
                   final next = _timeTable.firstWhere(
-                      (t) => t.start.isAfter(nowDate),
-                      orElse: () => _timeTable.last,
-                    );
+                    (t) => t.start.isAfter(nowDate),
+                    orElse: () => _timeTable.last,
+                  );
                   Program? nextProgram;
                   nextProgram = findPodcastByName(next.rssUrl);
-                  final nextLabel = SafeMap.safe(_localization.translateMap("home"), ["schedule_next"]).isNotEmpty
-                      ? SafeMap.safe(_localization.translateMap("home"), ["schedule_next"])
+                  final nextLabel = SafeMap.safe(
+                          _localization.translateMap("home"),
+                          ["schedule_next"]).isNotEmpty
+                      ? SafeMap.safe(
+                          _localization.translateMap("home"), ["schedule_next"])
                       : "Next";
                   return GestureDetector(
-                    onTap: nextProgram != null ? () => _presenter.onPodcastClicked(nextProgram!) : null,
+                    onTap: nextProgram != null
+                        ? () => _presenter.onPodcastClicked(nextProgram!)
+                        : null,
                     child: _buildScheduleCard(
                       label: nextLabel,
                       logoUrl: next.logoUrl,
@@ -1243,8 +1290,6 @@ Builder(builder: (context) {
                   );
                 }),
               ),
-              
-
 
               // 3. NOVAS
               _outstanding == null
@@ -1254,18 +1299,26 @@ Builder(builder: (context) {
                       child: GestureDetector(
                         onTap: () {
                           if (!mounted) return;
-                          setState(() { bottomBarOption = BottomBarOption.NEWS; });
+                          setState(() {
+                            bottomBarOption = BottomBarOption.NEWS;
+                          });
                           _logTabScreen(BottomBarOption.NEWS);
                         },
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              SafeMap.safe(_localization.translateMap("home"), ["outstanding_msg"]),
-                              style: TextStyle(letterSpacing: 0, color: _colors.font, fontSize: 23, fontWeight: FontWeight.w700),
+                              SafeMap.safe(_localization.translateMap("home"),
+                                  ["outstanding_msg"]),
+                              style: TextStyle(
+                                  letterSpacing: 0,
+                                  color: _colors.font,
+                                  fontSize: 23,
+                                  fontWeight: FontWeight.w700),
                             ),
                             SizedBox(width: 8),
-                            FaIcon(FontAwesomeIcons.angleRight, color: _colors.font, size: 18),
+                            FaIcon(FontAwesomeIcons.angleRight,
+                                color: _colors.font, size: 18),
                           ],
                         ),
                       ),
@@ -1288,12 +1341,15 @@ Builder(builder: (context) {
                         height: 308,
                         child: PageView.builder(
                           controller: _outstandingPageController,
-                          onPageChanged: (i) => setState(() => _currentOutstandingPage = i),
+                          onPageChanged: (i) =>
+                              setState(() => _currentOutstandingPage = i),
                           itemCount: items.length,
                           padEnds: false,
                           clipBehavior: Clip.none,
                           itemBuilder: (_, i) => Padding(
-                            padding: EdgeInsets.only(left: i == 0 ? 20 : 8, right: i == items.length - 1 ? 20 : 8),
+                            padding: EdgeInsets.only(
+                                left: i == 0 ? 20 : 8,
+                                right: i == items.length - 1 ? 20 : 8),
                             child: _getHomeOutstandingInfoRaw(items[i]),
                           ),
                         ),
@@ -1309,7 +1365,9 @@ Builder(builder: (context) {
                             width: active ? 16 : 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: active ? _colors.yellow : _colors.fontGrey.withValues(alpha: 0.3),
+                              color: active
+                                  ? _colors.yellow
+                                  : _colors.fontGrey.withValues(alpha: 0.3),
                               borderRadius: BorderRadius.circular(3),
                             ),
                           );
@@ -1328,34 +1386,48 @@ Builder(builder: (context) {
                 child: GestureDetector(
                   onTap: () {
                     if (!mounted) return;
-                    setState(() { bottomBarOption = BottomBarOption.SEARCH; });
+                    setState(() {
+                      bottomBarOption = BottomBarOption.SEARCH;
+                    });
                     _logTabScreen(BottomBarOption.SEARCH);
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        SafeMap.safe(_localization.translateMap("home"), ["podcast_recent_msg"]),
-                        style: TextStyle(letterSpacing: 0, color: _colors.font, fontSize: 23, fontWeight: FontWeight.w700),
+                        SafeMap.safe(_localization.translateMap("home"),
+                            ["podcast_recent_msg"]),
+                        style: TextStyle(
+                            letterSpacing: 0,
+                            color: _colors.font,
+                            fontSize: 23,
+                            fontWeight: FontWeight.w700),
                       ),
                       SizedBox(width: 8),
-                      FaIcon(FontAwesomeIcons.angleRight, color: _colors.font, size: 18),
+                      FaIcon(FontAwesomeIcons.angleRight,
+                          color: _colors.font, size: 18),
                     ],
                   ),
                 ),
               ),
-                            isEmptyHome
+              isEmptyHome
                   ? SizedBox(
                       height: 280.0,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          FaIcon(FontAwesomeIcons.heartCrack, color: _colors.fontGrey, size: 56),
+                          FaIcon(FontAwesomeIcons.heartCrack,
+                              color: _colors.fontGrey, size: 56),
                           SizedBox(height: 16),
                           Text(
-                            SafeMap.safe(_localization.translateMap("home"), ["empty_podcast"]),
+                            SafeMap.safe(_localization.translateMap("home"),
+                                ["empty_podcast"]),
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: _colors.fontGrey, fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0),
+                            style: TextStyle(
+                                color: _colors.fontGrey,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w400,
+                                letterSpacing: 0),
                           ),
                         ],
                       ),
@@ -1382,7 +1454,10 @@ Builder(builder: (context) {
                                     children: [
                                       _buildRecentRow(_recentPodcast[i1]),
                                       if (hasPair) ...[
-                                        Container(height: 1, color: _colors.fontGrey.withValues(alpha: 0.2)),
+                                        Container(
+                                            height: 1,
+                                            color: _colors.fontGrey
+                                                .withValues(alpha: 0.2)),
                                         _buildRecentRow(_recentPodcast[i2]),
                                       ] else
                                         Spacer(),
@@ -1392,12 +1467,6 @@ Builder(builder: (context) {
                               },
                             ),
                     ),
-
-
-
-
-
-
 
               SizedBox(height: 20.0),
             ],
@@ -1508,7 +1577,9 @@ Builder(builder: (context) {
                 width: active ? 16 : 6,
                 height: 6,
                 decoration: BoxDecoration(
-                  color: active ? _colors.yellow : _colors.fontGrey.withValues(alpha: 0.4),
+                  color: active
+                      ? _colors.yellow
+                      : _colors.fontGrey.withValues(alpha: 0.4),
                   borderRadius: BorderRadius.circular(3),
                 ),
               );
@@ -1543,12 +1614,12 @@ Builder(builder: (context) {
             );
           }
           if (index == 1) {
-            return _lastNews.isEmpty
-                ? SizedBox.shrink()
-                : _carouselSection();
+            return _lastNews.isEmpty ? SizedBox.shrink() : _carouselSection();
           }
           if (index == 2) {
-            return SizedBox(height: restNews.isEmpty ? (shouldShowPlayer ? 60.0 : 10.0) : 12.0);
+            return SizedBox(
+                height:
+                    restNews.isEmpty ? (shouldShowPlayer ? 60.0 : 10.0) : 12.0);
           }
           final news = restNews[index - 3];
           final isLast = index == restNews.length + 2;
@@ -1611,10 +1682,11 @@ Builder(builder: (context) {
               if (!isLast)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(height: 1, color: _colors.fontGrey.withValues(alpha: 0.15)),
+                  child: Container(
+                      height: 1,
+                      color: _colors.fontGrey.withValues(alpha: 0.15)),
                 ),
-              if (isLast)
-                SizedBox(height: shouldShowPlayer ? 60.0 : 10.0),
+              if (isLast) SizedBox(height: shouldShowPlayer ? 60.0 : 10.0),
             ],
           );
         },
@@ -1633,7 +1705,8 @@ Builder(builder: (context) {
       child: Row(
         children: [
           Container(
-            width: 60, height: 60,
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               color: _colors.fontGrey.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(10),
@@ -1645,11 +1718,26 @@ Builder(builder: (context) {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(height: 10, width: 60, decoration: BoxDecoration(color: _colors.fontGrey.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(5))),
+                Container(
+                    height: 10,
+                    width: 60,
+                    decoration: BoxDecoration(
+                        color: _colors.fontGrey.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(5))),
                 const SizedBox(height: 8),
-                Container(height: 14, width: 140, decoration: BoxDecoration(color: _colors.fontGrey.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(5))),
+                Container(
+                    height: 14,
+                    width: 140,
+                    decoration: BoxDecoration(
+                        color: _colors.fontGrey.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(5))),
                 const SizedBox(height: 6),
-                Container(height: 10, width: 80, decoration: BoxDecoration(color: _colors.fontGrey.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(5))),
+                Container(
+                    height: 10,
+                    width: 80,
+                    decoration: BoxDecoration(
+                        color: _colors.fontGrey.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(5))),
               ],
             ),
           ),
@@ -1755,7 +1843,12 @@ Builder(builder: (context) {
             Container(
               width: queryData.size.width,
               decoration: BoxDecoration(
-                color: appThemeModeNotifier.value == ThemeMode.dark || (appThemeModeNotifier.value == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark) ? Color(0xFF6C5A13) : Color(0xFFF3E29C),
+                color: appThemeModeNotifier.value == ThemeMode.dark ||
+                        (appThemeModeNotifier.value == ThemeMode.system &&
+                            MediaQuery.of(context).platformBrightness ==
+                                Brightness.dark)
+                    ? Color(0xFF6C5A13)
+                    : Color(0xFFF3E29C),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Column(
@@ -1787,7 +1880,13 @@ Builder(builder: (context) {
                       style: TextStyle(
                         letterSpacing: 0,
                         height: 1.2,
-                        color: appThemeModeNotifier.value == ThemeMode.dark || (appThemeModeNotifier.value == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark) ? Colors.white : Color(0xFF1A1A1A),
+                        color: appThemeModeNotifier.value == ThemeMode.dark ||
+                                (appThemeModeNotifier.value ==
+                                        ThemeMode.system &&
+                                    MediaQuery.of(context).platformBrightness ==
+                                        Brightness.dark)
+                            ? Colors.white
+                            : Color(0xFF1A1A1A),
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                       ),
@@ -1813,7 +1912,12 @@ Builder(builder: (context) {
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              color: appThemeModeNotifier.value == ThemeMode.dark || (appThemeModeNotifier.value == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark) ? Color(0xFF6C5A13) : Color(0xFFF3E29C),
+              color: appThemeModeNotifier.value == ThemeMode.dark ||
+                      (appThemeModeNotifier.value == ThemeMode.system &&
+                          MediaQuery.of(context).platformBrightness ==
+                              Brightness.dark)
+                  ? Color(0xFF6C5A13)
+                  : Color(0xFFF3E29C),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
@@ -1845,7 +1949,12 @@ Builder(builder: (context) {
                     style: TextStyle(
                       letterSpacing: 0,
                       height: 1.2,
-                      color: appThemeModeNotifier.value == ThemeMode.dark || (appThemeModeNotifier.value == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark) ? Colors.white : Color(0xFF1A1A1A),
+                      color: appThemeModeNotifier.value == ThemeMode.dark ||
+                              (appThemeModeNotifier.value == ThemeMode.system &&
+                                  MediaQuery.of(context).platformBrightness ==
+                                      Brightness.dark)
+                          ? Colors.white
+                          : Color(0xFF1A1A1A),
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
@@ -1860,10 +1969,26 @@ Builder(builder: (context) {
   }
 
   Widget _buildRecentRow(TimeTable item) {
-    final monthKeys = ["jan","feb","mar","apr","may","jun","jul","ago","sep","oct","nov","dec"];
+    final monthKeys = [
+      "jan",
+      "feb",
+      "mar",
+      "apr",
+      "may",
+      "jun",
+      "jul",
+      "ago",
+      "sep",
+      "oct",
+      "nov",
+      "dec"
+    ];
     final monthKey = monthKeys[item.start.month - 1];
-    final monthStr = SafeMap.safe(_localization.translateMap("months"), [monthKey]).toUpperCase();
-    final String dateLabel = "${item.start.day} $monthStr · ${DateFormat('HH:mm').format(item.start)}";
+    final monthStr =
+        SafeMap.safe(_localization.translateMap("months"), [monthKey])
+            .toUpperCase();
+    final String dateLabel =
+        "${item.start.day} $monthStr · ${DateFormat('HH:mm').format(item.start)}";
     return Expanded(
       child: GestureDetector(
         onTap: () async {
@@ -1874,7 +1999,8 @@ Builder(builder: (context) {
               _presenter.onPodcastClicked(podcast);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(SafeMap.safe(_localization.translateMap("error"), ["podcast_not_ready"])),
+                content: Text(SafeMap.safe(_localization.translateMap("error"),
+                    ["podcast_not_ready"])),
               ));
             }
             return;
@@ -1891,7 +2017,8 @@ Builder(builder: (context) {
               _presenter.onPodcastClicked(podcast);
             } else {
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content: Text(SafeMap.safe(_localization.translateMap("error"), ["podcast_not_ready"])),
+                content: Text(SafeMap.safe(_localization.translateMap("error"),
+                    ["podcast_not_ready"])),
               ));
             }
             return;
@@ -1982,7 +2109,9 @@ Builder(builder: (context) {
                     Text(
                       stripHtml(item.description).isNotEmpty
                           ? stripHtml(item.description)
-                          : SafeMap.safe(_localization.translateMap("podcast_detail"), ["no_description"]),
+                          : SafeMap.safe(
+                              _localization.translateMap("podcast_detail"),
+                              ["no_description"]),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
@@ -2042,11 +2171,15 @@ Builder(builder: (context) {
                   children: [
                     _buildRecentRow(_weeklyPodcast[i1]),
                     if (has2) ...[
-                      Container(height: 1, color: _colors.fontGrey.withValues(alpha: 0.2)),
+                      Container(
+                          height: 1,
+                          color: _colors.fontGrey.withValues(alpha: 0.2)),
                       _buildRecentRow(_weeklyPodcast[i2]),
                     ],
                     if (has3) ...[
-                      Container(height: 1, color: _colors.fontGrey.withValues(alpha: 0.2)),
+                      Container(
+                          height: 1,
+                          color: _colors.fontGrey.withValues(alpha: 0.2)),
                       _buildRecentRow(_weeklyPodcast[i3]),
                     ],
                     if (!has2 || !has3) Spacer(),
@@ -2066,8 +2199,10 @@ Builder(builder: (context) {
     final now = DateTime.now();
 
     // Lista base: só programas con episodios confirmados
-    final withRss = _podcast.where((p) =>
-        p.rssUrl.isNotEmpty && _podcastHasEpisodes[p.rssUrl] == true).toList();
+    final withRss = _podcast
+        .where(
+            (p) => p.rssUrl.isNotEmpty && _podcastHasEpisodes[p.rssUrl] == true)
+        .toList();
 
     // A programme may be published before its first episode is available.
     if (withRss.isEmpty) return SizedBox.shrink();
@@ -2101,7 +2236,8 @@ Builder(builder: (context) {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  SafeMap.safe(_localization.translateMap("home"), ["podcast_of_day_msg"]),
+                  SafeMap.safe(_localization.translateMap("home"),
+                      ["podcast_of_day_msg"]),
                   style: TextStyle(
                     letterSpacing: 0,
                     color: _colors.font,
@@ -2110,7 +2246,8 @@ Builder(builder: (context) {
                   ),
                 ),
                 SizedBox(width: 8),
-                FaIcon(FontAwesomeIcons.angleRight, color: _colors.font, size: 18),
+                FaIcon(FontAwesomeIcons.angleRight,
+                    color: _colors.font, size: 18),
               ],
             ),
           ),
@@ -2218,12 +2355,18 @@ Builder(builder: (context) {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        FaIcon(FontAwesomeIcons.heartCrack, color: _colors.fontGrey, size: 56),
+                        FaIcon(FontAwesomeIcons.heartCrack,
+                            color: _colors.fontGrey, size: 56),
                         SizedBox(height: 16),
                         Text(
-                          SafeMap.safe(_localization.translateMap("home"), ["podcast_error"]),
+                          SafeMap.safe(_localization.translateMap("home"),
+                              ["podcast_error"]),
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: _colors.fontGrey, fontSize: 16, fontWeight: FontWeight.w400, letterSpacing: 0),
+                          style: TextStyle(
+                              color: _colors.fontGrey,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 0),
                         ),
                       ],
                     ),
@@ -2263,10 +2406,13 @@ Builder(builder: (context) {
                         padding: EdgeInsets.symmetric(horizontal: 14.0),
                         child: Row(
                           children: [
-                            Icon(Icons.search, color: _colors.fontGrey, size: 20),
+                            Icon(Icons.search,
+                                color: _colors.fontGrey, size: 20),
                             SizedBox(width: 10),
                             Text(
-                              SafeMap.safe(_localization.translateMap("all_podcast"), ["search"]),
+                              SafeMap.safe(
+                                  _localization.translateMap("all_podcast"),
+                                  ["search"]),
                               style: TextStyle(
                                 color: _colors.fontGrey,
                                 fontSize: 16,
@@ -2331,9 +2477,8 @@ Builder(builder: (context) {
   }
 
   _updateRecentPodcasts(List<TimeTable> programsTimeTable) {
-    final List<TimeTable> filtered = programsTimeTable
-        .where((e) => e.type != "S")
-        .toList();
+    final List<TimeTable> filtered =
+        programsTimeTable.where((e) => e.type != "S").toList();
 
     final now = DateTime.now();
 
@@ -2341,9 +2486,7 @@ Builder(builder: (context) {
     final weekStart = DateTime(now.year, now.month, now.day)
         .subtract(Duration(days: now.weekday - 1));
 
-    final allFinished = filtered
-        .where((e) => e.end.isBefore(now))
-        .toList()
+    final allFinished = filtered.where((e) => e.end.isBefore(now)).toList()
       ..sort((a, b) => b.start.compareTo(a.start));
 
     _recentPodcast = _deduplicateByName(allFinished
@@ -2352,9 +2495,8 @@ Builder(builder: (context) {
     isEmptyHome = _recentPodcast.isEmpty;
 
     // Semana natural: desde o luns 00:00
-    List<TimeTable> thisWeek = _deduplicateByName(allFinished
-        .where((e) => e.start.isAfter(weekStart))
-        .toList());
+    List<TimeTable> thisWeek = _deduplicateByName(
+        allFinished.where((e) => e.start.isAfter(weekStart)).toList());
 
     // Fallback: se hai menos de 5, completar cos máis recentes ata ter 5
     if (thisWeek.length < 5) {
@@ -2370,7 +2512,8 @@ Builder(builder: (context) {
 
   List<TimeTable> _deduplicateByName(List<TimeTable> items) {
     final seen = <String>{};
-    final unique = (List<TimeTable>.from(items)..sort((a, b) => a.start.compareTo(b.start)))
+    final unique = (List<TimeTable>.from(items)
+          ..sort((a, b) => a.start.compareTo(b.start)))
         .where((e) => seen.add(e.name))
         .toList();
     unique.sort((a, b) => b.start.compareTo(a.start));
@@ -2395,7 +2538,8 @@ Builder(builder: (context) {
             Padding(
               padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 16.0),
               child: Text(
-                SafeMap.safe(_localization.translateMap("home"), ["tab_favourites"]),
+                SafeMap.safe(
+                    _localization.translateMap("home"), ["tab_favourites"]),
                 style: TextStyle(
                   letterSpacing: 0,
                   color: _colors.font,
@@ -2418,7 +2562,8 @@ Builder(builder: (context) {
                           ),
                           SizedBox(height: 16),
                           Text(
-                            SafeMap.safe(_localization.translateMap("home"), ["favourites_empty"]),
+                            SafeMap.safe(_localization.translateMap("home"),
+                                ["favourites_empty"]),
                             textAlign: TextAlign.center,
                             style: TextStyle(
                               color: _colors.fontGrey,
@@ -2438,7 +2583,9 @@ Builder(builder: (context) {
                     itemCount: favourites.length,
                     separatorBuilder: (_, __) => Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Container(height: 1, color: _colors.fontGrey.withValues(alpha: 0.12)),
+                      child: Container(
+                          height: 1,
+                          color: _colors.fontGrey.withValues(alpha: 0.12)),
                     ),
                     itemBuilder: (context, index) {
                       final program = favourites[index];
@@ -2449,7 +2596,8 @@ Builder(builder: (context) {
                           color: Colors.red,
                           alignment: Alignment.centerRight,
                           padding: const EdgeInsets.only(right: 20.0),
-                          child: Icon(Icons.delete, color: Colors.white, size: 24),
+                          child:
+                              Icon(Icons.delete, color: Colors.white, size: 24),
                         ),
                         onDismissed: (_) {
                           _presenter.removeFavorite(program.rssUrl);
@@ -2473,7 +2621,8 @@ Builder(builder: (context) {
                                 SizedBox(width: 14),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         program.name,
@@ -2489,7 +2638,8 @@ Builder(builder: (context) {
                                       ),
                                       SizedBox(height: 3),
                                       Text(
-                                        program.language.isNotEmpty && program.category.isNotEmpty
+                                        program.language.isNotEmpty &&
+                                                program.category.isNotEmpty
                                             ? "${program.language} • ${program.category}"
                                             : program.language.isNotEmpty
                                                 ? program.language
@@ -2508,25 +2658,45 @@ Builder(builder: (context) {
                                         future: Injector.appInstance
                                             .get<CuacRepositoryContract>()
                                             .getEpisodes(program.rssUrl)
-                                            .then((result) => result.data ?? <Episode>[]),
+                                            .then((result) =>
+                                                result.data ?? <Episode>[]),
                                         builder: (context, snapshot) {
                                           final episodes = snapshot.data ?? [];
-                                          final hasData = snapshot.connectionState != ConnectionState.waiting && episodes.isNotEmpty;
-                                          if (!hasData && episodes.isEmpty && snapshot.connectionState != ConnectionState.waiting) {
+                                          final hasData =
+                                              snapshot.connectionState !=
+                                                      ConnectionState.waiting &&
+                                                  episodes.isNotEmpty;
+                                          if (!hasData &&
+                                              episodes.isEmpty &&
+                                              snapshot.connectionState !=
+                                                  ConnectionState.waiting) {
                                             return SizedBox.shrink();
                                           }
                                           return AnimatedSwitcher(
-                                            duration: Duration(milliseconds: 350),
+                                            duration:
+                                                Duration(milliseconds: 350),
                                             child: hasData
                                                 ? Row(
-                                                    key: ValueKey(episodes.first.title),
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    key: ValueKey(
+                                                        episodes.first.title),
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Text(
-                                                        SafeMap.safe(_localization.translateMap("actions"), ["last_episode"]) + " ",
+                                                        SafeMap.safe(
+                                                                _localization
+                                                                    .translateMap(
+                                                                        "actions"),
+                                                                [
+                                                                  "last_episode"
+                                                                ]) +
+                                                            " ",
                                                         style: TextStyle(
-                                                          color: _colors.fontGrey,
-                                                          fontWeight: FontWeight.w600,
+                                                          color:
+                                                              _colors.fontGrey,
+                                                          fontWeight:
+                                                              FontWeight.w600,
                                                           fontSize: 12,
                                                           letterSpacing: 0,
                                                         ),
@@ -2535,10 +2705,13 @@ Builder(builder: (context) {
                                                         child: Text(
                                                           episodes.first.title,
                                                           maxLines: 1,
-                                                          overflow: TextOverflow.ellipsis,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
                                                           style: TextStyle(
-                                                            color: _colors.fontGrey,
-                                                            fontWeight: FontWeight.w400,
+                                                            color: _colors
+                                                                .fontGrey,
+                                                            fontWeight:
+                                                                FontWeight.w400,
                                                             fontSize: 12,
                                                             letterSpacing: 0,
                                                           ),
@@ -2557,7 +2730,8 @@ Builder(builder: (context) {
                                   ),
                                 ),
                                 SizedBox(width: 8),
-                                Icon(Icons.chevron_right, color: _colors.fontGrey, size: 20),
+                                Icon(Icons.chevron_right,
+                                    color: _colors.fontGrey, size: 20),
                               ],
                             ),
                           ),
@@ -2570,7 +2744,6 @@ Builder(builder: (context) {
       ),
     );
   }
-
 }
 
 class _DiscoverSkeletonLoading extends StatefulWidget {
@@ -2578,7 +2751,8 @@ class _DiscoverSkeletonLoading extends StatefulWidget {
   const _DiscoverSkeletonLoading({required this.colors});
 
   @override
-  State<_DiscoverSkeletonLoading> createState() => _DiscoverSkeletonLoadingState();
+  State<_DiscoverSkeletonLoading> createState() =>
+      _DiscoverSkeletonLoadingState();
 }
 
 class _DiscoverSkeletonLoadingState extends State<_DiscoverSkeletonLoading>
@@ -2604,7 +2778,8 @@ class _DiscoverSkeletonLoadingState extends State<_DiscoverSkeletonLoading>
     super.dispose();
   }
 
-  Widget _bone({double width = double.infinity, double height = 14, double radius = 6}) {
+  Widget _bone(
+      {double width = double.infinity, double height = 14, double radius = 6}) {
     return FadeTransition(
       opacity: _animation,
       child: Container(
@@ -2696,7 +2871,8 @@ class _SkeletonLoadingState extends State<_SkeletonLoading>
     super.dispose();
   }
 
-  Widget _bone({double width = double.infinity, double height = 14, double radius = 6}) {
+  Widget _bone(
+      {double width = double.infinity, double height = 14, double radius = 6}) {
     return FadeTransition(
       opacity: _animation,
       child: Container(
