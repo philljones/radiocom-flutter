@@ -13,23 +13,23 @@ abstract class RadiocoAPIContract {
 
 class RadiocoAPI implements RadiocoAPIContract {
   @override
-  String baseUrl = "https://cuacfm.org/radioco/api/2/";
+  String baseUrl = "https://api.aberradio.com/api/2/";
   @override
   String radioStation = "radiocom/radiostation?format=json";
   @override
   String podcast = "programmes?format=json&ordering=name";
   @override
-  String timetable = "radiocom/transmissions?format=json&timezone=Europe/Madrid";
+  String timetable = "radiocom/transmissions?format=json&timezone=Europe/London";
   @override
   String timetableAfter = "&after=";
   @override
   String timetableBefore = "&before=";
   @override
-  String live = "radiocom/transmissions/now?format=json&timezone=Europe/Madrid";
+  String live = "radiocom/transmissions/now?format=json&timezone=Europe/London";
   @override
-  String feedUrl = "https://cuacfm.org/feed/";
+  String feedUrl = "https://api.aberradio.com/feed.xml";
   @override
-  String outstandingUrl = "https://cuacfm.org/wp-json/wp/v2/pages/3952";
+  String outstandingUrl = "https://api.aberradio.com/api/2/outstanding/1";
   @override
-  String outstandingUrl2 = "https://cuacfm.org/wp-json/wp/v2/pages/6406";
+  String outstandingUrl2 = "https://api.aberradio.com/api/2/outstanding/2";
 }

@@ -6,6 +6,7 @@ import 'package:cuacfm/injector/dependency_injector.dart';
 import 'package:cuacfm/ui/home/home_presenter.dart';
 import 'package:cuacfm/ui/home/home_view.dart';
 import 'package:cuacfm/ui/player/current_player.dart';
+import 'package:cuacfm/utils/bottom_bar.dart';
 import 'package:cuacfm/utils/connection_contract.dart';
 import 'package:cuacfm/utils/notification_subscription_contract.dart';
 import 'package:flutter/cupertino.dart';
@@ -87,12 +88,15 @@ void main() {
         expect(
             find.byKey(Key("bottom_bar"),skipOffstage: true),
             findsOneWidget);
-        expect(find.byKey(Key("welcome_container")), findsOneWidget);
-        expect(find.byKey(Key("aber_radio_live_title")), findsOneWidget);
-        expect(find.byKey(Key("aber_radio_live_button")), findsOneWidget);
+        expect(
+            find.byKey(PageStorageKey<String>(BottomBarOption.HOME.toString()),skipOffstage: true),
+            findsOneWidget);
+        expect(
+            find.byKey(Key("welcome_message_home"),skipOffstage: true),
+            findsOneWidget);
   });
 
-  testWidgets('that hides legacy podcast navigation', (WidgetTester tester) async{
+  testWidgets('that can list the podcasts', (WidgetTester tester) async{
     when(mockRepository.getLiveBroadcast())
         .thenAnswer((_) => MockRadiocoRepository.now());
     when(mockRepository.getTimetableData(any, any)).thenAnswer((_) => MockRadiocoRepository.timetables());
@@ -110,11 +114,17 @@ void main() {
     mockPlayer.currentSong = "mocklive";
 
     await tester.pumpWidget(startWidget(MyHomePage(title: "homi")));
-    expect(find.byKey(Key("bottom_bar_item2")), findsNothing);
-    expect(find.byKey(Key("aber_radio_live_button")), findsOneWidget);
+    await tester.tap(find.byKey(Key("bottom_bar_item2")));
+    await tester.pump();
+    expect(
+        find.byKey(Key("bottom_bar"),skipOffstage: true),
+        findsOneWidget);
+    expect(
+        find.byKey(PageStorageKey<String>(BottomBarOption.SEARCH.toString()),skipOffstage: true),
+        findsOneWidget);
   });
 
-  testWidgets('that hides legacy news navigation and keeps the menu', (WidgetTester tester) async{
+  testWidgets('that can list the news', (WidgetTester tester) async{
     when(mockRepository.getLiveBroadcast())
         .thenAnswer((_) => MockRadiocoRepository.now());
     when(mockRepository.getTimetableData(any, any)).thenAnswer((_) => MockRadiocoRepository.timetables());
@@ -132,8 +142,14 @@ void main() {
     mockPlayer.currentSong = "mocklive";
 
     await tester.pumpWidget(startWidget(MyHomePage(title: "homi")));
-    expect(find.byKey(Key("bottom_bar_item3")), findsNothing);
-    expect(find.byKey(Key("bottom_bar_item5")), findsOneWidget);
+    await tester.tap(find.byKey(Key("bottom_bar_item3")));
+    await tester.pump();
+    expect(
+        find.byKey(Key("bottom_bar"),skipOffstage: true),
+        findsOneWidget);
+    expect(
+        find.byKey(PageStorageKey<String>(BottomBarOption.NEWS.toString()),skipOffstage: true),
+        findsOneWidget);
   });
 
   testWidgets('that in home screen can handle error on connection while playing', (WidgetTester tester) async{

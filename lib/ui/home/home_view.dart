@@ -157,9 +157,7 @@ class MyHomePageState extends State<MyHomePage>
         mainAxisSize: MainAxisSize.min,
         children: [
           PlayerView(
-            shouldShow: shouldShowPlayer &&
-                (bottomBarOption != BottomBarOption.HOME ||
-                    _presenter.currentPlayer.isPodcast),
+            shouldShow: shouldShowPlayer,
             isPlayingAudio: _presenter.currentPlayer.isPlaying(),
             title: _presenter.currentPlayer.isPodcast
                 ? _presenter.currentPlayer.currentSong
@@ -191,7 +189,6 @@ class MyHomePageState extends State<MyHomePage>
             },
           ),
           BottomBar(
-            liveOnly: true,
             selectedOption: bottomBarOption,
             onOptionSelected: (option, isMenu) {
               if (isMenu) {
@@ -973,149 +970,6 @@ class MyHomePageState extends State<MyHomePage>
   }
 
   Widget _getHomeLayout() {
-    final isPlayingLive = _presenter.currentPlayer.isPlaying() &&
-        !_presenter.currentPlayer.isPodcast;
-
-    return Container(
-      key: Key("welcome_container"),
-      color: _colors.palidwhite,
-      width: queryData.size.width,
-      child: SafeArea(
-        top: false,
-        child: Center(
-          child: SingleChildScrollView(
-            controller: _homeScrollController,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 520),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(22, 30, 22, 26),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: const Color(0xFF0B4C3B).withValues(alpha: 0.10),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 24,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      children: [
-                        Image.asset(
-                          'assets/graphics/aber-radio-logo.png',
-                          width: double.infinity,
-                          fit: BoxFit.contain,
-                        ),
-                        const SizedBox(height: 28),
-                        Text(
-                          'LIVE FROM ABERGAVENNY',
-                          style: TextStyle(
-                            color: const Color(0xFF0B4C3B).withValues(alpha: 0.72),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.7,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Aber Radio Live',
-                          key: Key('aber_radio_live_title'),
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Color(0xFF0B4C3B),
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.7,
-                          ),
-                        ),
-                        const SizedBox(height: 22),
-                        GestureDetector(
-                          key: const Key('aber_radio_live_button'),
-                          onTapDown: (_) =>
-                              setState(() => _playButtonScale = 0.94),
-                          onTapUp: (_) {
-                            setState(() => _playButtonScale = 1.0);
-                            if (isPlayingLive) {
-                              _presenter.onPausePlayer();
-                            } else {
-                              setState(() => isLoadingPlay = true);
-                              _presenter.onLiveSelected(Now.mock());
-                            }
-                          },
-                          onTapCancel: () =>
-                              setState(() => _playButtonScale = 1.0),
-                          child: AnimatedScale(
-                            scale: _playButtonScale,
-                            duration: const Duration(milliseconds: 120),
-                            child: Container(
-                              width: 88,
-                              height: 88,
-                              decoration: const BoxDecoration(
-                                color: Color(0xFFF7B500),
-                                shape: BoxShape.circle,
-                              ),
-                              child: isLoadingPlay
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(27),
-                                      child: CircularProgressIndicator(
-                                        color: Color(0xFF0B4C3B),
-                                        strokeWidth: 3,
-                                      ),
-                                    )
-                                  : Icon(
-                                      isPlayingLive
-                                          ? Icons.pause_rounded
-                                          : Icons.play_arrow_rounded,
-                                      color: const Color(0xFF0B4C3B),
-                                      size: 48,
-                                    ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          isPlayingLive ? 'Playing live' : 'Tap to listen live',
-                          style: TextStyle(
-                            color: const Color(0xFF0B4C3B).withValues(alpha: 0.68),
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'Abergavenny Radio Project',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: _colors.fontGrey,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  // Kept temporarily while Aber Radio's own schedule and editorial feeds are designed.
-  // ignore: unused_element
-  Widget _getLegacyHomeLayout() {
     return Container(
       key: Key("welcome_container"),
       color: _colors.palidwhite,
