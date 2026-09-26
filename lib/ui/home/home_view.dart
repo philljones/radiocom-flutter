@@ -2069,6 +2069,9 @@ Builder(builder: (context) {
     final withRss = _podcast.where((p) =>
         p.rssUrl.isNotEmpty && _podcastHasEpisodes[p.rssUrl] == true).toList();
 
+    // A programme may be published before its first episode is available.
+    if (withRss.isEmpty) return SizedBox.shrink();
+
     // Barallar unha soa vez co seed do ano — orde fixa durante todo o ano
     final yearOrdered = List<Program>.from(withRss)..shuffle(Random(now.year));
 
