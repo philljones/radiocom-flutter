@@ -1,5 +1,5 @@
 class RadioStation {
-  static const String liveStreamUrl =
+  static const String fallbackStreamUrl =
       "https://stream.aberradio.com/test.mp3";
 
   String stationName;
@@ -29,7 +29,7 @@ class RadioStation {
         latitude = 43.327552,
         longitude = -8.4090277,
         newsRss = "https://cuacfm.org/feed/",
-        streamUrl = liveStreamUrl,
+        streamUrl = fallbackStreamUrl,
         facebookUrl = "https://www.facebook.com/cuacfm/",
         blueskyUrl = "https://bsky.app/profile/cuacfm.org";
 
@@ -42,7 +42,7 @@ class RadioStation {
         latitude = map["latitude"],
         longitude = map["longitude"],
         newsRss = map["news_rss"],
-        streamUrl = liveStreamUrl,
+        streamUrl = map["stream_url"] ?? fallbackStreamUrl,
         facebookUrl = map["facebook_url"],
         blueskyUrl = map["twitter_url"];
 }

@@ -41,10 +41,23 @@ void main() {
       expect(station.latitude, equals(40.0));
       expect(station.longitude, equals(-3.0));
       expect(station.newsRss, equals('http://news.rss'));
-      expect(station.streamUrl,
-          equals('https://stream.aberradio.com/test.mp3'));
+      expect(station.streamUrl, equals('http://stream.mp3'));
       expect(station.facebookUrl, equals('http://facebook.com/test'));
       expect(station.blueskyUrl, equals('http://bsky.app/test'));
+    });
+
+    test('that uses the fallback stream when the API omits stream_url', () {
+      final station = RadioStation.fromInstance({
+        'station_photos': [],
+        'history': '',
+        'latitude': 51.8247,
+        'longitude': -3.0196,
+        'news_rss': '',
+        'facebook_url': '',
+        'twitter_url': '',
+      });
+
+      expect(station.streamUrl, equals(RadioStation.fallbackStreamUrl));
     });
   });
 }
