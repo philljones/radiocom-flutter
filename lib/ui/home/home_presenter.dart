@@ -388,10 +388,10 @@ class HomePresenter {
     DateTime nowDate = new DateTime.now();
     var formatter = new DateFormat('yyyy-MM-dd');
     String now = formatter.format(nowDate);
-    String tomorrow = formatter.format(nowDate.add(const Duration(days: 1)));
+    String endOfWindow = formatter.format(nowDate.add(const Duration(days: 6)));
     invoker
         .execute(getTimetableUseCase
-            .withParams(GetTimetableUseCaseParams(now, tomorrow)))
+            .withParams(GetTimetableUseCaseParams(now, endOfWindow)))
         .listen((result) {
       if (result is Success) {
         _homeView.onLoadTimetable(result.data);

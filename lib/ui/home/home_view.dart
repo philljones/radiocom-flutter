@@ -82,6 +82,7 @@ class MyHomePageState extends State<MyHomePage>
   bool isLoadingPodcast = true;
   bool _navigatingFromNotification = false;
   bool isLoadingNews = true;
+  bool isLoadingTimetable = true;
   bool isEmptyHome = false;
   bool isEmptyPodcast = false;
   bool isEmptyNews = false;
@@ -95,6 +96,7 @@ class MyHomePageState extends State<MyHomePage>
   Timer? _liveRefreshTimer;
   CuacLocalization _localization = Injector.appInstance.get<CuacLocalization>();
   double _playButtonScale = 1.0;
+  int _selectedScheduleDayOffset = 0;
 
   MyHomePageState() {
     DependencyInjector().injectByView(this);
@@ -521,7 +523,7 @@ class MyHomePageState extends State<MyHomePage>
   void _logTabScreen(BottomBarOption option) {
     const names = {
       BottomBarOption.HOME: 'home',
-      BottomBarOption.SEARCH: 'podcasts',
+      BottomBarOption.SEARCH: 'schedule',
       BottomBarOption.NEWS: 'news',
       BottomBarOption.FAVOURITES: 'favourites',
     };
@@ -675,14 +677,14 @@ class MyHomePageState extends State<MyHomePage>
   void onLoadTimetable(List<TimeTable> programsTimeTable) {
     if (!mounted) return;
     final now = DateTime.now();
-    final monday = DateTime(now.year, now.month, now.day)
-        .subtract(Duration(days: now.weekday - 1));
-    final nextMonday = monday.add(const Duration(days: 7));
+    final today = DateTime(now.year, now.month, now.day);
+    final endOfWindow = today.add(const Duration(days: 6));
     setState(() {
+      isLoadingTimetable = false;
       isTimeTableEmpty = programsTimeTable.isEmpty;
       _timeTable = programsTimeTable
           .where(
-              (t) => !t.start.isBefore(monday) && t.start.isBefore(nextMonday))
+              (t) => !t.start.isBefore(today) && t.start.isBefore(endOfWindow))
           .toList()
         ..sort((a, b) => a.start.compareTo(b.start));
       _syncLivePlayerInfo();
@@ -797,7 +799,11 @@ class MyHomePageState extends State<MyHomePage>
 
   @override
   void onTimetableError(error) {
-    isTimeTableEmpty = true;
+    if (!mounted) return;
+    setState(() {
+      isLoadingTimetable = false;
+      isTimeTableEmpty = true;
+    });
   }
 
   List<Program> podcastByCategory(int index) {
@@ -868,7 +874,7 @@ class MyHomePageState extends State<MyHomePage>
         content = _getHomeLayout();
         break;
       case BottomBarOption.SEARCH:
-        content = isLoadingPodcast ? getLoadingState() : _getSearchLayout();
+        content = isLoadingTimetable ? getLoadingState() : _getScheduleLayout();
         break;
       case BottomBarOption.NEWS:
         content = isLoadingNews ? getLoadingState() : _getNewsLayout();
@@ -1227,37 +1233,75 @@ class MyHomePageState extends State<MyHomePage>
                 );
               }),
 
-              // 2. PROGRAMACIÓN
+              // 2. SCHEDULE
               Padding(
                 padding: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-                child: GestureDetector(
-                  onTap: () {
-                    if (isTimeTableEmpty) {
-                      showTimeTableEmptySnackbar();
-                    } else {
-                      _presenter.nowPlayingClicked(_timeTable);
-                    }
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        SafeMap.safe(
-                            _localization.translateMap("home"), ["now_msg"]),
-                        style: TextStyle(
-                          letterSpacing: 0,
-                          color: _colors.font,
-                          fontSize: 23,
-                          fontWeight: FontWeight.w700,
-                        ),
+                child: Material(
+                  color: _colors.palidwhitedark,
+                  borderRadius: BorderRadius.circular(12),
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: () {
+                      if (isTimeTableEmpty) {
+                        showTimeTableEmptySnackbar();
+                      } else {
+                        setState(() {
+                          bottomBarOption = BottomBarOption.SEARCH;
+                          _selectedScheduleDayOffset = 0;
+                        });
+                        _logTabScreen(BottomBarOption.SEARCH);
+                      }
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 18,
+                        vertical: 16,
                       ),
-                      SizedBox(width: 8),
-                      FaIcon(
-                        FontAwesomeIcons.angleRight,
-                        color: _colors.font,
-                        size: 18,
+                      child: Row(
+                        children: [
+                          FaIcon(
+                            FontAwesomeIcons.calendarDays,
+                            color: _colors.font,
+                            size: 20,
+                          ),
+                          SizedBox(width: 14),
+                          Expanded(
+                            child: Text(
+                              SafeMap.safe(
+                                _localization.translateMap("home"),
+                                ["view_schedule"],
+                              ),
+                              style: TextStyle(
+                                letterSpacing: 0,
+                                color: _colors.font,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          FaIcon(
+                            FontAwesomeIcons.angleRight,
+                            color: _colors.font,
+                            size: 18,
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                child: Text(
+                  SafeMap.safe(
+                    _localization.translateMap("home"),
+                    ["coming_up"],
+                  ),
+                  style: TextStyle(
+                    letterSpacing: 0,
+                    color: _colors.font,
+                    fontSize: 23,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
@@ -1272,30 +1316,23 @@ class MyHomePageState extends State<MyHomePage>
                     (t) => t.start.isAfter(nowDate),
                     orElse: () => _timeTable.last,
                   );
-                  Program? nextProgram;
-                  nextProgram = findPodcastByName(next.rssUrl);
                   final nextLabel = SafeMap.safe(
                           _localization.translateMap("home"),
                           ["schedule_next"]).isNotEmpty
                       ? SafeMap.safe(
                           _localization.translateMap("home"), ["schedule_next"])
                       : "Next";
-                  return GestureDetector(
-                    onTap: nextProgram != null
-                        ? () => _presenter.onPodcastClicked(nextProgram!)
-                        : null,
-                    child: _buildScheduleCard(
-                      label: nextLabel,
-                      logoUrl: next.logoUrl,
-                      name: next.name,
-                      start: next.start,
-                      end: next.end,
-                    ),
+                  return _buildScheduleCard(
+                    label: nextLabel,
+                    logoUrl: next.logoUrl,
+                    name: next.name,
+                    start: next.start,
+                    end: next.end,
                   );
                 }),
               ),
 
-              // 3. NOVAS
+              // 3. NEWS
               _outstanding == null
                   ? Container()
                   : Padding(
@@ -1382,95 +1419,6 @@ class MyHomePageState extends State<MyHomePage>
                   );
                 }),
               ],
-
-              // 4. PODCASTS RECENTES
-
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-                child: GestureDetector(
-                  onTap: () {
-                    if (!mounted) return;
-                    setState(() {
-                      bottomBarOption = BottomBarOption.SEARCH;
-                    });
-                    _logTabScreen(BottomBarOption.SEARCH);
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        SafeMap.safe(_localization.translateMap("home"),
-                            ["podcast_recent_msg"]),
-                        style: TextStyle(
-                            letterSpacing: 0,
-                            color: _colors.font,
-                            fontSize: 23,
-                            fontWeight: FontWeight.w700),
-                      ),
-                      SizedBox(width: 8),
-                      FaIcon(FontAwesomeIcons.angleRight,
-                          color: _colors.font, size: 18),
-                    ],
-                  ),
-                ),
-              ),
-              isEmptyHome
-                  ? SizedBox(
-                      height: 280.0,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          FaIcon(FontAwesomeIcons.heartCrack,
-                              color: _colors.fontGrey, size: 56),
-                          SizedBox(height: 16),
-                          Text(
-                            SafeMap.safe(_localization.translateMap("home"),
-                                ["empty_podcast"]),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: _colors.fontGrey,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w400,
-                                letterSpacing: 0),
-                          ),
-                        ],
-                      ),
-                    )
-                  : SizedBox(
-                      height: 280.0,
-                      child: isLoadingHome
-                          ? getLoadingState()
-                          : ListView.builder(
-                              key: PageStorageKey<String>("home_last_episodes"),
-                              physics: BouncingScrollPhysics(),
-                              scrollDirection: Axis.horizontal,
-                              padding: EdgeInsets.fromLTRB(20.0, 0.0, 8.0, 8.0),
-                              itemCount: (_recentPodcast.length / 2).ceil(),
-                              itemBuilder: (_, int colIndex) {
-                                final int i1 = colIndex * 2;
-                                final int i2 = i1 + 1;
-                                final bool hasPair = i2 < _recentPodcast.length;
-                                return Container(
-                                  width: queryData.size.width * 0.78,
-                                  margin: EdgeInsets.only(right: 16.0),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      _buildRecentRow(_recentPodcast[i1]),
-                                      if (hasPair) ...[
-                                        Container(
-                                            height: 1,
-                                            color: _colors.fontGrey
-                                                .withValues(alpha: 0.2)),
-                                        _buildRecentRow(_recentPodcast[i2]),
-                                      ] else
-                                        Spacer(),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                    ),
 
               SizedBox(height: 20.0),
             ],
@@ -2220,6 +2168,250 @@ class MyHomePageState extends State<MyHomePage>
     );
   }
 
+  Widget _getScheduleLayout() {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final selectedDate = today.add(Duration(days: _selectedScheduleDayOffset));
+    final programmes = _timeTable
+        .where((item) => DateUtils.isSameDay(item.start, selectedDate))
+        .toList()
+      ..sort((a, b) => a.start.compareTo(b.start));
+
+    return Container(
+      key: const Key("schedule_container"),
+      color: _colors.palidwhite,
+      width: queryData.size.width,
+      height: queryData.size.height,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
+            child: Text(
+              SafeMap.safe(
+                _localization.translateMap("timetable"),
+                ["title"],
+              ),
+              style: TextStyle(
+                letterSpacing: 0,
+                color: _colors.font,
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          SizedBox(
+            height: 52,
+            child: ListView.builder(
+              key: const PageStorageKey<String>("schedule_days"),
+              scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              itemCount: 6,
+              itemBuilder: (_, index) {
+                final date = today.add(Duration(days: index));
+                final selected = index == _selectedScheduleDayOffset;
+                const weekdayKeys = [
+                  'mon',
+                  'tue',
+                  'wed',
+                  'thu',
+                  'fri',
+                  'sat',
+                  'sun',
+                ];
+                final label = index == 0
+                    ? SafeMap.safe(
+                        _localization.translateMap("timetable"), ["today"])
+                    : index == 1
+                        ? SafeMap.safe(
+                            _localization.translateMap("timetable"),
+                            ["tomorrow"],
+                          )
+                        : '${SafeMap.safe(
+                            _localization.translateMap("timetable"),
+                            [weekdayKeys[date.weekday - 1]],
+                          )} ${date.day}';
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: ChoiceChip(
+                    selected: selected,
+                    showCheckmark: false,
+                    backgroundColor: _colors.palidwhitedark,
+                    selectedColor: _colors.yellow,
+                    side: BorderSide.none,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    label: Text(
+                      label,
+                      style: TextStyle(
+                        color: selected ? Colors.black : _colors.font,
+                        fontWeight:
+                            selected ? FontWeight.w700 : FontWeight.w500,
+                      ),
+                    ),
+                    onSelected: (_) {
+                      setState(() => _selectedScheduleDayOffset = index);
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+          Expanded(
+            child: programmes.isEmpty
+                ? Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(32),
+                      child: Text(
+                        SafeMap.safe(
+                          _localization.translateMap("timetable"),
+                          ["empty_day"],
+                        ),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: _colors.fontGrey,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    key: PageStorageKey<String>(
+                      "schedule_day_$_selectedScheduleDayOffset",
+                    ),
+                    physics: const BouncingScrollPhysics(),
+                    padding: EdgeInsets.fromLTRB(
+                      20,
+                      16,
+                      20,
+                      shouldShowPlayer ? 80 : 20,
+                    ),
+                    itemCount: programmes.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
+                    itemBuilder: (_, index) =>
+                        _buildScheduleProgramme(programmes[index]),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildScheduleProgramme(TimeTable item) {
+    final now = DateTime.now();
+    final onAir = !now.isBefore(item.start) && now.isBefore(item.end);
+    final liveIsPlaying = onAir &&
+        _presenter.currentPlayer.isPlaying() &&
+        !_presenter.currentPlayer.isPodcast;
+    final time =
+        '${DateFormat('HH:mm').format(item.start)} – ${DateFormat('HH:mm').format(item.end)}';
+
+    return Container(
+      decoration: BoxDecoration(
+        color: _colors.palidwhitedark,
+        borderRadius: BorderRadius.circular(14),
+        border: onAir
+            ? Border.all(
+                color: _colors.yellow.withValues(alpha: 0.8),
+                width: 2,
+              )
+            : null,
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: CustomImage(
+              radius: 0,
+              background: true,
+              backgroundColor: Colors.white,
+              fit: BoxFit.cover,
+              resPath: item.logoUrl,
+              width: 64,
+              height: 64,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (onAir) ...[
+                  Text(
+                    SafeMap.safe(
+                      _localization.translateMap("home"),
+                      ["live_msg"],
+                    ),
+                    style: const TextStyle(
+                      color: Color(0xFF00A844),
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                ],
+                Text(
+                  item.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: _colors.font,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    height: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  time,
+                  style: TextStyle(
+                    color: _colors.fontGrey,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (onAir) ...[
+            const SizedBox(width: 10),
+            Semantics(
+              button: true,
+              label: SafeMap.safe(
+                _localization.translateMap("timetable"),
+                ["listen_live"],
+              ),
+              child: IconButton.filled(
+                onPressed: () {
+                  if (liveIsPlaying) {
+                    _presenter.onPausePlayer();
+                    return;
+                  }
+                  final liveNow = Now.mock()
+                    ..name = item.name
+                    ..logoUrl = item.logoUrl
+                    ..rssUrl = item.rssUrl;
+                  setState(() => isLoadingPlay = true);
+                  _presenter.onLiveSelected(liveNow);
+                },
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(0xFF1F1E23),
+                  foregroundColor: Colors.white,
+                ),
+                icon: Icon(liveIsPlaying ? Icons.pause : Icons.play_arrow),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // Retained for the future podcast-only catalogue.
+  // ignore: unused_element
   Widget _getSearchLayout() {
     return Container(
       key: Key("search_container"),
