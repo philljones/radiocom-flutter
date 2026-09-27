@@ -1,7 +1,7 @@
 {
   "home": {
     "welcome_msg_1": "Bore da", "welcome_msg_2": "Prynhawn da", "welcome_msg_3": "Noswaith dda",
-    "outstanding_msg": "Y newyddion diweddaraf", "live_msg": "Darllediad byw", "recent_msg": "Newydd yr wythnos hon",
+    "outstanding_msg": "Y newyddion diweddaraf", "live_msg": "Yn fyw", "recent_msg": "Newydd yr wythnos hon",
     "podcast_recent_msg": "Podlediadau diweddar", "join_msg": "Ymunwch â ni", "join_msg_detail": "Eisiau eich rhaglen radio eich hun?",
     "podcast_of_day_msg": "Darganfod podlediadau", "now_msg": "Amserlen", "schedule_now": "Nawr", "schedule_next": "Nesaf",
     "tab_home": "Hafan", "tab_podcasts": "Podlediadau", "tab_news": "Newyddion", "tab_favourites": "Ffefrynnau", "tab_menu": "Dewislen",

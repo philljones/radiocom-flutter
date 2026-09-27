@@ -129,7 +129,7 @@ class CurrentPlayer implements CurrentPlayerContract {
       album: isPodcast ? "Aber Radio Podcast" : "Aber Radio Live",
       title: isPodcast
           ? episode?.title ?? ""
-          : (hasName ? name : "Streaming en directo"),
+          : (hasName ? name : "Aber Radio Live"),
       artist: isPodcast && hasName ? name : "Aber Radio",
       artUri: _artUri,
     );

@@ -191,19 +191,16 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
   Future<void> _loadLocale() async {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getString('app_locale');
+    if (value != null && value != 'en' && value != 'cy') {
+      await prefs.remove('app_locale');
+    }
     appLocaleNotifier.value = _parseLocale(value);
   }
 
   static Locale? _parseLocale(String? value) {
     switch (value) {
-      case 'gl':
-        return const Locale('gl', 'ES');
-      case 'es':
-        return const Locale('es', 'ES');
       case 'en':
         return const Locale('en', 'US');
-      case 'pt':
-        return const Locale('pt', 'PT');
       case 'cy':
         return const Locale('cy', 'GB');
       default:
@@ -295,10 +292,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           themeMode: themeMode,
           locale: locale,
           supportedLocales: [
-            const Locale('gl', 'ES'),
-            const Locale('es', 'ES'),
             const Locale('en', 'US'),
-            const Locale('pt', 'PT'),
             const Locale('cy', 'GB')
           ],
           localizationsDelegates: [

@@ -244,7 +244,8 @@ class SettingsPresenter {
 
   getLocaleValue() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('app_locale');
+    final value = prefs.getString('app_locale');
+    return value == 'en' || value == 'cy' ? value : null;
   }
 
   _launchURL(String url) async {

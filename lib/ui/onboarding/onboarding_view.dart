@@ -784,10 +784,7 @@ class _OnboardingViewState extends State<OnboardingView>
 
   Widget _buildLocalePage() {
     final locales = [
-      {'code': 'gl', 'label': 'Galego'},
-      {'code': 'es', 'label': 'Español'},
       {'code': 'en', 'label': 'English'},
-      {'code': 'pt', 'label': 'Português'},
       {'code': 'cy', 'label': 'Cymraeg'},
     ];
 
@@ -818,20 +815,9 @@ class _OnboardingViewState extends State<OnboardingView>
             ),
           ),
           const SizedBox(height: 32),
-          Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children:
-                    locales.take(2).map((l) => _buildLocaleChip(l)).toList(),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children:
-                    locales.skip(2).map((l) => _buildLocaleChip(l)).toList(),
-              ),
-            ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: locales.map((l) => _buildLocaleChip(l)).toList(),
           ),
           const SizedBox(height: 16),
           Text(

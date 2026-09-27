@@ -314,14 +314,8 @@ class SettingsState extends State<Settings>
 
   String _getLocaleLabel() {
     switch (_localeValue) {
-      case 'gl':
-        return 'Galego';
-      case 'es':
-        return 'Español';
       case 'en':
         return 'English';
-      case 'pt':
-        return 'Português';
       case 'cy':
         return 'Cymraeg';
       default:
@@ -337,10 +331,7 @@ class SettingsState extends State<Settings>
         SafeMap.safe(_localization.translateMap("settings"),
             ["config_section", "item3_system"])
       ],
-      ['gl', 'Galego'],
-      ['es', 'Español'],
       ['en', 'English'],
-      ['pt', 'Português'],
       ['cy', 'Cymraeg'],
     ];
     showDialog(

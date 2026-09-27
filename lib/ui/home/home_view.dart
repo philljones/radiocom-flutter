@@ -1121,7 +1121,11 @@ class MyHomePageState extends State<MyHomePage>
                                             _LiveDot(),
                                             SizedBox(width: 5),
                                             Text(
-                                              "En directo",
+                                              SafeMap.safe(
+                                                _localization
+                                                    .translateMap("home"),
+                                                ["live_msg"],
+                                              ),
                                               style: TextStyle(
                                                 color: Color(0xFF00C853),
                                                 fontSize: 11,

@@ -344,7 +344,9 @@ class HomePresenter {
   }
 
   _getOutstanding() {
-    invoker.execute(getOutstandingUseCase.withParams(radiocoAPI.outstandingUrl)).listen((result) {
+    invoker
+        .execute(getOutstandingUseCase.withParams(radiocoAPI.outstandingUrl))
+        .listen((result) {
       if (result is Success) {
         _homeView.onLoadOutstanding(result.data);
       } else {
@@ -373,7 +375,9 @@ class HomePresenter {
   }
 
   _getOutstanding2() {
-    invoker.execute(getOutstandingUseCase.withParams(radiocoAPI.outstandingUrl2)).listen((result) {
+    invoker
+        .execute(getOutstandingUseCase.withParams(radiocoAPI.outstandingUrl2))
+        .listen((result) {
       if (result is Success) {
         _homeView.onLoadOutstanding2(result.data);
       }
@@ -382,12 +386,12 @@ class HomePresenter {
 
   _getTimetable() {
     DateTime nowDate = new DateTime.now();
-    var formatter = new DateFormat('dd/MM/yyyy');
+    var formatter = new DateFormat('yyyy-MM-dd');
     String now = formatter.format(nowDate);
     String tomorrow = formatter.format(nowDate.add(const Duration(days: 1)));
     invoker
-        .execute(
-            getTimetableUseCase.withParams(GetTimetableUseCaseParams(now, tomorrow)))
+        .execute(getTimetableUseCase
+            .withParams(GetTimetableUseCaseParams(now, tomorrow)))
         .listen((result) {
       if (result is Success) {
         _homeView.onLoadTimetable(result.data);
@@ -400,7 +404,7 @@ class HomePresenter {
 
   _getRecentPodcast(bool refreshAll) {
     DateTime nowDate = new DateTime.now();
-    var formatter = new DateFormat('dd/MM/yyyy');
+    var formatter = new DateFormat('yyyy-MM-dd');
     String now = formatter.format(nowDate);
     String yesterday =
         formatter.format(nowDate.toUtc().subtract(new Duration(days: 7)));
