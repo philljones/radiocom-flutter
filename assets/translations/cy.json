@@ -9,7 +9,7 @@
     "news": "Newyddion", "news_error": "Nid oes newyddion ar hyn o bryd.", "podcast": "Podlediadau", "podcast_error": "Nid oes podlediad ar hyn o bryd.",
     "categories": "Categorïau", "see_all": "Gweld pob un"
   },
-  "podcast_controls": {"msg": "Ffrwd fyw o Aber Radio. I gael rhagor o wybodaeth ewch i aberradio.com", "auto_off_active": "Diffodd awtomatig: ", "auto_off_inactive": "Diffodd awtomatig", "faster_inactive": "Cyflymder", "faster_active": "Cyflymach: "},
+  "podcast_controls": {"msg": "Ffrwd fyw o Aber Radio. I gael rhagor o wybodaeth ewch i aberradio.com", "auto_off_active": "Diffodd awtomatig: ", "auto_off_inactive": "Diffodd awtomatig", "faster_inactive": "Cyflymder", "faster_active": "Cyflymach: ", "play_queue": "Ciw chwarae", "play_queue_empty": "Mae eich ciw chwarae yn wag", "play_queue_clear": "Clirio", "play_queue_added": "Ychwanegwyd at y ciw chwarae", "play_queue_exists": "Eisoes yn y ciw chwarae"},
   "timetable": {"title": "Amserlen", "today": "Heddiw", "tomorrow": "Yfory", "empty_day": "Nid oes rhaglenni wedi’u trefnu ar gyfer y diwrnod hwn.", "listen_live": "Gwrando'n fyw", "mon": "Llun", "tue": "Maw", "wed": "Mer", "thu": "Iau", "fri": "Gwe", "sat": "Sad", "sun": "Sul"},
   "all_podcast": {"title": "Pob podlediad", "search": "Chwilio podlediadau"},
   "podcast_detail": {"empty_msg": "", "empty_episodes_msg": "Nid oes penodau ar hyn o bryd.", "no_description": "Nid oes disgrifiad o’r bennod hon eto.", "no_news_description": "Nid oes cynnwys ar gyfer y newyddion hwn eto.", "alerts": "Hysbysiadau"},

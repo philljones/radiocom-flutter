@@ -170,7 +170,7 @@ class MyHomePageState extends State<MyHomePage>
                   isPlayingAudio: _presenter.currentPlayer.isPlaying(),
                   title: _presenter.currentPlayer.isPodcast
                       ? _presenter.currentPlayer.currentSong
-                      : "On Air: ${_getCurrentTimeTable()?.name ?? (_timeTable.isNotEmpty ? 'Aber Radio Live' : _nowProgram.name)}",
+                      : "On Air: ${_getCurrentTimeTable()?.name ?? (_timeTable.isNotEmpty ? 'Aber Radio' : _nowProgram.name)}",
                   subtitle: _presenter.currentPlayer.isPodcast
                       ? (_presenter.currentPlayer.episode?.title ?? "")
                       : _getLiveSubtitle(),
@@ -696,7 +696,7 @@ class MyHomePageState extends State<MyHomePage>
     if (!_presenter.currentPlayer.isPlaying() ||
         _presenter.currentPlayer.isPodcast) return;
     final current = _getCurrentTimeTable();
-    const continuityName = "Aber Radio Live";
+    const continuityName = "Aber Radio";
     final name = current?.name ??
         (_timeTable.isNotEmpty ? continuityName : _nowProgram.name);
     final rawImage = current?.logoUrl ?? _nowProgram.logoUrl;
@@ -1042,7 +1042,7 @@ class MyHomePageState extends State<MyHomePage>
               Builder(builder: (context) {
                 // Calcular o programa actual desde _timeTable
                 final current = _getCurrentTimeTable();
-                const continuityName = "Aber Radio Live";
+                const continuityName = "Aber Radio";
                 final displayName = current?.name ??
                     (_timeTable.isNotEmpty ? continuityName : _nowProgram.name);
                 final displayLogoUrl = current?.logoUrl ?? _nowProgram.logoUrl;

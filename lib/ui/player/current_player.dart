@@ -126,10 +126,8 @@ class CurrentPlayer implements CurrentPlayerContract {
     return MediaItem(
       id: urlToHashId(
           isPodcast ? episode?.audio ?? "" : now?.streamUrl() ?? ""),
-      album: isPodcast ? "Aber Radio Podcast" : "Aber Radio Live",
-      title: isPodcast
-          ? episode?.title ?? ""
-          : (hasName ? name : "Aber Radio Live"),
+      album: isPodcast ? "Aber Radio Podcast" : "Aber Radio",
+      title: isPodcast ? episode?.title ?? "" : (hasName ? name : "Aber Radio"),
       artist: isPodcast && hasName ? name : "Aber Radio",
       artUri: _artUri,
     );
@@ -243,7 +241,7 @@ class CurrentPlayer implements CurrentPlayerContract {
       FirebaseAnalytics.instance.logEvent(
         name: 'live_play',
         parameters: {
-          'program': live.isNotEmpty && live != ':' ? live : 'Aber Radio Live',
+          'program': live.isNotEmpty && live != ':' ? live : 'Aber Radio',
           'source': playbackSource,
         },
       );

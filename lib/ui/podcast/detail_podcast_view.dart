@@ -652,8 +652,14 @@ class DetailPodcastState extends State<DetailPodcastPage>
                           CuacToast.show(
                               context,
                               added
-                                  ? "Engadido á Playlist"
-                                  : "Xa está na Playlist");
+                                  ? SafeMap.safe(
+                                      _localization
+                                          .translateMap("podcast_controls"),
+                                      ["play_queue_added"])
+                                  : SafeMap.safe(
+                                      _localization
+                                          .translateMap("podcast_controls"),
+                                      ["play_queue_exists"]));
                           completer.complete(false);
                         });
                         return completer.future;

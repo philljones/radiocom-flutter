@@ -582,10 +582,12 @@ class PodcastControlsState extends State<PodcastControls>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (currentPlayer.isPlaying() || currentPlayer.isPaused()) ...[
+        if ((currentPlayer.isPlaying() || currentPlayer.isPaused()) &&
+            currentPlayer.isPodcast) ...[
           _ActionChip(
             icon: Icons.queue_music,
-            label: "Playlist",
+            label: SafeMap.safe(
+                _localization.translateMap("podcast_controls"), ["play_queue"]),
             active: false,
             colors: _colors,
             onTap: () {
@@ -642,7 +644,9 @@ class PodcastControlsState extends State<PodcastControls>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text("Playlist",
+                Text(
+                    SafeMap.safe(_localization.translateMap("podcast_controls"),
+                        ["play_queue"]),
                     style: TextStyle(
                         color: _colors.font,
                         fontSize: 18,
@@ -651,7 +655,9 @@ class PodcastControlsState extends State<PodcastControls>
                 const Expanded(child: SizedBox()),
                 Icon(Icons.queue_music, color: _colors.fontGrey, size: 48),
                 const SizedBox(height: 12),
-                Text("A playlist está baleira",
+                Text(
+                    SafeMap.safe(_localization.translateMap("podcast_controls"),
+                        ["play_queue_empty"]),
                     style: TextStyle(
                         color: _colors.fontGrey,
                         fontSize: 14,
@@ -669,7 +675,9 @@ class PodcastControlsState extends State<PodcastControls>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Playlist",
+                Text(
+                    SafeMap.safe(_localization.translateMap("podcast_controls"),
+                        ["play_queue"]),
                     style: TextStyle(
                         color: _colors.font,
                         fontSize: 18,
@@ -684,7 +692,10 @@ class PodcastControlsState extends State<PodcastControls>
                       Icon(Icons.delete_sweep,
                           color: _colors.fontGrey, size: 18),
                       const SizedBox(width: 4),
-                      Text("Limpar",
+                      Text(
+                          SafeMap.safe(
+                              _localization.translateMap("podcast_controls"),
+                              ["play_queue_clear"]),
                           style: TextStyle(
                               color: _colors.fontGrey,
                               fontSize: 13,

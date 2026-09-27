@@ -9,14 +9,14 @@ class Now {
   String rssUrl;
 
   Now.mock()
-      : name = "Aber Radio Live",
+      : name = "Aber Radio",
         logoUrl = "assets/graphics/aber-radio-logo.png",
         description = "",
         programmeUrl = "https://aberradio.com",
         rssUrl = "https://aberradio.com";
 
   Now.fromInstance(Map<String, dynamic> map)
-      : name = map["name"] ?? "Aber Radio Live",
+      : name = map["name"] ?? "Aber Radio",
         description = map["description"],
         programmeUrl = map["programme_url"] ?? "https://aberradio.com",
         logoUrl = map["logo_url"] ?? "assets/graphics/aber-radio-logo.png",

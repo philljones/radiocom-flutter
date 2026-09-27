@@ -35,7 +35,12 @@
     "auto_off_active": "Auto off: ",
     "auto_off_inactive": "Auto off",
     "faster_inactive": "Speed",
-    "faster_active": "Faster: "
+    "faster_active": "Faster: ",
+    "play_queue": "Play queue",
+    "play_queue_empty": "Your play queue is empty",
+    "play_queue_clear": "Clear",
+    "play_queue_added": "Added to the play queue",
+    "play_queue_exists": "Already in the play queue"
   },
   "timetable": {
     "title": "Schedule",
