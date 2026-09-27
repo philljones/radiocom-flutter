@@ -58,6 +58,8 @@ class MyHomePageState extends State<MyHomePage>
   BottomBarOption bottomBarOption = BottomBarOption.HOME;
   bool shouldShowPlayer = false;
   final ScrollController _homeScrollController = ScrollController();
+  final ScrollController _scheduleScrollController = ScrollController();
+  final GlobalKey _currentScheduleProgrammeKey = GlobalKey();
   double _homeScrollOffset = 0.0;
   Now _nowProgram = Now.mock();
   Outstanding? _outstanding;
@@ -212,6 +214,10 @@ class MyHomePageState extends State<MyHomePage>
                         bottomBarOption = option;
                       });
                       _logTabScreen(option);
+                      if (option == BottomBarOption.SEARCH) {
+                        _selectedScheduleDayOffset = 0;
+                        _scrollScheduleToCurrentProgramme();
+                      }
                       if (option == BottomBarOption.FAVOURITES) {
                         _presenter.loadFavorites();
                       }
@@ -267,6 +273,7 @@ class MyHomePageState extends State<MyHomePage>
     _presenter.currentPlayer.onUpdate = null;
     _outstandingPageController.dispose();
     _homeScrollController.dispose();
+    _scheduleScrollController.dispose();
     Injector.appInstance.removeByKey<HomeView>();
     WidgetsBinding.instance.removeObserver(this);
     appThemeModeNotifier.removeListener(_onAppSettingsChanged);
@@ -541,6 +548,48 @@ class MyHomePageState extends State<MyHomePage>
       bottomBarOption = option;
     });
     _logTabScreen(option);
+    if (option == BottomBarOption.SEARCH) {
+      _selectedScheduleDayOffset = 0;
+      _scrollScheduleToCurrentProgramme();
+    }
+  }
+
+  void _scrollScheduleToCurrentProgramme() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted ||
+          _selectedScheduleDayOffset != 0 ||
+          !_scheduleScrollController.hasClients) {
+        return;
+      }
+
+      final now = DateTime.now();
+      final todayProgrammes = _timeTable
+          .where((item) => DateUtils.isSameDay(item.start, now))
+          .toList()
+        ..sort((a, b) => a.start.compareTo(b.start));
+      final currentIndex = todayProgrammes.indexWhere(
+        (item) => !now.isBefore(item.start) && now.isBefore(item.end),
+      );
+      if (currentIndex < 0) return;
+
+      final position = _scheduleScrollController.position;
+      final approximateOffset =
+          (currentIndex * 98.0) - (position.viewportDimension / 3);
+      _scheduleScrollController.jumpTo(
+        approximateOffset.clamp(0.0, position.maxScrollExtent),
+      );
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final currentContext = _currentScheduleProgrammeKey.currentContext;
+        if (!mounted || currentContext == null) return;
+        Scrollable.ensureVisible(
+          currentContext,
+          alignment: 1 / 3,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+        );
+      });
+    });
   }
 
   @override
@@ -1292,6 +1341,7 @@ class MyHomePageState extends State<MyHomePage>
                           _selectedScheduleDayOffset = 0;
                         });
                         _logTabScreen(BottomBarOption.SEARCH);
+                        _scrollScheduleToCurrentProgramme();
                       }
                     },
                     child: Padding(
@@ -2254,6 +2304,15 @@ class MyHomePageState extends State<MyHomePage>
                     ),
                     onSelected: (_) {
                       setState(() => _selectedScheduleDayOffset = index);
+                      if (index == 0) {
+                        _scrollScheduleToCurrentProgramme();
+                      } else {
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (_scheduleScrollController.hasClients) {
+                            _scheduleScrollController.jumpTo(0);
+                          }
+                        });
+                      }
                     },
                   ),
                 );
@@ -2279,6 +2338,7 @@ class MyHomePageState extends State<MyHomePage>
                     ),
                   )
                 : ListView.separated(
+                    controller: _scheduleScrollController,
                     key: PageStorageKey<String>(
                       "schedule_day_$_selectedScheduleDayOffset",
                     ),
@@ -2313,6 +2373,7 @@ class MyHomePageState extends State<MyHomePage>
         _favorites.any((favourite) => favourite.rssUrl == program.rssUrl);
 
     return Container(
+      key: onAir ? _currentScheduleProgrammeKey : null,
       decoration: BoxDecoration(
         color: _colors.palidwhitedark,
         borderRadius: BorderRadius.circular(14),
