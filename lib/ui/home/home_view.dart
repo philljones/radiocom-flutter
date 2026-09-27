@@ -59,8 +59,6 @@ class MyHomePageState extends State<MyHomePage>
   bool shouldShowPlayer = false;
   final ScrollController _homeScrollController = ScrollController();
   double _homeScrollOffset = 0.0;
-  final PageController _newsPageController = PageController();
-  int _currentNewsPage = 0;
   Now _nowProgram = Now.mock();
   Outstanding? _outstanding;
   Outstanding? _outstanding2;
@@ -1477,118 +1475,6 @@ class MyHomePageState extends State<MyHomePage>
   }
 
   Widget _getNewsLayout() {
-    final featuredCount = _lastNews.length >= 3 ? 3 : _lastNews.length;
-    final restNews = _lastNews.length > 3 ? _lastNews.sublist(3) : <New>[];
-
-    Widget _featuredCard(New news) {
-      return GestureDetector(
-        onTap: () => _presenter.onNewClicked(news),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Stack(
-              children: [
-                AspectRatio(
-                  aspectRatio: 16 / 9,
-                  child: CustomImage(
-                    resPath: news.image,
-                    fit: BoxFit.cover,
-                    radius: 10,
-                  ),
-                ),
-                Positioned.fill(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withValues(alpha: 0.75),
-                        ],
-                        stops: [0.4, 1.0],
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  left: 16,
-                  right: 16,
-                  bottom: 16,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        news.timeAgo(),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          letterSpacing: 0,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        news.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0,
-                          height: 1.3,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      );
-    }
-
-    Widget _carouselSection() {
-      return Column(
-        children: [
-          SizedBox(
-            height: (queryData.size.width - 40) * 9 / 16,
-            child: PageView.builder(
-              controller: _newsPageController,
-              itemCount: featuredCount,
-              onPageChanged: (i) {
-                setState(() => _currentNewsPage = i);
-              },
-              itemBuilder: (_, i) => _featuredCard(_lastNews[i]),
-            ),
-          ),
-          SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(featuredCount, (i) {
-              final active = i == _currentNewsPage;
-              return AnimatedContainer(
-                duration: Duration(milliseconds: 250),
-                margin: EdgeInsets.symmetric(horizontal: 3),
-                width: active ? 16 : 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  color: active
-                      ? _colors.yellow
-                      : _colors.fontGrey.withValues(alpha: 0.4),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-              );
-            }),
-          ),
-        ],
-      );
-    }
-
     return Container(
       key: Key("news_container"),
       color: _colors.palidwhite,
@@ -1597,7 +1483,7 @@ class MyHomePageState extends State<MyHomePage>
       child: ListView.builder(
         key: PageStorageKey<String>(BottomBarOption.NEWS.toString()),
         physics: BouncingScrollPhysics(),
-        itemCount: restNews.length + 3,
+        itemCount: _lastNews.length + 1,
         itemBuilder: (_, int index) {
           if (index == 0) {
             return Padding(
@@ -1613,16 +1499,9 @@ class MyHomePageState extends State<MyHomePage>
               ),
             );
           }
-          if (index == 1) {
-            return _lastNews.isEmpty ? SizedBox.shrink() : _carouselSection();
-          }
-          if (index == 2) {
-            return SizedBox(
-                height:
-                    restNews.isEmpty ? (shouldShowPlayer ? 60.0 : 10.0) : 12.0);
-          }
-          final news = restNews[index - 3];
-          final isLast = index == restNews.length + 2;
+
+          final news = _lastNews[index - 1];
+          final isLast = index == _lastNews.length;
           return Column(
             children: [
               Material(
@@ -1649,6 +1528,20 @@ class MyHomePageState extends State<MyHomePage>
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              if (news.category.isNotEmpty) ...[
+                                Text(
+                                  news.category,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: _colors.yellow,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0,
+                                  ),
+                                ),
+                                SizedBox(height: 3),
+                              ],
                               Text(
                                 news.timeAgo(),
                                 style: TextStyle(
@@ -1683,8 +1576,9 @@ class MyHomePageState extends State<MyHomePage>
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Container(
-                      height: 1,
-                      color: _colors.fontGrey.withValues(alpha: 0.15)),
+                    height: 1,
+                    color: _colors.fontGrey.withValues(alpha: 0.15),
+                  ),
                 ),
               if (isLast) SizedBox(height: shouldShowPlayer ? 60.0 : 10.0),
             ],
