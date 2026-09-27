@@ -65,7 +65,25 @@ class New {
     if (wpImages.isNotEmpty) {
       wpImages[0].remove();
     }
+    // The detail screen already uses the first story image as its hero image.
+    // Remove that same image from the body so it is not shown twice.
+    final images = document.body?.getElementsByTagName("img") ?? [];
+    if (images.isNotEmpty) {
+      final image = images.first;
+      final parent = image.parent;
+      if (parent?.localName == "p" && parent!.children.length == 1) {
+        parent.remove();
+      } else {
+        image.remove();
+      }
+    }
     return document.body?.innerHtml ?? content;
+  }
+
+  bool get isAbergavennyChronicle {
+    final host = Uri.tryParse(link)?.host.toLowerCase() ?? "";
+    return host == "abergavennychronicle.com" ||
+        host.endsWith(".abergavennychronicle.com");
   }
 
   static DateTime? parseDateTime(String content) {
