@@ -158,6 +158,7 @@ class HomePresenter {
 
   onPodcastClicked(Program podcast) {
     router.goToPodcastDetail(podcast, onReturn: () {
+      loadFavorites();
       if (currentPlayer.isPlaying()) {
         _homeView.onNotifyUser(StatusPlayer.PLAYING);
       }
