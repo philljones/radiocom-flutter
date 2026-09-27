@@ -1236,6 +1236,47 @@ class MyHomePageState extends State<MyHomePage>
               // 2. SCHEDULE
               Padding(
                 padding: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
+                child: Text(
+                  SafeMap.safe(
+                    _localization.translateMap("home"),
+                    ["coming_up"],
+                  ),
+                  style: TextStyle(
+                    letterSpacing: 0,
+                    color: _colors.font,
+                    fontSize: 23,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 0.0),
+                child: Builder(builder: (context) {
+                  final nowDate = DateTime.now();
+                  if (_timeTable.isEmpty) {
+                    return _buildScheduleCardSkeleton();
+                  }
+                  final next = _timeTable.firstWhere(
+                    (t) => t.start.isAfter(nowDate),
+                    orElse: () => _timeTable.last,
+                  );
+                  final nextLabel = SafeMap.safe(
+                          _localization.translateMap("home"),
+                          ["schedule_next"]).isNotEmpty
+                      ? SafeMap.safe(
+                          _localization.translateMap("home"), ["schedule_next"])
+                      : "Next";
+                  return _buildScheduleCard(
+                    label: nextLabel,
+                    logoUrl: next.logoUrl,
+                    name: next.name,
+                    start: next.start,
+                    end: next.end,
+                  );
+                }),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 0.0),
                 child: Material(
                   color: _colors.palidwhitedark,
                   borderRadius: BorderRadius.circular(12),
@@ -1289,47 +1330,6 @@ class MyHomePageState extends State<MyHomePage>
                     ),
                   ),
                 ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 0.0),
-                child: Text(
-                  SafeMap.safe(
-                    _localization.translateMap("home"),
-                    ["coming_up"],
-                  ),
-                  style: TextStyle(
-                    letterSpacing: 0,
-                    color: _colors.font,
-                    fontSize: 23,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-              Padding(
-                padding: EdgeInsets.fromLTRB(20.0, 16.0, 20.0, 0.0),
-                child: Builder(builder: (context) {
-                  final nowDate = DateTime.now();
-                  if (_timeTable.isEmpty) {
-                    return _buildScheduleCardSkeleton();
-                  }
-                  final next = _timeTable.firstWhere(
-                    (t) => t.start.isAfter(nowDate),
-                    orElse: () => _timeTable.last,
-                  );
-                  final nextLabel = SafeMap.safe(
-                          _localization.translateMap("home"),
-                          ["schedule_next"]).isNotEmpty
-                      ? SafeMap.safe(
-                          _localization.translateMap("home"), ["schedule_next"])
-                      : "Next";
-                  return _buildScheduleCard(
-                    label: nextLabel,
-                    logoUrl: next.logoUrl,
-                    name: next.name,
-                    start: next.start,
-                    end: next.end,
-                  );
-                }),
               ),
 
               // 3. NEWS
