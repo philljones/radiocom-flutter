@@ -372,7 +372,9 @@ class MyHomePageState extends State<MyHomePage>
     });
 
     _presenter.currentTimer.timerCallback = (finnish) {
-      _presenter.currentPlayer.stop();
+      if (finnish) {
+        _presenter.currentPlayer.fadeOutAndStop();
+      }
       if (mounted) {
         if (finnish) {
           setState(() {});

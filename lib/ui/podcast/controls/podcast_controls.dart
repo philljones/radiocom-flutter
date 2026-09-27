@@ -133,7 +133,9 @@ class PodcastControlsState extends State<PodcastControls>
     };
 
     _presenter.currentTimer.timerControlsCallback = (finnish) {
-      _presenter.currentPlayer.stop();
+      if (finnish) {
+        _presenter.currentPlayer.fadeOutAndStop();
+      }
       if (mounted && finnish) setState(() {});
     };
 

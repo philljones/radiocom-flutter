@@ -55,6 +55,7 @@ abstract class CurrentPlayerContract {
   Future<bool> setVolume(double volume);
   Future<bool> play();
   Future<bool> stopAndPlay();
+  Future<void> fadeOutAndStop({Duration duration = const Duration(seconds: 8)});
   void stop();
   Future resume();
   Future pause();
@@ -288,6 +289,7 @@ class CurrentPlayer implements CurrentPlayerContract {
   bool _suppressLiveLog = false;
   int _liveRetryCount = 0;
   Timer? _liveRetryTimer;
+  int _fadeSequence = 0;
   bool _userPaused = false;
   static const _maxLiveRetries = 5;
 
@@ -387,6 +389,7 @@ class CurrentPlayer implements CurrentPlayerContract {
   @override
   Future<bool> play() async {
     if (playerState != AudioPlayerState.play) {
+      _cancelFade();
       _userPaused = false;
       // Cancel previous subscriptions to avoid accumulation
       await _stateSubscription?.cancel();
@@ -506,6 +509,7 @@ class CurrentPlayer implements CurrentPlayerContract {
   Future<bool> stopAndPlay() async {
     if (playerState == AudioPlayerState.play ||
         playerState == AudioPlayerState.pause) {
+      _cancelFade();
       _endWrappedSession();
       _userPaused = false;
       if (!isPodcast) {
@@ -560,11 +564,52 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   @override
   void stop() {
+    _cancelFade();
     _pendingLiveRestart = false;
     _userPaused = false;
     _liveRetryTimer?.cancel();
     _liveRetryCount = 0;
     _stop();
+  }
+
+  @override
+  Future<void> fadeOutAndStop(
+      {Duration duration = const Duration(seconds: 8)}) async {
+    if (playerState != AudioPlayerState.play) {
+      stop();
+      return;
+    }
+
+    final sequence = ++_fadeSequence;
+    final startVolume = volume.clamp(0.0, 1.0);
+    final steps = (duration.inMilliseconds / 250).ceil().clamp(1, 80);
+    final stepDuration = Duration(
+      milliseconds: (duration.inMilliseconds / steps).round(),
+    );
+
+    for (var step = 1; step <= steps; step++) {
+      await Future.delayed(stepDuration);
+      if (sequence != _fadeSequence || playerState != AudioPlayerState.play) {
+        return;
+      }
+      volume = startVolume * (1 - step / steps);
+      await audioPlayer.setVolume(volume);
+    }
+
+    if (sequence == _fadeSequence) {
+      await _stop();
+      volume = 1.0;
+      await audioPlayer.setVolume(volume);
+      onUpdate?.call();
+    }
+  }
+
+  void _cancelFade() {
+    _fadeSequence++;
+    if (volume != 1.0) {
+      volume = 1.0;
+      audioPlayer.setVolume(volume);
+    }
   }
 
   Future<void> _stop() async {
@@ -591,6 +636,7 @@ class CurrentPlayer implements CurrentPlayerContract {
   @override
   Future resume() async {
     if (playerState == AudioPlayerState.pause) {
+      _cancelFade();
       _userPaused = false;
       playerState = AudioPlayerState.play;
       await audioPlayer.play();
@@ -600,6 +646,7 @@ class CurrentPlayer implements CurrentPlayerContract {
   @override
   Future pause() async {
     if (playerState == AudioPlayerState.play) {
+      _cancelFade();
       _userPaused = true;
       await audioPlayer.pause();
       if (!audioPlayer.playing) playerState = AudioPlayerState.pause;
@@ -623,6 +670,7 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   @override
   void release() async {
+    _cancelFade();
     _liveRetryTimer?.cancel();
     playerState = AudioPlayerState.stop;
     position = Duration(seconds: 0);
