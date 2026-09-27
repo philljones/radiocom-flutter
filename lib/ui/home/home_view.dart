@@ -325,6 +325,7 @@ class MyHomePageState extends State<MyHomePage>
     categories.shuffle(Random(DateTime.now().day));
 
     _presenter.onGetToken();
+    _presenter.loadFavorites();
     final brightness =
         WidgetsBinding.instance.platformDispatcher.platformBrightness;
     final isDark = brightness == Brightness.dark;
@@ -2307,6 +2308,9 @@ class MyHomePageState extends State<MyHomePage>
         !_presenter.currentPlayer.isPodcast;
     final time =
         '${DateFormat('HH:mm').format(item.start)} – ${DateFormat('HH:mm').format(item.end)}';
+    final program = findPodcastByName(item.rssUrl);
+    final isFavourite = program != null &&
+        _favorites.any((favourite) => favourite.rssUrl == program.rssUrl);
 
     return Container(
       decoration: BoxDecoration(
@@ -2402,6 +2406,40 @@ class MyHomePageState extends State<MyHomePage>
                   foregroundColor: Colors.white,
                 ),
                 icon: Icon(liveIsPlaying ? Icons.pause : Icons.play_arrow),
+              ),
+            ),
+          ],
+          if (program != null && program.rssUrl.isNotEmpty) ...[
+            const SizedBox(width: 4),
+            Semantics(
+              button: true,
+              selected: isFavourite,
+              label: SafeMap.safe(
+                _localization.translateMap("actions"),
+                ["add_favourite"],
+              ),
+              child: IconButton(
+                tooltip: SafeMap.safe(
+                  _localization.translateMap("actions"),
+                  ["add_favourite"],
+                ),
+                onPressed: () {
+                  if (isFavourite) {
+                    setState(() {
+                      _favorites.removeWhere(
+                        (favourite) => favourite.rssUrl == program.rssUrl,
+                      );
+                    });
+                    _presenter.removeFavorite(program.rssUrl);
+                  } else {
+                    setState(() => _favorites.add(program));
+                    _presenter.addFavorite(program);
+                  }
+                },
+                icon: Icon(
+                  isFavourite ? Icons.favorite : Icons.favorite_border,
+                  color: isFavourite ? Colors.red : _colors.fontGrey,
+                ),
               ),
             ),
           ],

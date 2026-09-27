@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cuacfm/domain/invoker/invoker.dart';
 import 'package:cuacfm/domain/result/result.dart';
+import 'package:cuacfm/domain/usecase/add_favorite_use_case.dart';
 import 'package:cuacfm/domain/usecase/get_all_podcast_use_case.dart';
 import 'package:cuacfm/domain/usecase/get_favorites_use_case.dart';
 import 'package:cuacfm/domain/usecase/get_live_program_use_case.dart';
@@ -77,6 +78,7 @@ class HomePresenter {
   GetNewsUseCase getNewsUseCase;
   GetOutstandingUseCase getOutstandingUseCase;
   GetFavoritesUseCase getFavoritesUseCase;
+  AddFavoriteUseCase addFavoriteUseCase;
   RemoveFavoriteUseCase removeFavoriteUseCase;
   HomeRouterContract router;
   late ConnectionContract connection;
@@ -97,6 +99,7 @@ class HomePresenter {
       required this.getNewsUseCase,
       required this.getOutstandingUseCase,
       required this.getFavoritesUseCase,
+      required this.addFavoriteUseCase,
       required this.removeFavoriteUseCase}) {
     currentTimer = Injector.appInstance.get<CurrentTimerContract>();
     connection = Injector.appInstance.get<ConnectionContract>();
@@ -365,6 +368,12 @@ class HomePresenter {
             .toList()
             .cast<Program>());
       }
+    });
+  }
+
+  addFavorite(Program program) {
+    invoker.execute(addFavoriteUseCase.withParams(program.toMap())).listen((_) {
+      loadFavorites();
     });
   }
 
