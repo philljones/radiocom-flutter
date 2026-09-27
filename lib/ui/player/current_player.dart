@@ -464,7 +464,10 @@ class CurrentPlayer implements CurrentPlayerContract {
         }
       });
 
-      setVolume(1.0);
+      // Always start a new item at the app's normal volume. This also repairs
+      // an interrupted Auto Off fade whose cleanup did not get to run.
+      volume = 1.0;
+      await audioPlayer.setVolume(volume);
       if ((isPodcast && episode?.audio != null && episode!.audio.isNotEmpty) ||
           (!isPodcast &&
               now?.streamUrl() != null &&
@@ -520,9 +523,10 @@ class CurrentPlayer implements CurrentPlayerContract {
       if (!audioPlayer.playing) playerState = AudioPlayerState.pause;
       duration = Duration(seconds: 0);
       position = Duration(seconds: 0);
-      if (!isPodcast) {
-        setVolume(1.0);
-      }
+      // stopAndPlay is also a fresh playback request, so do not inherit a
+      // partially faded player volume.
+      volume = 1.0;
+      await audioPlayer.setVolume(volume);
       AudioSource audioSource = AudioSource.uri(Uri.parse(isPodcast
           ? episode?.audio ?? RadioStation.base().streamUrl
           : now?.streamUrl() ?? RadioStation.base().streamUrl));

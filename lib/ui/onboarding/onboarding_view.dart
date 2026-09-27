@@ -12,7 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _yellow = Color(0xFFFCD444);
 const _dark = Color(0xFF1A1A1A);
-const onboardingVersion = 1;
+// Show the revised English onboarding once to existing development installs.
+const onboardingVersion = 2;
 
 class OnboardingView extends StatefulWidget {
   final VoidCallback onFinished;
@@ -42,9 +43,9 @@ class _OnboardingViewState extends State<OnboardingView>
   int _loadingMsgIndex = 0;
   Timer? _loadingMsgTimer;
   static const _loadingMessages = [
-    'Loading the Aber Radio archive',
-    'Buscando programas',
-    'Creando recomendación',
+    'Exploring the Aber Radio archive',
+    'Finding programmes',
+    'Preparing recommendations',
   ];
 // Estado de accións do usuario
   final Set<String> _favoritedRssUrls = {};
@@ -58,18 +59,18 @@ class _OnboardingViewState extends State<OnboardingView>
   String? _selectedLocale; // null = sistema (galego por defecto na app)
 
   static const _categoryLabels = {
-    ProgramCategories.TV: 'Cine e series',
-    ProgramCategories.NEWS: 'Novas e política',
-    ProgramCategories.SPORTS: 'Deportes',
+    ProgramCategories.TV: 'Film & TV',
+    ProgramCategories.NEWS: 'News & politics',
+    ProgramCategories.SPORTS: 'Sport',
     ProgramCategories.SOCIETY: 'Magazine',
-    ProgramCategories.EDUCATION: 'Educativo',
-    ProgramCategories.COMEDY: 'Humor',
-    ProgramCategories.MUSIC: 'Música',
-    ProgramCategories.SCIENCE: 'Ciencia',
-    ProgramCategories.ARTS: 'Arte',
-    ProgramCategories.GOVERNMENT: 'Goberno e Org.',
-    ProgramCategories.HEALTH: 'Saúde',
-    ProgramCategories.TECH: 'Tecnoloxía',
+    ProgramCategories.EDUCATION: 'Education',
+    ProgramCategories.COMEDY: 'Comedy',
+    ProgramCategories.MUSIC: 'Music',
+    ProgramCategories.SCIENCE: 'Science',
+    ProgramCategories.ARTS: 'Arts',
+    ProgramCategories.GOVERNMENT: 'Gov. & organisations',
+    ProgramCategories.HEALTH: 'Health',
+    ProgramCategories.TECH: 'Technology',
   };
 
   @override
@@ -183,7 +184,7 @@ class _OnboardingViewState extends State<OnboardingView>
       if (_favoritedRssUrls.contains(program.rssUrl)) {
         _presenter.removeFavorite(program.rssUrl);
         _favoritedRssUrls.remove(program.rssUrl);
-        _showFeedback("${program.name} eliminado de favoritos");
+        _showFeedback("${program.name} removed from favourites");
       } else {
         _presenter.addFavorite({
           'name': program.name,
@@ -195,7 +196,7 @@ class _OnboardingViewState extends State<OnboardingView>
           'category': program.category,
         });
         _favoritedRssUrls.add(program.rssUrl);
-        _showFeedback("${program.name} engadido a favoritos");
+        _showFeedback("${program.name} added to favourites");
       }
     });
   }
@@ -208,11 +209,11 @@ class _OnboardingViewState extends State<OnboardingView>
       if (_playlistedRssUrls.contains(program.rssUrl)) {
         _presenter.removeFromPlaylist(lastEpisode.audio);
         _playlistedRssUrls.remove(program.rssUrl);
-        _showFeedback("\"${lastEpisode.title}\" eliminado da playlist");
+        _showFeedback("\"${lastEpisode.title}\" removed from playlist");
       } else {
         _presenter.addToPlaylist(lastEpisode, program.name, program.logoUrl);
         _playlistedRssUrls.add(program.rssUrl);
-        _showFeedback("\"${lastEpisode.title}\" engadido a playlist");
+        _showFeedback("\"${lastEpisode.title}\" added to playlist");
       }
     });
   }
@@ -270,25 +271,24 @@ class _OnboardingViewState extends State<OnboardingView>
                     _buildWelcomePage(),
                     _buildInfoPage(
                       icon: Icons.play_circle_filled,
-                      text:
-                          "Escoita a nosa emisión en directo, sen publicidade e en calquera parte do mundo.",
+                      text: "Listen to Aber Radio live, wherever you are.",
                     ),
                     _buildInfoPage(
                       icon: Icons.favorite,
-                      text: "Sigue os teus programas favoritos.",
+                      text: "Follow your favourite programmes.",
                     ),
                     _buildInfoPage(
                       icon: Icons.playlist_play,
-                      text: "Crea a túa playlist.",
+                      text: "Create your own playlist.",
                       subtitle:
-                          "Desliza un episodio cara á dereita para engadilo á playlist.",
+                          "Swipe an episode to the right to add it to your playlist.",
                     ),
                     _buildInfoPage(
                       icon: Icons.notifications_active,
                       text:
-                          "Activa alertas dos teus programas favoritos e recibe unha notificación cada vez que publiquen un novo episodio.",
+                          "Turn on alerts for your favourite programmes and receive a notification when a new episode is published.",
                       subtitle:
-                          "Podes pausar todas as alertas en calquera momento desde a configuración.",
+                          "You can pause all alerts at any time in Settings.",
                     ),
                     _buildCategoryPage(),
                     _buildLocalePage(),
@@ -407,7 +407,7 @@ class _OnboardingViewState extends State<OnboardingView>
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
-            showRecommendations ? "Recomendacións" : "Comecemos",
+            showRecommendations ? "Recommendations" : "Let's get started",
             style: const TextStyle(
               color: _dark,
               fontSize: 26,
@@ -421,8 +421,8 @@ class _OnboardingViewState extends State<OnboardingView>
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
             showRecommendations
-                ? "Engade a favoritos ou á playlist."
-                : "Escolle $_maxCategories temas que che interesen (${_selectedCategories.length}/$_maxCategories).",
+                ? "Add programmes to your favourites or playlist."
+                : "Choose $_maxCategories topics that interest you (${_selectedCategories.length}/$_maxCategories).",
             style: const TextStyle(
               color: _dark,
               fontSize: 15,
@@ -578,7 +578,7 @@ class _OnboardingViewState extends State<OnboardingView>
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          "$count programas",
+                          "$count ${count == 1 ? 'programme' : 'programmes'}",
                           style: TextStyle(
                             color: isSelected
                                 ? Colors.white.withValues(alpha: 0.6)
@@ -620,7 +620,7 @@ class _OnboardingViewState extends State<OnboardingView>
                     color: _dark.withValues(alpha: 0.7), size: 18),
                 const SizedBox(width: 6),
                 Text(
-                  "Cambiar categorías",
+                  "Change topics",
                   style: TextStyle(
                     color: _dark.withValues(alpha: 0.7),
                     fontSize: 13,
@@ -807,7 +807,7 @@ class _OnboardingViewState extends State<OnboardingView>
           ),
           const SizedBox(height: 36),
           const Text(
-            "Por último escolle o idioma da app",
+            "Finally, choose the app language",
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _dark,
@@ -836,7 +836,7 @@ class _OnboardingViewState extends State<OnboardingView>
           const SizedBox(height: 16),
           Text(
             _selectedLocale == null
-                ? "Se non escolles ningún usarase o idioma do sistema"
+                ? "If you don't choose one, the app will use your system language."
                 : "",
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -891,7 +891,7 @@ class _OnboardingViewState extends State<OnboardingView>
                 elevation: 0,
               ),
               child: Text(
-                isLastPage ? "Comezar" : "Seguinte",
+                isLastPage ? "Get started" : "Next",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -910,7 +910,7 @@ class _OnboardingViewState extends State<OnboardingView>
                 );
               },
               child: Text(
-                "Saltar",
+                "Skip",
                 style: TextStyle(
                   color: _dark.withValues(alpha: 0.5),
                   fontSize: 14,
