@@ -2766,6 +2766,7 @@ class MyHomePageState extends State<MyHomePage>
                           _presenter.removeFavorite(program.rssUrl);
                         },
                         child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
                           onTap: () => _presenter.onPodcastClicked(program),
                           child: Padding(
                             padding: const EdgeInsets.symmetric(vertical: 12.0),
