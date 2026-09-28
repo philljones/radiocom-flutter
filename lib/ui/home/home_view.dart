@@ -2803,27 +2803,19 @@ class MyHomePageState extends State<MyHomePage>
                 ? SizedBox(
                     height: queryData.size.height * 0.5,
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          FaIcon(
-                            FontAwesomeIcons.heartCrack,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Text(
+                          SafeMap.safe(_localization.translateMap("home"),
+                              ["favourites_empty"]),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
                             color: _colors.fontGrey,
-                            size: 56,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w400,
+                            letterSpacing: 0,
                           ),
-                          SizedBox(height: 16),
-                          Text(
-                            SafeMap.safe(_localization.translateMap("home"),
-                                ["favourites_empty"]),
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: _colors.fontGrey,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w400,
-                              letterSpacing: 0,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   )
