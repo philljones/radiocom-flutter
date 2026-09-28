@@ -73,6 +73,8 @@ class MyHomePageState extends State<MyHomePage>
   int _currentOutstandingPage = 0;
   List<Program> _podcast = [];
   List<Program> _favorites = [];
+  final Map<String, Future<List<Episode>>> _favoriteEpisodeRequests = {};
+  final Map<String, DateTime> _favoriteEpisodeRequestTimes = {};
   final Map<String, bool> _podcastHasEpisodes = {};
   bool _episodesChecked = false;
   String? _loadingRssUrl;
@@ -302,6 +304,25 @@ class MyHomePageState extends State<MyHomePage>
   Program? findPodcastByName(String url) {
     final matches = _podcast.where((element) => url == element.rssUrl);
     return matches.isEmpty ? null : matches.first;
+  }
+
+  Future<List<Episode>> _favoriteEpisodesFor(Program program) {
+    final now = DateTime.now();
+    final cachedAt = _favoriteEpisodeRequestTimes[program.rssUrl];
+    final cached = _favoriteEpisodeRequests[program.rssUrl];
+    if (cached != null &&
+        cachedAt != null &&
+        now.difference(cachedAt) < const Duration(minutes: 5)) {
+      return cached;
+    }
+
+    final request = Injector.appInstance
+        .get<CuacRepositoryContract>()
+        .getEpisodes(program.rssUrl)
+        .then((result) => result.data ?? <Episode>[]);
+    _favoriteEpisodeRequestTimes[program.rssUrl] = now;
+    _favoriteEpisodeRequests[program.rssUrl] = request;
+    return request;
   }
 
   generatePodcast() {
@@ -2832,138 +2853,142 @@ class MyHomePageState extends State<MyHomePage>
                         onDismissed: (_) {
                           _presenter.removeFavorite(program.rssUrl);
                         },
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => _presenter.onPodcastClicked(program),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12.0),
-                            child: Row(
-                              children: [
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: CustomImage(
-                                    resPath: program.logoUrl,
-                                    fit: BoxFit.cover,
-                                    radius: 10,
-                                    width: 60,
-                                    height: 60,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () => _presenter.onPodcastClicked(program),
+                            borderRadius: BorderRadius.circular(10),
+                            child: Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 12.0),
+                              child: Row(
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: CustomImage(
+                                      resPath: program.logoUrl,
+                                      fit: BoxFit.cover,
+                                      radius: 10,
+                                      width: 60,
+                                      height: 60,
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 14),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        program.name,
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: _colors.font,
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 15,
-                                          letterSpacing: 0,
-                                          height: 1.3,
+                                  SizedBox(width: 14),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          program.name,
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: _colors.font,
+                                            fontWeight: FontWeight.w600,
+                                            fontSize: 15,
+                                            letterSpacing: 0,
+                                            height: 1.3,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(height: 3),
-                                      Text(
-                                        program.language.isNotEmpty &&
-                                                program.category.isNotEmpty
-                                            ? "${program.language} • ${program.category}"
-                                            : program.language.isNotEmpty
-                                                ? program.language
-                                                : program.category,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          color: _colors.fontGrey,
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 13,
-                                          letterSpacing: 0,
+                                        SizedBox(height: 3),
+                                        Text(
+                                          program.language.isNotEmpty &&
+                                                  program.category.isNotEmpty
+                                              ? "${program.language} • ${program.category}"
+                                              : program.language.isNotEmpty
+                                                  ? program.language
+                                                  : program.category,
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: _colors.fontGrey,
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: 13,
+                                            letterSpacing: 0,
+                                          ),
                                         ),
-                                      ),
-                                      SizedBox(height: 3),
-                                      FutureBuilder<List<Episode>>(
-                                        future: Injector.appInstance
-                                            .get<CuacRepositoryContract>()
-                                            .getEpisodes(program.rssUrl)
-                                            .then((result) =>
-                                                result.data ?? <Episode>[]),
-                                        builder: (context, snapshot) {
-                                          final episodes = snapshot.data ?? [];
-                                          final hasData =
-                                              snapshot.connectionState !=
-                                                      ConnectionState.waiting &&
-                                                  episodes.isNotEmpty;
-                                          if (!hasData &&
-                                              episodes.isEmpty &&
-                                              snapshot.connectionState !=
-                                                  ConnectionState.waiting) {
-                                            return SizedBox.shrink();
-                                          }
-                                          return AnimatedSwitcher(
-                                            duration:
-                                                Duration(milliseconds: 350),
-                                            child: hasData
-                                                ? Row(
-                                                    key: ValueKey(
-                                                        episodes.first.title),
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                        SafeMap.safe(
-                                                                _localization
-                                                                    .translateMap(
-                                                                        "actions"),
-                                                                [
-                                                                  "last_episode"
-                                                                ]) +
-                                                            " ",
-                                                        style: TextStyle(
-                                                          color:
-                                                              _colors.fontGrey,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          fontSize: 12,
-                                                          letterSpacing: 0,
-                                                        ),
-                                                      ),
-                                                      Expanded(
-                                                        child: Text(
-                                                          episodes.first.title,
-                                                          maxLines: 1,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
+                                        SizedBox(height: 3),
+                                        FutureBuilder<List<Episode>>(
+                                          future: _favoriteEpisodesFor(program),
+                                          builder: (context, snapshot) {
+                                            final episodes =
+                                                snapshot.data ?? [];
+                                            final hasData = snapshot
+                                                        .connectionState !=
+                                                    ConnectionState.waiting &&
+                                                episodes.isNotEmpty;
+                                            if (!hasData &&
+                                                episodes.isEmpty &&
+                                                snapshot.connectionState !=
+                                                    ConnectionState.waiting) {
+                                              return SizedBox.shrink();
+                                            }
+                                            return AnimatedSwitcher(
+                                              duration:
+                                                  Duration(milliseconds: 350),
+                                              child: hasData
+                                                  ? Row(
+                                                      key: ValueKey(
+                                                          episodes.first.title),
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                          SafeMap.safe(
+                                                                  _localization
+                                                                      .translateMap(
+                                                                          "actions"),
+                                                                  [
+                                                                    "last_episode"
+                                                                  ]) +
+                                                              " ",
                                                           style: TextStyle(
                                                             color: _colors
                                                                 .fontGrey,
                                                             fontWeight:
-                                                                FontWeight.w400,
+                                                                FontWeight.w600,
                                                             fontSize: 12,
                                                             letterSpacing: 0,
                                                           ),
                                                         ),
-                                                      ),
-                                                    ],
-                                                  )
-                                                : SizedBox(
-                                                    key: ValueKey('loading'),
-                                                    height: 14,
-                                                  ),
-                                          );
-                                        },
-                                      ),
-                                    ],
+                                                        Expanded(
+                                                          child: Text(
+                                                            episodes
+                                                                .first.title,
+                                                            maxLines: 1,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style: TextStyle(
+                                                              color: _colors
+                                                                  .fontGrey,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                              fontSize: 12,
+                                                              letterSpacing: 0,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    )
+                                                  : SizedBox(
+                                                      key: ValueKey('loading'),
+                                                      height: 14,
+                                                    ),
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                                SizedBox(width: 8),
-                                Icon(Icons.chevron_right,
-                                    color: _colors.fontGrey, size: 20),
-                              ],
+                                  SizedBox(width: 8),
+                                  Icon(Icons.chevron_right,
+                                      color: _colors.fontGrey, size: 20),
+                                ],
+                              ),
                             ),
                           ),
                         ),

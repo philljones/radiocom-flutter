@@ -55,6 +55,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
   SnackBar? snackBarConnection;
   late CuacLocalization _localization;
   final ScrollController _scrollController = ScrollController();
+  Timer? _deferredContentTimer;
   bool _isScrolled = false;
   final NotificationSubscription _notificationService =
       NotificationSubscription();
@@ -185,8 +186,11 @@ class DetailPodcastState extends State<DetailPodcastPage>
           _isNotificationEnabled = value;
         });
     });
-    _presenter.loadEpisodes(_program.rssUrl);
-    _loadPaletteColor();
+    _deferredContentTimer = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
+      _presenter.loadEpisodes(_program.rssUrl);
+      _loadPaletteColor();
+    });
     _scrollController.addListener(() {
       final scrolled = _scrollController.offset > 50;
       if (scrolled != _isScrolled && mounted) {
@@ -227,6 +231,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
 
   @override
   void dispose() {
+    _deferredContentTimer?.cancel();
     _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     Injector.appInstance.removeByKey<DetailPodcastView>();
