@@ -2455,6 +2455,7 @@ class MyHomePageState extends State<MyHomePage>
                   ),
                   child: IconButton.filled(
                     onPressed: () {
+                      if (isLoadingPlay) return;
                       if (liveIsPlaying) {
                         _presenter.onPausePlayer();
                         return;
@@ -2470,7 +2471,18 @@ class MyHomePageState extends State<MyHomePage>
                       backgroundColor: const Color(0xFF1F1E23),
                       foregroundColor: Colors.white,
                     ),
-                    icon: Icon(liveIsPlaying ? Icons.pause : Icons.play_arrow),
+                    icon: isLoadingPlay
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Icon(
+                            liveIsPlaying ? Icons.pause : Icons.play_arrow,
+                          ),
                   ),
                 ),
               ],
