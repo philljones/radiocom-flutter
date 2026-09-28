@@ -849,8 +849,10 @@ class PodcastControlsState extends State<PodcastControls>
   }
 
   Widget _buildTimerPanel(BuildContext sheetContext) {
+    const durations = [0, 1, 15, 30, 45, 60, 75, 90, 105];
     final labels = [
       "Off",
+      "1 min",
       "15 min",
       "30 min",
       "45 min",
@@ -861,12 +863,15 @@ class PodcastControlsState extends State<PodcastControls>
     ];
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(8, (index) {
+      children: List.generate(durations.length, (index) {
         final selected = sleepSelectedIndex == index;
         return GestureDetector(
           onTap: () {
             if (index == 0) currentTimeCountdown = Duration.zero;
-            _presenter.onTimerStart(Duration(minutes: index * 15), index);
+            _presenter.onTimerStart(
+              Duration(minutes: durations[index]),
+              index,
+            );
             setState(() => sleepSelectedIndex = index);
             Navigator.of(sheetContext).pop();
           },
