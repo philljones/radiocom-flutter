@@ -11,7 +11,6 @@ import 'package:cuacfm/translations/localizations.dart';
 import 'package:cuacfm/ui/home/home_presenter.dart';
 import 'package:cuacfm/ui/podcast/detail_podcast_presenter.dart';
 import 'package:cuacfm/utils/custom_image.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cuacfm/utils/bottom_bar.dart';
 import 'package:cuacfm/utils/player_view.dart';
 import 'package:cuacfm/utils/radiocom_colors.dart';
@@ -790,12 +789,6 @@ class DetailPodcastState extends State<DetailPodcastPage>
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  FaIcon(
-                                    FontAwesomeIcons.heartCrack,
-                                    color: _colors.fontGrey,
-                                    size: 56,
-                                  ),
-                                  SizedBox(height: 16),
                                   Text(
                                     SafeMap.safe(
                                         _localization
