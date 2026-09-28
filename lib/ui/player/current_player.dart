@@ -55,7 +55,8 @@ abstract class CurrentPlayerContract {
   Future<bool> setVolume(double volume);
   Future<bool> play();
   Future<bool> stopAndPlay();
-  Future<void> fadeOutAndStop({Duration duration = const Duration(seconds: 8)});
+  Future<void> fadeOutAndStop(
+      {Duration duration = const Duration(seconds: 15)});
   void stop();
   Future resume();
   Future pause();
@@ -576,7 +577,7 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   @override
   Future<void> fadeOutAndStop(
-      {Duration duration = const Duration(seconds: 8)}) async {
+      {Duration duration = const Duration(seconds: 15)}) async {
     if (playerState != AudioPlayerState.play) {
       stop();
       return;

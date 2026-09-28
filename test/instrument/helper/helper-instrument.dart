@@ -88,7 +88,7 @@ class MockPlayer extends Mock implements CurrentPlayerContract {
       );
   @override
   Future<void> fadeOutAndStop(
-          {Duration duration = const Duration(seconds: 8)}) =>
+          {Duration duration = const Duration(seconds: 15)}) =>
       super.noSuchMethod(
         Invocation.method(#fadeOutAndStop, [], {#duration: duration}),
         returnValue: Future<void>.value(),
