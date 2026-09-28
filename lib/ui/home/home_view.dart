@@ -2369,142 +2369,114 @@ class MyHomePageState extends State<MyHomePage>
     final time =
         '${DateFormat('HH:mm').format(item.start)} – ${DateFormat('HH:mm').format(item.end)}';
     final program = findPodcastByName(item.rssUrl);
-    final isFavourite = program != null &&
-        _favorites.any((favourite) => favourite.rssUrl == program.rssUrl);
 
-    return Container(
+    return Material(
       key: onAir ? _currentScheduleProgrammeKey : null,
-      decoration: BoxDecoration(
-        color: _colors.palidwhitedark,
+      color: Colors.transparent,
+      child: InkWell(
+        onTap:
+            program == null ? null : () => _presenter.onPodcastClicked(program),
         borderRadius: BorderRadius.circular(14),
-        border: onAir
-            ? Border.all(
-                color: _colors.yellow.withValues(alpha: 0.8),
-                width: 2,
-              )
-            : null,
-      ),
-      padding: const EdgeInsets.all(12),
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: CustomImage(
-              radius: 0,
-              background: true,
-              backgroundColor: Colors.white,
-              fit: BoxFit.cover,
-              resPath: item.logoUrl,
-              width: 64,
-              height: 64,
-            ),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: _colors.palidwhitedark,
+            borderRadius: BorderRadius.circular(14),
+            border: onAir
+                ? Border.all(
+                    color: _colors.yellow.withValues(alpha: 0.8),
+                    width: 2,
+                  )
+                : null,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (onAir) ...[
-                  Text(
-                    SafeMap.safe(
-                      _localization.translateMap("home"),
-                      ["live_msg"],
-                    ),
-                    style: const TextStyle(
-                      color: Color(0xFF00A844),
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                ],
-                Text(
-                  item.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: _colors.font,
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    height: 1.2,
-                  ),
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: CustomImage(
+                  radius: 0,
+                  background: true,
+                  backgroundColor: Colors.white,
+                  fit: BoxFit.cover,
+                  resPath: item.logoUrl,
+                  width: 64,
+                  height: 64,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  time,
-                  style: TextStyle(
-                    color: _colors.fontGrey,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (onAir) ...[
+                      Text(
+                        SafeMap.safe(
+                          _localization.translateMap("home"),
+                          ["live_msg"],
+                        ),
+                        style: const TextStyle(
+                          color: Color(0xFF00A844),
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                    ],
+                    Text(
+                      item.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _colors.font,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      time,
+                      style: TextStyle(
+                        color: _colors.fontGrey,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (onAir) ...[
+                const SizedBox(width: 10),
+                Semantics(
+                  button: true,
+                  label: SafeMap.safe(
+                    _localization.translateMap("timetable"),
+                    ["listen_live"],
+                  ),
+                  child: IconButton.filled(
+                    onPressed: () {
+                      if (liveIsPlaying) {
+                        _presenter.onPausePlayer();
+                        return;
+                      }
+                      final liveNow = Now.mock()
+                        ..name = item.name
+                        ..logoUrl = item.logoUrl
+                        ..rssUrl = item.rssUrl;
+                      setState(() => isLoadingPlay = true);
+                      _presenter.onLiveSelected(liveNow);
+                    },
+                    style: IconButton.styleFrom(
+                      backgroundColor: const Color(0xFF1F1E23),
+                      foregroundColor: Colors.white,
+                    ),
+                    icon: Icon(liveIsPlaying ? Icons.pause : Icons.play_arrow),
                   ),
                 ),
               ],
-            ),
+            ],
           ),
-          if (onAir) ...[
-            const SizedBox(width: 10),
-            Semantics(
-              button: true,
-              label: SafeMap.safe(
-                _localization.translateMap("timetable"),
-                ["listen_live"],
-              ),
-              child: IconButton.filled(
-                onPressed: () {
-                  if (liveIsPlaying) {
-                    _presenter.onPausePlayer();
-                    return;
-                  }
-                  final liveNow = Now.mock()
-                    ..name = item.name
-                    ..logoUrl = item.logoUrl
-                    ..rssUrl = item.rssUrl;
-                  setState(() => isLoadingPlay = true);
-                  _presenter.onLiveSelected(liveNow);
-                },
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(0xFF1F1E23),
-                  foregroundColor: Colors.white,
-                ),
-                icon: Icon(liveIsPlaying ? Icons.pause : Icons.play_arrow),
-              ),
-            ),
-          ],
-          if (program != null && program.rssUrl.isNotEmpty) ...[
-            const SizedBox(width: 4),
-            Semantics(
-              button: true,
-              selected: isFavourite,
-              label: SafeMap.safe(
-                _localization.translateMap("actions"),
-                ["add_favourite"],
-              ),
-              child: IconButton(
-                tooltip: SafeMap.safe(
-                  _localization.translateMap("actions"),
-                  ["add_favourite"],
-                ),
-                onPressed: () {
-                  if (isFavourite) {
-                    setState(() {
-                      _favorites.removeWhere(
-                        (favourite) => favourite.rssUrl == program.rssUrl,
-                      );
-                    });
-                    _presenter.removeFavorite(program.rssUrl);
-                  } else {
-                    setState(() => _favorites.add(program));
-                    _presenter.addFavorite(program);
-                  }
-                },
-                icon: Icon(
-                  isFavourite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavourite ? Colors.red : _colors.fontGrey,
-                ),
-              ),
-            ),
-          ],
-        ],
+        ),
       ),
     );
   }
