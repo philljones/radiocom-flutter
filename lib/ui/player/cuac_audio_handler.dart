@@ -67,7 +67,22 @@ class CuacAudioHandler extends BaseAudioHandler {
   }
 
   @override
-  Future<void> play() => _player.play();
+  Future<void> play() async {
+    try {
+      final currentPlayer = Injector.appInstance.get<CurrentPlayerContract>();
+      if (currentPlayer.isPodcast) {
+        if (currentPlayer.playerState == AudioPlayerState.stop) {
+          await currentPlayer.play();
+        } else {
+          await currentPlayer.resume();
+        }
+      } else {
+        await currentPlayer.restartLiveStream();
+      }
+    } catch (_) {
+      await _player.play();
+    }
+  }
 
   @override
   Future<void> pause() async {

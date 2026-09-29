@@ -54,6 +54,7 @@ abstract class CurrentPlayerContract {
   Future<bool> seek(Duration position);
   Future<bool> setVolume(double volume);
   Future<bool> play();
+  Future<bool> restartLiveStream({bool resetBackoff = true});
   Future<bool> stopAndPlay();
   Future<void> fadeOutAndStop(
       {Duration duration = const Duration(seconds: 15)});
@@ -285,18 +286,28 @@ class CurrentPlayer implements CurrentPlayerContract {
   StreamSubscription? _positionSubscription;
 
   bool _pendingLiveRestart = false;
+  bool _livePlaybackRequested = false;
+  bool _liveRecoveryInProgress = false;
   bool _suppressLiveLog = false;
   int _liveRetryCount = 0;
   Timer? _liveRetryTimer;
+  Timer? _liveStallTimer;
   int _fadeSequence = 0;
   bool _userPaused = false;
-  static const _maxLiveRetries = 5;
+  static const _liveRetryDelays = <Duration>[
+    Duration(seconds: 2),
+    Duration(seconds: 4),
+    Duration(seconds: 8),
+    Duration(seconds: 15),
+    Duration(seconds: 30),
+  ];
+  static const _liveStallTimeout = Duration(seconds: 15);
 
   @override
   void restorePlayer(ConnectivityResult connection) async {
     if (!isPodcast) {
       if (connection == ConnectivityResult.none) {
-        if (isPlaying()) {
+        if (_livePlaybackRequested) {
           await _stop();
           _pendingLiveRestart = true;
           if (onConnection != null) {
@@ -306,15 +317,14 @@ class CurrentPlayer implements CurrentPlayerContract {
             podcastConnectivityResult!(true);
           }
         }
-      } else if ((isPlaying() && connection != connectivityResult) ||
+      } else if ((_livePlaybackRequested && connection != connectivityResult) ||
           _pendingLiveRestart) {
         _pendingLiveRestart = false;
         restorePosition = position;
         restoreDuration = duration;
         tempEpisode = episode;
-        await _stop();
         _suppressLiveLog = true;
-        await play();
+        await restartLiveStream();
         _suppressLiveLog = false;
         if (onConnection != null) {
           onConnection!(false);
@@ -390,16 +400,31 @@ class CurrentPlayer implements CurrentPlayerContract {
     if (playerState != AudioPlayerState.play) {
       _cancelFade();
       _userPaused = false;
+      if (!isPodcast) {
+        _livePlaybackRequested = true;
+      }
       // Cancel previous subscriptions to avoid accumulation
       await _stateSubscription?.cancel();
       await _durationSubscription?.cancel();
       await _positionSubscription?.cancel();
 
       _stateSubscription = audioPlayer.playerStateStream.listen((event) async {
-        if (!isPodcast &&
-            event.playing &&
-            event.processingState == ProcessingState.ready) {
-          _liveRetryCount = 0;
+        if (!isPodcast) {
+          if (event.playing && event.processingState == ProcessingState.ready) {
+            _liveRetryCount = 0;
+            _liveStallTimer?.cancel();
+            if (playerState != AudioPlayerState.play) {
+              playerState = AudioPlayerState.play;
+              onUpdate?.call();
+            }
+          } else if (_livePlaybackRequested &&
+              (event.processingState == ProcessingState.loading ||
+                  event.processingState == ProcessingState.buffering)) {
+            _startLiveStallWatchdog();
+          } else if (event.processingState != ProcessingState.loading &&
+              event.processingState != ProcessingState.buffering) {
+            _liveStallTimer?.cancel();
+          }
         }
         if (isPodcast && event.processingState == ProcessingState.completed) {
           await _stop();
@@ -408,10 +433,9 @@ class CurrentPlayer implements CurrentPlayerContract {
           restorePosition = Duration.zero;
           await _playNextInPlaylist();
           if (onUpdate != null) onUpdate!();
-        } else if (event.processingState == ProcessingState.idle &&
-            playerState != AudioPlayerState.stop) {
+        } else if (event.processingState == ProcessingState.idle) {
           if (!isPodcast) {
-            if (!_userPaused) {
+            if (_livePlaybackRequested && !_userPaused) {
               _scheduleLiveRetry();
             }
           } else {
@@ -425,15 +449,14 @@ class CurrentPlayer implements CurrentPlayerContract {
           if (onConnection != null) onConnection!(false);
         } else if (!event.playing &&
             playerState == AudioPlayerState.play &&
-            event.processingState != ProcessingState.completed) {
+            event.processingState != ProcessingState.completed &&
+            (isPodcast || !_livePlaybackRequested)) {
           playerState = AudioPlayerState.pause;
           if (onUpdate != null) onUpdate!();
           if (onConnection != null) onConnection!(false);
         }
       }, onError: (Object e, StackTrace s) {
-        if (!isPodcast &&
-            !_userPaused &&
-            playerState != AudioPlayerState.stop) {
+        if (!isPodcast && _livePlaybackRequested && !_userPaused) {
           _scheduleLiveRetry();
         }
       });
@@ -459,7 +482,6 @@ class CurrentPlayer implements CurrentPlayerContract {
         } else {
           position = Duration(seconds: 1);
           duration = Duration(hours: 24);
-          _liveRetryCount = 0;
         }
       });
 
@@ -478,10 +500,17 @@ class CurrentPlayer implements CurrentPlayerContract {
         AudioSource audioSource = AudioSource.uri(Uri.parse(isPodcast
             ? episode?.audio ?? RadioStation.base().streamUrl
             : now?.streamUrl() ?? RadioStation.base().streamUrl));
-        audioPlayer.setAudioSource(audioSource);
-        _publishNowPlaying();
-        await audioPlayer.play();
-        await audioPlayer.seek(position);
+        try {
+          await audioPlayer.setAudioSource(audioSource);
+          _publishNowPlaying();
+          await audioPlayer.play();
+          await audioPlayer.seek(position);
+        } catch (_) {
+          if (!isPodcast && _livePlaybackRequested && !_userPaused) {
+            _scheduleLiveRetry();
+          }
+          return false;
+        }
         if (audioPlayer.playing) {
           playerState = AudioPlayerState.play;
           _startWrappedSession();
@@ -504,6 +533,35 @@ class CurrentPlayer implements CurrentPlayerContract {
       }
     } else {
       return false;
+    }
+  }
+
+  @override
+  Future<bool> restartLiveStream({bool resetBackoff = true}) async {
+    if (isPodcast) return false;
+    _cancelFade();
+    _userPaused = false;
+    _livePlaybackRequested = true;
+    _pendingLiveRestart = false;
+    _liveRetryTimer?.cancel();
+    _liveStallTimer?.cancel();
+    if (resetBackoff) _liveRetryCount = 0;
+    if (_liveRecoveryInProgress) {
+      if (!resetBackoff) _scheduleLiveRetry();
+      return false;
+    }
+
+    _liveRecoveryInProgress = true;
+    try {
+      await _stop();
+      if (audioPlayer.processingState != ProcessingState.idle) {
+        await audioPlayer.stop();
+      }
+      playerState = AudioPlayerState.stop;
+      onUpdate?.call();
+      return await play();
+    } finally {
+      _liveRecoveryInProgress = false;
     }
   }
 
@@ -545,23 +603,25 @@ class CurrentPlayer implements CurrentPlayerContract {
   }
 
   void _scheduleLiveRetry() {
+    if (!_livePlaybackRequested || _userPaused || isPodcast) return;
     if (_liveRetryTimer?.isActive ?? false) return;
-    if (_liveRetryCount >= _maxLiveRetries) {
-      _liveRetryCount = 0;
-      playerState = AudioPlayerState.stop;
-      isPodcast = false;
-      if (onUpdate != null) onUpdate!();
-      return;
-    }
+    final delay =
+        _liveRetryDelays[_liveRetryCount.clamp(0, _liveRetryDelays.length - 1)];
     _liveRetryCount++;
-    _liveRetryTimer = Timer(const Duration(seconds: 2), () async {
-      if (isPodcast || _userPaused || playerState == AudioPlayerState.stop) {
-        return;
-      }
+    _liveRetryTimer = Timer(delay, () async {
+      if (isPodcast || _userPaused || !_livePlaybackRequested) return;
       _suppressLiveLog = true;
-      await _stop();
-      await play();
+      await restartLiveStream(resetBackoff: false);
       _suppressLiveLog = false;
+    });
+  }
+
+  void _startLiveStallWatchdog() {
+    if (_liveStallTimer?.isActive ?? false) return;
+    _liveStallTimer = Timer(_liveStallTimeout, () {
+      if (!isPodcast && _livePlaybackRequested && !_userPaused) {
+        _scheduleLiveRetry();
+      }
     });
   }
 
@@ -569,8 +629,10 @@ class CurrentPlayer implements CurrentPlayerContract {
   void stop() {
     _cancelFade();
     _pendingLiveRestart = false;
+    _livePlaybackRequested = false;
     _userPaused = false;
     _liveRetryTimer?.cancel();
+    _liveStallTimer?.cancel();
     _liveRetryCount = 0;
     _stop();
   }
@@ -616,6 +678,7 @@ class CurrentPlayer implements CurrentPlayerContract {
   }
 
   Future<void> _stop() async {
+    _liveStallTimer?.cancel();
     if (playerState == AudioPlayerState.play ||
         playerState == AudioPlayerState.pause) {
       _endWrappedSession();
@@ -638,6 +701,10 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   @override
   Future resume() async {
+    if (!isPodcast) {
+      await restartLiveStream();
+      return;
+    }
     if (playerState == AudioPlayerState.pause) {
       _cancelFade();
       _userPaused = false;
@@ -648,6 +715,11 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   @override
   Future pause() async {
+    if (!isPodcast) {
+      _livePlaybackRequested = false;
+      _liveRetryTimer?.cancel();
+      _liveStallTimer?.cancel();
+    }
     if (playerState == AudioPlayerState.play) {
       _cancelFade();
       _userPaused = true;
@@ -674,7 +746,9 @@ class CurrentPlayer implements CurrentPlayerContract {
   @override
   void release() async {
     _cancelFade();
+    _livePlaybackRequested = false;
     _liveRetryTimer?.cancel();
+    _liveStallTimer?.cancel();
     playerState = AudioPlayerState.stop;
     position = Duration(seconds: 0);
     duration = Duration(seconds: 0);
