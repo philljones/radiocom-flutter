@@ -426,11 +426,15 @@ class MyHomePageState extends State<MyHomePage>
     });
 
     _presenter.currentPlayer.onUpdate = () {
-      if (mounted)
+      if (mounted) {
         setState(() {
+          if (_presenter.currentPlayer.isPlaying()) {
+            isLoadingPlay = false;
+          }
           shouldShowPlayer = _presenter.currentPlayer.isPlaying() ||
               _presenter.currentPlayer.isPaused();
         });
+      }
     };
 
     WidgetsBinding.instance.addObserver(this);
