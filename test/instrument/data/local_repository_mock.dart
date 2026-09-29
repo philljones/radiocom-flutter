@@ -21,6 +21,7 @@ class MockFavoritesRepository extends Mock
   List getFavorites() => super.noSuchMethod(
         Invocation.method(#getFavorites, []),
         returnValue: favorites(),
+        returnValueForMissingStub: favorites(),
       );
   @override
   bool isFavorite(String rssUrl) => super.noSuchMethod(
@@ -34,21 +35,21 @@ class MockFavoritesRepository extends Mock
   }
 }
 
-class MockPlaylistRepository extends Mock implements PlaylistRepositoryContract {
+class MockPlaylistRepository extends Mock
+    implements PlaylistRepositoryContract {
   @override
   void addEpisode(Episode episode, String programName, String logoUrl) =>
       super.noSuchMethod(
           Invocation.method(#addEpisode, [episode, programName, logoUrl]));
   @override
   void addEpisodeAtStart(Episode episode, String programName, String logoUrl) =>
-      super.noSuchMethod(
-          Invocation.method(#addEpisodeAtStart, [episode, programName, logoUrl]));
+      super.noSuchMethod(Invocation.method(
+          #addEpisodeAtStart, [episode, programName, logoUrl]));
   @override
   void removeEpisode(String audioUrl) =>
       super.noSuchMethod(Invocation.method(#removeEpisode, [audioUrl]));
   @override
-  void clearAll() =>
-      super.noSuchMethod(Invocation.method(#clearAll, []));
+  void clearAll() => super.noSuchMethod(Invocation.method(#clearAll, []));
   @override
   bool isInPlaylist(String audioUrl) => super.noSuchMethod(
         Invocation.method(#isInPlaylist, [audioUrl]),
@@ -109,8 +110,8 @@ class MockAlertsRepository extends Mock implements AlertsRepositoryContract {
         returnValue: alerts(),
       );
   @override
-  void cleanOldAlerts({int keepDays = 90}) =>
-      super.noSuchMethod(Invocation.method(#cleanOldAlerts, [], {#keepDays: keepDays}));
+  void cleanOldAlerts({int keepDays = 90}) => super.noSuchMethod(
+      Invocation.method(#cleanOldAlerts, [], {#keepDays: keepDays}));
   @override
   Future<int> getUnreadCount() => super.noSuchMethod(
         Invocation.method(#getUnreadCount, []),
@@ -156,8 +157,7 @@ class MockWrappedRepository extends Mock implements WrappedRepositoryContract {
         #episodeId: episodeId,
       }));
   @override
-  void endSession() =>
-      super.noSuchMethod(Invocation.method(#endSession, []));
+  void endSession() => super.noSuchMethod(Invocation.method(#endSession, []));
   @override
   void recordFavoriteChange(String programName, bool added) =>
       super.noSuchMethod(
