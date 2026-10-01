@@ -184,7 +184,7 @@ class _OnboardingViewState extends State<OnboardingView>
       if (_favoritedRssUrls.contains(program.rssUrl)) {
         _presenter.removeFavorite(program.rssUrl);
         _favoritedRssUrls.remove(program.rssUrl);
-        _showFeedback("${program.name} removed from favourites");
+        _showFeedback("${program.name} removed from Favourites");
       } else {
         _presenter.addFavorite({
           'name': program.name,
@@ -196,7 +196,7 @@ class _OnboardingViewState extends State<OnboardingView>
           'category': program.category,
         });
         _favoritedRssUrls.add(program.rssUrl);
-        _showFeedback("${program.name} added to favourites");
+        _showFeedback("${program.name} added to Favourites");
       }
     });
   }
@@ -275,7 +275,7 @@ class _OnboardingViewState extends State<OnboardingView>
                     ),
                     _buildInfoPage(
                       icon: Icons.favorite,
-                      text: "Follow your favourite programmes.",
+                      text: "Keep your favourite programmes together.",
                     ),
                     _buildInfoPage(
                       icon: Icons.playlist_play,
@@ -286,7 +286,7 @@ class _OnboardingViewState extends State<OnboardingView>
                     _buildInfoPage(
                       icon: Icons.notifications_active,
                       text:
-                          "Turn on alerts for your favourite programmes and receive a notification when a new episode is published.",
+                          "Turn on alerts for favourite programmes and receive a notification when a new episode is published.",
                       subtitle:
                           "You can pause all alerts at any time in Settings.",
                     ),
@@ -421,7 +421,7 @@ class _OnboardingViewState extends State<OnboardingView>
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Text(
             showRecommendations
-                ? "Add programmes to your favourites or playlist."
+                ? "Add programmes to Favourites or your play queue."
                 : "Choose $_maxCategories topics that interest you (${_selectedCategories.length}/$_maxCategories).",
             style: const TextStyle(
               color: _dark,

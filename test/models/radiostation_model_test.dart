@@ -6,9 +6,9 @@ void main() {
     test('that creates base station with expected values', () {
       final station = RadioStation.base();
       expect(station.stationName, equals('Aber Radio'));
-      expect(station.streamUrl, isNotEmpty);
-      expect(station.latitude, closeTo(43.327, 0.01));
-      expect(station.longitude, closeTo(-8.409, 0.01));
+      expect(station.streamUrl, isEmpty);
+      expect(station.latitude, closeTo(51.8254, 0.01));
+      expect(station.longitude, closeTo(-3.0194, 0.01));
       expect(station.stationPhotos, isNotEmpty);
       expect(station.facebookUrl, isNotEmpty);
       expect(station.blueskyUrl, isNotEmpty);
@@ -46,7 +46,7 @@ void main() {
       expect(station.blueskyUrl, equals('http://bsky.app/test'));
     });
 
-    test('that uses the fallback stream when the API omits stream_url', () {
+    test('that leaves the stream empty when the API omits stream_url', () {
       final station = RadioStation.fromInstance({
         'station_photos': [],
         'history': '',
@@ -57,7 +57,7 @@ void main() {
         'twitter_url': '',
       });
 
-      expect(station.streamUrl, equals(RadioStation.fallbackStreamUrl));
+      expect(station.streamUrl, isEmpty);
     });
   });
 }

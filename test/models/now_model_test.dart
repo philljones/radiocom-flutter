@@ -19,7 +19,7 @@ void main() {
   group('Now.mock', () {
     test('that creates a mock Now with expected values', () {
       final now = Now.mock();
-      expect(now.name, equals('Aber Radio Live'));
+      expect(now.name, equals('Aber Radio'));
       expect(now.logoUrl, isNotEmpty);
       expect(now.programmeUrl, equals('https://aberradio.com'));
       expect(now.rssUrl, equals('https://aberradio.com'));
@@ -35,6 +35,10 @@ void main() {
         'programme_url': 'https://cuacfm.org/morning',
         'logo_url': 'https://cuacfm.org/logo.jpg',
         'rss_url': 'https://cuacfm.org/feed.rss',
+        'track': {
+          'title': 'After Midnight',
+          'artist': 'Patsy Cline',
+        },
       };
 
       final now = Now.fromInstance(map);
@@ -44,6 +48,22 @@ void main() {
       expect(now.programmeUrl, equals('https://cuacfm.org/morning'));
       expect(now.logoUrl, equals('https://cuacfm.org/logo.jpg'));
       expect(now.rssUrl, equals('https://cuacfm.org/feed.rss'));
+      expect(now.trackTitle, equals('After Midnight'));
+      expect(now.trackArtist, equals('Patsy Cline'));
+      expect(now.trackDisplay, equals('Patsy Cline — After Midnight'));
+    });
+
+    test('that treats absent track metadata as optional', () {
+      final now = Now.fromInstance({
+        'name': 'Morning Show',
+        'description': '',
+        'logo_url': '',
+        'rss_url': '',
+      });
+
+      expect(now.trackTitle, isEmpty);
+      expect(now.trackArtist, isEmpty);
+      expect(now.trackDisplay, isEmpty);
     });
   });
 
@@ -51,7 +71,7 @@ void main() {
     test('that returns the stream url from injected radio station', () {
       final now = Now.mock();
       final url = now.streamUrl();
-      expect(url, equals('https://stream.aberradio.com/test.mp3'));
+      expect(url, equals('http://streaming.cuacfm.org/cuacfm.mp3'));
     });
   });
 }

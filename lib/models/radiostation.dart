@@ -1,7 +1,4 @@
 class RadioStation {
-  static const String fallbackStreamUrl =
-      "https://stream.aberradio.com/test.mp3";
-
   String stationName;
   String iconUrl;
   String bigIconUrl;
@@ -14,7 +11,7 @@ class RadioStation {
   String facebookUrl;
   String blueskyUrl;
 
-  RadioStation.base()
+  RadioStation.base({this.streamUrl = ""})
       : stationName = "Aber Radio",
         iconUrl = "assets/graphics/aber-radio-logo.png",
         bigIconUrl = "assets/graphics/aber-radio-logo.png",
@@ -24,7 +21,6 @@ class RadioStation {
         latitude = 51.8254,
         longitude = -3.0194,
         newsRss = "https://aberradio.com/feed/",
-        streamUrl = fallbackStreamUrl,
         facebookUrl = "https://aberradio.com",
         blueskyUrl = "https://aberradio.com";
 
@@ -38,7 +34,7 @@ class RadioStation {
         latitude = map["latitude"],
         longitude = map["longitude"],
         newsRss = map["news_rss"],
-        streamUrl = map["stream_url"] ?? fallbackStreamUrl,
+        streamUrl = (map["stream_url"] as String? ?? "").trim(),
         facebookUrl = map["facebook_url"],
         blueskyUrl = map["twitter_url"];
 }

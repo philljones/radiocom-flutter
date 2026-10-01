@@ -19,7 +19,7 @@ import 'package:cuacfm/utils/toast.dart';
 import 'package:cuacfm/utils/wave.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:html/parser.dart' as html_parser;
+import 'package:cuacfm/utils/html_to_text.dart';
 import 'package:injector/injector.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
@@ -65,8 +65,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
   }
 
   String stripHtml(String html) {
-    final doc = html_parser.parse(html);
-    return doc.body?.text.trim() ?? '';
+    return htmlToPlainText(html);
   }
 
   Future<void> _loadPaletteColor() async {
@@ -512,7 +511,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
                     SizedBox(height: 4),
                     Text(
                       SafeMap.safe(_localization.translateMap("actions"),
-                          ["add_favourite"]),
+                          [_isFavorite ? "in_my_shows" : "add_favourite"]),
                       style: TextStyle(
                         color: _isFavorite ? Colors.red : _colors.fontGrey,
                         fontSize: 12,

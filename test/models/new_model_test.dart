@@ -232,6 +232,33 @@ void main() {
       expect(news.isAbergavennyChronicle, isTrue);
     });
 
+    test('that identifies the Abergavenny weather feed item', () {
+      final news = New(
+        'Abergavenny weather',
+        'https://api.aberradio.com/api/2/weather',
+        'Forecast',
+        '',
+        '',
+        category: 'Weather · Abergavenny',
+      );
+
+      expect(news.isAbergavennyWeather, isTrue);
+    });
+
+    test('that does not identify an unrelated weather story as the forecast',
+        () {
+      final news = New(
+        'Weather warning issued',
+        'https://www.abergavennychronicle.com/news/weather-warning',
+        'Story',
+        '',
+        '',
+        category: 'Weather',
+      );
+
+      expect(news.isAbergavennyWeather, isFalse);
+    });
+
     test('that parses description with content__cdata key', () {
       final map = {
         'title': {'\$t': 'Title'},

@@ -2,7 +2,9 @@ import 'dart:io';
 
 import 'package:cuacfm/domain/repository/favorites_repository_contract.dart';
 import 'package:cuacfm/domain/repository/radiocom_repository_contract.dart';
+import 'package:cuacfm/domain/result/result.dart';
 import 'package:cuacfm/injector/dependency_injector.dart';
+import 'package:cuacfm/models/new.dart';
 import 'package:cuacfm/ui/home/home_presenter.dart';
 import 'package:cuacfm/ui/home/home_view.dart';
 import 'package:cuacfm/ui/player/current_player.dart';
@@ -163,6 +165,63 @@ void main() {
         find.byKey(PageStorageKey<String>(BottomBarOption.NEWS.toString()),
             skipOffstage: true),
         findsOneWidget);
+  });
+
+  testWidgets('that features Abergavenny weather above the latest news',
+      (WidgetTester tester) async {
+    when(mockRepository.getLiveBroadcast())
+        .thenAnswer((_) => MockRadiocoRepository.now());
+    when(mockRepository.getTimetableData(any, any))
+        .thenAnswer((_) => MockRadiocoRepository.timetables());
+    when(mockRepository.getEpisodes(any))
+        .thenAnswer((_) => MockRadiocoRepository.episodes());
+    when(mockRepository.getAllPodcasts())
+        .thenAnswer((_) => MockRadiocoRepository.podcasts());
+    when(mockRepository.getRadioStationData())
+        .thenAnswer((_) => MockRadiocoRepository.radioStation());
+    when(mockRepository.getNews()).thenAnswer(
+      (_) => Future.value(
+        Success(
+          [
+            New(
+              'Abergavenny weather',
+              'https://api.aberradio.com/api/2/weather',
+              'Forecast',
+              'assets/graphics/cuac-logo.png',
+              'Today',
+              category: 'Weather · Abergavenny',
+            ),
+            New(
+              'Latest story',
+              'https://example.com/story',
+              'Story',
+              'assets/graphics/cuac-logo.png',
+              'Today',
+              category: 'Local news',
+            ),
+          ],
+          Status.ok,
+        ),
+      ),
+    );
+    when(mockRepository.getOutStanding(any))
+        .thenAnswer((_) => MockRadiocoRepository.outstanding());
+    when(mockConnection.isConnectionAvailable())
+        .thenAnswer((_) => Future.value(true));
+    when(mockPlayer.isPlaying()).thenReturn(false);
+    when(mockPlayer.stop()).thenReturn(true);
+    when(mockPlayer.play()).thenAnswer((_) => Future.value(true));
+    mockPlayer.isPodcast = false;
+    mockPlayer.currentSong = "mocklive";
+
+    await tester.pumpWidget(startWidget(MyHomePage(title: "homi")));
+    await tester.tap(find.byKey(Key("bottom_bar_item3")));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key("featured_weather_card")), findsOneWidget);
+    expect(find.byKey(const Key("latest_news_heading")), findsOneWidget);
+    expect(find.text('Abergavenny weather'), findsOneWidget);
+    expect(find.text('Latest story'), findsOneWidget);
   });
 
   testWidgets(

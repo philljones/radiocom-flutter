@@ -118,9 +118,7 @@ class PodcastControlsState extends State<PodcastControls>
     Future.delayed(const Duration(milliseconds: 380), _loadPaletteColor);
 
     currentPlayer.onUpdate = () {
-      if (currentPlayer.isPodcast) {
-        if (mounted) setState(() {});
-      }
+      if (mounted) setState(() {});
     };
 
     currentPlayer.onConnection = (isError) {
@@ -441,6 +439,24 @@ class PodcastControlsState extends State<PodcastControls>
               height: 1.2,
             ),
           ),
+          if ((currentPlayer.now?.trackDisplay ?? '').isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              "${SafeMap.safe(_localization.translateMap("home"), [
+                    "now_playing"
+                  ])}: ${currentPlayer.now!.trackDisplay}",
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _colors.fontGrey,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0,
+                height: 1.3,
+              ),
+            ),
+          ],
           if (live != null && live.rssUrl.isNotEmpty) ...[
             const SizedBox(height: 6),
             FutureBuilder<List<Episode>>(
@@ -548,7 +564,9 @@ class PodcastControlsState extends State<PodcastControls>
           const SizedBox(width: 52),
         const SizedBox(width: 20),
         GestureDetector(
-          onTap: () => _presenter.onPlayPause(),
+          onTap: currentPlayer.isBuffering()
+              ? null
+              : () => _presenter.onPlayPause(),
           child: Container(
             width: 72,
             height: 72,
@@ -556,11 +574,19 @@ class PodcastControlsState extends State<PodcastControls>
               shape: BoxShape.circle,
               border: Border.all(color: _colors.yellow, width: 2),
             ),
-            child: Icon(
-              currentPlayer.isPlaying() ? Icons.pause : Icons.play_arrow,
-              color: _colors.yellow,
-              size: 40,
-            ),
+            child: currentPlayer.isBuffering()
+                ? Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: CircularProgressIndicator(
+                      color: _colors.yellow,
+                      strokeWidth: 3,
+                    ),
+                  )
+                : Icon(
+                    currentPlayer.isPlaying() ? Icons.pause : Icons.play_arrow,
+                    color: _colors.yellow,
+                    size: 40,
+                  ),
           ),
         ),
         const SizedBox(width: 20),

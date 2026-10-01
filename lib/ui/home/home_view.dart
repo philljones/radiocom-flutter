@@ -29,14 +29,16 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:injector/injector.dart';
 import 'package:intl/intl.dart';
 import 'package:cuacfm/ui/episode-detail/episode_detail_view.dart';
-import 'package:html/parser.dart' as html_parser;
+import 'package:cuacfm/utils/html_to_text.dart';
 import 'dart:convert';
 import 'package:cuacfm/main.dart'
     show
         appThemeModeNotifier,
         appLocaleNotifier,
         pendingNotificationRssUrl,
-        pendingNotificationEpisodeId;
+        pendingNotificationEpisodeId,
+        pendingIOSHomeAction,
+        refreshPendingIOSHomeAction;
 import 'package:firebase_analytics/firebase_analytics.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -289,6 +291,7 @@ class MyHomePageState extends State<MyHomePage>
     appThemeModeNotifier.removeListener(_onAppSettingsChanged);
     appLocaleNotifier.removeListener(_onAppSettingsChanged);
     pendingNotificationRssUrl.removeListener(_onPendingNotification);
+    pendingIOSHomeAction.removeListener(_onPendingIOSHomeAction);
     super.dispose();
   }
 
@@ -297,8 +300,7 @@ class MyHomePageState extends State<MyHomePage>
   }
 
   String stripHtml(String html) {
-    final doc = html_parser.parse(html);
-    return doc.body?.text.trim() ?? '';
+    return htmlToPlainText(html);
   }
 
   Program? findPodcastByName(String url) {
@@ -441,8 +443,46 @@ class MyHomePageState extends State<MyHomePage>
     appThemeModeNotifier.addListener(_onAppSettingsChanged);
     appLocaleNotifier.addListener(_onAppSettingsChanged);
     pendingNotificationRssUrl.addListener(_onPendingNotification);
+    pendingIOSHomeAction.addListener(_onPendingIOSHomeAction);
     if (pendingNotificationRssUrl.value != null) {
       setState(() => _navigatingFromNotification = true);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await refreshPendingIOSHomeAction();
+      _handlePendingIOSHomeAction();
+    });
+  }
+
+  void _onPendingIOSHomeAction() => _handlePendingIOSHomeAction();
+
+  void _handlePendingIOSHomeAction() {
+    final action = pendingIOSHomeAction.value;
+    if (!mounted || action == null) return;
+
+    if (action == 'listenLive' && _nowProgram.name.isEmpty) return;
+    pendingIOSHomeAction.value = null;
+
+    switch (action) {
+      case 'listenLive':
+        setState(() => bottomBarOption = BottomBarOption.HOME);
+        _logTabScreen(BottomBarOption.HOME);
+        if (!_presenter.currentPlayer.isPlaying()) {
+          _presenter.onLiveSelected(_nowProgram);
+        }
+        break;
+      case 'schedule':
+        setState(() {
+          bottomBarOption = BottomBarOption.SEARCH;
+          _selectedScheduleDayOffset = 0;
+        });
+        _logTabScreen(BottomBarOption.SEARCH);
+        _openScheduleAtToday();
+        break;
+      case 'favourites':
+        setState(() => bottomBarOption = BottomBarOption.FAVOURITES);
+        _logTabScreen(BottomBarOption.FAVOURITES);
+        _presenter.loadFavorites();
+        break;
     }
   }
 
@@ -566,7 +606,7 @@ class MyHomePageState extends State<MyHomePage>
       BottomBarOption.HOME: 'home',
       BottomBarOption.SEARCH: 'schedule',
       BottomBarOption.NEWS: 'news',
-      BottomBarOption.FAVOURITES: 'favourites',
+      BottomBarOption.FAVOURITES: 'my_shows',
     };
     final name = names[option];
     if (name != null) {
@@ -662,6 +702,7 @@ class MyHomePageState extends State<MyHomePage>
       _nowProgram = now;
       _syncLivePlayerInfo();
     });
+    _handlePendingIOSHomeAction();
   }
 
   @override
@@ -1269,7 +1310,13 @@ class MyHomePageState extends State<MyHomePage>
                                       ),
                                       SizedBox(height: 4),
                                       Text(
-                                        "Aber Radio",
+                                        _nowProgram.trackDisplay.isEmpty
+                                            ? "Aber Radio"
+                                            : "${SafeMap.safe(_localization.translateMap("home"), [
+                                                    "now_playing"
+                                                  ])}: ${_nowProgram.trackDisplay}",
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
                                         style: TextStyle(
                                           color: Color(0xFF1A1A1A)
                                               .withValues(alpha: 0.6),
@@ -1543,116 +1590,231 @@ class MyHomePageState extends State<MyHomePage>
   }
 
   Widget _getNewsLayout() {
+    final featuredIndex =
+        _lastNews.indexWhere((news) => news.isAbergavennyWeather);
+    final featuredWeather =
+        featuredIndex == -1 ? null : _lastNews[featuredIndex];
+    final latestNews = featuredIndex == -1
+        ? _lastNews
+        : [
+            ..._lastNews.take(featuredIndex),
+            ..._lastNews.skip(featuredIndex + 1),
+          ];
+
     return Container(
       key: Key("news_container"),
       color: _colors.palidwhite,
       width: queryData.size.width,
       height: queryData.size.height,
-      child: ListView.builder(
+      child: ListView(
         key: PageStorageKey<String>(BottomBarOption.NEWS.toString()),
         physics: BouncingScrollPhysics(),
-        itemCount: _lastNews.length + 1,
-        itemBuilder: (_, int index) {
-          if (index == 0) {
-            return Padding(
-              padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 16.0),
-              child: Text(
-                SafeMap.safe(_localization.translateMap("home"), ["news"]),
-                style: TextStyle(
-                  letterSpacing: 0,
-                  color: _colors.font,
-                  fontSize: 30,
-                  fontWeight: FontWeight.w700,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20.0, 10.0, 20.0, 16.0),
+            child: Text(
+              SafeMap.safe(_localization.translateMap("home"), ["news"]),
+              style: TextStyle(
+                letterSpacing: 0,
+                color: _colors.font,
+                fontSize: 30,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          if (featuredWeather != null) ...[
+            _buildFeaturedWeatherCard(featuredWeather),
+            if (latestNews.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 28, 20, 6),
+                child: Text(
+                  key: const Key("latest_news_heading"),
+                  SafeMap.safe(
+                      _localization.translateMap("home"), ["outstanding_msg"]),
+                  style: TextStyle(
+                    color: _colors.font,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
-            );
-          }
+          ],
+          ...latestNews.asMap().entries.map(
+                (entry) => _buildNewsListItem(
+                  entry.value,
+                  isLast: entry.key == latestNews.length - 1,
+                ),
+              ),
+          SizedBox(height: shouldShowPlayer ? 60.0 : 10.0),
+        ],
+      ),
+    );
+  }
 
-          final news = _lastNews[index - 1];
-          final isLast = index == _lastNews.length;
-          return Column(
-            children: [
-              Material(
-                color: _colors.transparent,
-                child: InkWell(
-                  onTap: () => _presenter.onNewClicked(news),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CustomImage(
-                            resPath: news.image,
-                            fit: BoxFit.cover,
-                            width: 108,
-                            height: 80,
-                            radius: 10,
+  Widget _buildFeaturedWeatherCard(New news) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Material(
+        key: const Key("featured_weather_card"),
+        color: _colors.transparent,
+        borderRadius: BorderRadius.circular(16),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () => _presenter.onNewClicked(news),
+          child: SizedBox(
+            height: 210,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                CustomImage(
+                  resPath: news.image,
+                  fit: BoxFit.cover,
+                  radius: 16,
+                ),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Colors.transparent,
+                        Colors.black.withValues(alpha: 0.78),
+                      ],
+                      stops: const [0.35, 1],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 18,
+                  right: 18,
+                  bottom: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (news.category.isNotEmpty)
+                        Text(
+                          news.category.toUpperCase(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: _colors.yellow,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 0.4,
                           ),
                         ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (news.category.isNotEmpty) ...[
-                                Text(
-                                  news.category,
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    color: _colors.yellow,
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 0,
-                                  ),
-                                ),
-                                SizedBox(height: 3),
-                              ],
-                              Text(
-                                news.timeAgo(),
-                                style: TextStyle(
-                                  color: _colors.fontGrey,
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 0,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                news.title,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  color: _colors.font,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                  letterSpacing: 0,
-                                  height: 1.3,
-                                ),
-                              ),
-                            ],
+                      SizedBox(height: 4),
+                      Text(
+                        news.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 24,
+                          fontWeight: FontWeight.w700,
+                          height: 1.15,
+                        ),
+                      ),
+                      SizedBox(height: 5),
+                      Text(
+                        news.timeAgo(),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.78),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNewsListItem(New news, {required bool isLast}) {
+    return Column(
+      children: [
+        Material(
+          color: _colors.transparent,
+          child: InkWell(
+            onTap: () => _presenter.onNewClicked(news),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CustomImage(
+                      resPath: news.image,
+                      fit: BoxFit.cover,
+                      width: 108,
+                      height: 80,
+                      radius: 10,
+                    ),
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (news.category.isNotEmpty) ...[
+                          Text(
+                            news.category,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: _colors.yellow,
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                          SizedBox(height: 3),
+                        ],
+                        Text(
+                          news.timeAgo(),
+                          style: TextStyle(
+                            color: _colors.fontGrey,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                            letterSpacing: 0,
+                          ),
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          news.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: _colors.font,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                            letterSpacing: 0,
+                            height: 1.3,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
+                ],
               ),
-              if (!isLast)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Container(
-                    height: 1,
-                    color: _colors.fontGrey.withValues(alpha: 0.15),
-                  ),
-                ),
-              if (isLast) SizedBox(height: shouldShowPlayer ? 60.0 : 10.0),
-            ],
-          );
-        },
-      ),
+            ),
+          ),
+        ),
+        if (!isLast)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Container(
+              height: 1,
+              color: _colors.fontGrey.withValues(alpha: 0.15),
+            ),
+          ),
+      ],
     );
   }
 
@@ -2691,6 +2853,13 @@ class MyHomePageState extends State<MyHomePage>
   }
 
   String _getLiveSubtitle() {
+    if (_nowProgram.trackDisplay.isNotEmpty) {
+      final subtitle = "${SafeMap.safe(_localization.translateMap("home"), [
+            "now_playing"
+          ])}: ${_nowProgram.trackDisplay}";
+      _presenter.currentPlayer.currentSubtitle = subtitle;
+      return subtitle;
+    }
     final current = _getCurrentTimeTable();
     final subtitle = current == null
         ? "Aber Radio"

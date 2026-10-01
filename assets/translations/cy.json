@@ -1,11 +1,11 @@
 {
   "home": {
     "welcome_msg_1": "Bore da", "welcome_msg_2": "Prynhawn da", "welcome_msg_3": "Noswaith dda",
-    "outstanding_msg": "Y newyddion diweddaraf", "live_msg": "Yn fyw", "recent_msg": "Newydd yr wythnos hon",
+    "outstanding_msg": "Y newyddion diweddaraf", "live_msg": "Yn fyw", "now_playing": "Yn chwarae nawr", "recent_msg": "Newydd yr wythnos hon",
     "podcast_recent_msg": "Podlediadau diweddar", "join_msg": "Ymunwch â ni", "join_msg_detail": "Eisiau eich rhaglen radio eich hun?",
     "podcast_of_day_msg": "Darganfod podlediadau", "now_msg": "Amserlen", "view_schedule": "Gweld yr amserlen", "coming_up": "Nesaf", "schedule_now": "Nawr", "schedule_next": "Nesaf",
     "tab_home": "Hafan", "tab_schedule": "Amserlen", "tab_podcasts": "Podlediadau", "tab_news": "Newyddion", "tab_favourites": "Ffefrynnau", "tab_menu": "Dewislen",
-    "favourites_empty": "Nid ydych wedi ychwanegu unrhyw ffefrynnau eto.", "empty_podcast": "Nid oes podlediad ar hyn o bryd.",
+    "favourites_empty": "Nid oes gennych unrhyw ffefrynnau eto.", "empty_podcast": "Nid oes podlediad ar hyn o bryd.",
     "news": "Newyddion", "news_error": "Nid oes newyddion ar hyn o bryd.", "podcast": "Podlediadau", "podcast_error": "Nid oes podlediad ar hyn o bryd.",
     "categories": "Categorïau", "see_all": "Gweld pob un"
   },
@@ -24,7 +24,7 @@
     "legal_info_section": {"name": "CYFREITHIOL", "item1": "Polisi preifatrwydd", "item2": "Telerau ac amodau", "item3": "Trwydded meddalwedd"}
   },
   "error": {"title": "Gwall", "message": "Mae rhywbeth wedi mynd o’i le :(", "internet_error": "Nid oes cysylltiad rhyngrwyd", "connection_error": "Ni allwn gysylltu â’n gweinyddion", "podcast_not_ready": "Mae’r cynnwys yn dal i lwytho; rhowch gynnig arall arni mewn eiliad"},
-  "actions": {"close": "Cau", "see_more": "Gweld mwy", "see_less": "Gweld llai", "add_favourite": "Ffefryn", "share": "Rhannu", "program": "Rhaglen", "last_episode": "Pennod ddiweddaraf:", "share_episode": "🎙 Rhaglen: %s\n📻 Gwrandewch ar y bennod: %s\n🔗 ", "share_program": "🎙 %s ar Aber Radio\n🔗 "},
+  "actions": {"close": "Cau", "see_more": "Gweld mwy", "see_less": "Gweld llai", "add_favourite": "Ffefryn", "in_my_shows": "Ffefryn", "share": "Rhannu", "program": "Rhaglen", "last_episode": "Pennod ddiweddaraf:", "share_episode": "🎙 Rhaglen: %s\n📻 Gwrandewch ar y bennod: %s\n🔗 ", "share_program": "🎙 %s ar Aber Radio\n🔗 "},
   "general": {"minutes": " munud.", "seconds": " eiliad.", "from": "O ", "to": " i ", "season": "Cyfres", "episode": "Pennod"},
   "categories": {"others": "Eraill", "tv": "Teledu a Ffilm", "news": "Newyddion a Gwleidyddiaeth", "sport": "Chwaraeon", "magazine": "Cymdeithas a Diwylliant", "edu": "Addysg", "comedy": "Comedi", "music": "Cerddoriaeth", "science": "Gwyddoniaeth", "art": "Celfyddydau", "goverment": "Llywodraeth a Sefydliadau", "health": "Iechyd", "tech": "Technoleg"},
   "days": {"mon": "Dydd Llun", "tue": "Dydd Mawrth", "wed": "Dydd Mercher", "thu": "Dydd Iau", "fri": "Dydd Gwener", "sat": "Dydd Sadwrn", "sun": "Dydd Sul"},

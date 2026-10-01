@@ -14,6 +14,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injector/injector.dart';
 import 'package:mock_web_server/mock_web_server.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../instrument/helper/helper-instrument.dart';
 import '../instrument/helper/helper.dart';
@@ -28,6 +29,7 @@ void main() {
 
   setUpAll(() async {
     WidgetsFlutterBinding.ensureInitialized();
+    SharedPreferences.setMockInitialValues({});
     DependencyInjector().loadModules();
     getTranslations();
     server = new MockWebServer();
@@ -37,7 +39,7 @@ void main() {
     mockRaiodocApi.outstandingUrl = server.url;
     mockUrl = server.url;
     Injector.appInstance.registerDependency<RadioStation>(
-            () => RadioStationInstrument.givenARadioStation(feed: mockUrl),
+        () => RadioStationInstrument.givenARadioStation(feed: mockUrl),
         override: true);
     Injector.appInstance.registerDependency<RadiocoAPIContract>(
         () => mockRaiodocApi,
@@ -55,28 +57,33 @@ void main() {
   test('that can parse a response for station data', () async {
     server.enqueue(body: Helper.readFile("test_mocks/get_station.json"));
     RadioStation result = await remoteDataSource.getRadioStationData();
-    expect(result.stationName, equals("Aber Radio"));
+    expect(result.stationName, equals("CUAC FM REMOTE"));
+    expect(result.streamUrl, equals("http://streaming.cuacfm.org/cuacfm.mp3"));
   });
 
   test('that can handle get station data internal server error', () async {
     server.enqueue(body: "", httpCode: 500);
     RadioStation result = await remoteDataSource.getRadioStationData();
     expect(result.stationName, equals("Aber Radio"));
+    expect(result.streamUrl, equals("http://streaming.cuacfm.org/cuacfm.mp3"));
   });
 
   test('that can handle get station data not found error', () async {
     server.enqueue(body: "", httpCode: 401);
     RadioStation result = await remoteDataSource.getRadioStationData();
     expect(result.stationName, equals("Aber Radio"));
+    expect(result.streamUrl, equals("http://streaming.cuacfm.org/cuacfm.mp3"));
   });
 
   test('that can parse a response for current program data', () async {
-    server.enqueue(body: Helper.readFile("test_mocks/get_live_transmission.json"));
+    server.enqueue(
+        body: Helper.readFile("test_mocks/get_live_transmission.json"));
     Now? result = await remoteDataSource.getLiveBroadcast();
-    expect(result?.name, equals("Aber Radio Live"));
+    expect(result?.name, equals("Radioactiva"));
   });
 
-  test('that can handle get current program data internal server error', () async {
+  test('that can handle get current program data internal server error',
+      () async {
     server.enqueue(body: "", httpCode: 500);
     Now? result = await remoteDataSource.getLiveBroadcast();
     expect(result, equals(null));
@@ -90,19 +97,22 @@ void main() {
 
   test('that can parse a response for timetable data', () async {
     server.enqueue(body: Helper.readFile("test_mocks/get_transmissions.json"));
-    List<TimeTable> result = await remoteDataSource.getTimetableData("after", "before");
+    List<TimeTable> result =
+        await remoteDataSource.getTimetableData("after", "before");
     expect(result.length, equals(33));
   });
 
   test('that can handle get timetable data internal server error', () async {
     server.enqueue(body: "", httpCode: 500);
-    List<TimeTable> result = await remoteDataSource.getTimetableData("after", "before");
+    List<TimeTable> result =
+        await remoteDataSource.getTimetableData("after", "before");
     expect(result.length, equals(0));
   });
 
   test('that can handle timetable not found error', () async {
     server.enqueue(body: "", httpCode: 401);
-    List<TimeTable> result = await remoteDataSource.getTimetableData("after", "before");
+    List<TimeTable> result =
+        await remoteDataSource.getTimetableData("after", "before");
     expect(result.length, equals(0));
   });
 
@@ -161,20 +171,22 @@ void main() {
   });
 
   test('that can parse a response for outstanding data', () async {
-    final outstandingJson = jsonDecode(Helper.readFile("test_mocks/get_outstanding.json")) as Map<String, dynamic>;
+    final outstandingJson =
+        jsonDecode(Helper.readFile("test_mocks/get_outstanding.json"))
+            as Map<String, dynamic>;
     (outstandingJson["_links"] as Map)["wp:featuredmedia"] = [
       {"href": mockUrl}
     ];
     server.enqueue(body: jsonEncode(outstandingJson));
-    server.enqueue(body: Helper.readFile("test_mocks/get_outstanding_image.json"));
+    server.enqueue(
+        body: Helper.readFile("test_mocks/get_outstanding_image.json"));
     Outstanding? result = await remoteDataSource.getOutstanding(mockUrl);
     expect(result?.title, contains("mocked"));
   });
 
   test('that can handle errors in outstanding data', () async {
-    server.enqueue(body: "",httpCode: 401);
+    server.enqueue(body: "", httpCode: 401);
     Outstanding? result = await remoteDataSource.getOutstanding(mockUrl);
     expect(result, isNull);
   });
-
 }

@@ -74,7 +74,7 @@ class BottomBar extends StatelessWidget {
     final tabFavourites = SafeMap.safe(
             _localization.translateMap("home"), ["tab_favourites"]).isNotEmpty
         ? SafeMap.safe(_localization.translateMap("home"), ["tab_favourites"])
-        : "Favoritos";
+        : "Favourites";
     final tabMenu =
         SafeMap.safe(_localization.translateMap("home"), ["tab_menu"])
                 .isNotEmpty

@@ -3,7 +3,7 @@ class Legal {
 
 Last updated: 26 September 2026
 
-Aber Radio provides this app so listeners can hear the live station, browse programmes, podcasts and news, save favourites, and receive station alerts where these are enabled.
+Aber Radio provides this app so listeners can hear the live station, browse programmes, podcasts and news, mark programmes as favourites, and receive station alerts where these are enabled.
 
 Information handled by the app
 

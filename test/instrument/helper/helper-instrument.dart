@@ -109,6 +109,11 @@ class MockPlayer extends Mock implements CurrentPlayerContract {
   bool isPlaying() =>
       super.noSuchMethod(Invocation.method(#isPlaying, []), returnValue: false);
   @override
+  bool isBuffering() => super.noSuchMethod(
+        Invocation.method(#isBuffering, []),
+        returnValue: false,
+      );
+  @override
   bool isStreamingAudio() => super.noSuchMethod(
         Invocation.method(#isStreamingAudio, []),
         returnValue: false,

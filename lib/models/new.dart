@@ -86,6 +86,17 @@ class New {
         host.endsWith(".abergavennychronicle.com");
   }
 
+  bool get isAbergavennyWeather {
+    final uri = Uri.tryParse(link);
+    if (uri?.host.toLowerCase() == "api.aberradio.com" &&
+        uri?.path == "/api/2/weather") {
+      return true;
+    }
+
+    return title.trim().toLowerCase() == "abergavenny weather" &&
+        category.toLowerCase().contains("weather");
+  }
+
   static DateTime? parseDateTime(String content) {
     if (content.isEmpty) return null;
     try {

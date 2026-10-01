@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cuacfm/domain/repository/alerts_repository_contract.dart';
 import 'package:cuacfm/injector/dependency_injector.dart';
 import 'package:cuacfm/local-data-source/alerts_local_datasource.dart';
@@ -115,6 +117,7 @@ void main() async {
   );
   Injector.appInstance.registerSingleton<CuacAudioHandler>(() => audioHandler);
 
+  unawaited(_configureIOSHomeActions());
   runApp(MyApp());
 }
 
@@ -124,6 +127,45 @@ final ValueNotifier<ThemeMode> appThemeModeNotifier =
 final ValueNotifier<Locale?> appLocaleNotifier = ValueNotifier(null);
 final ValueNotifier<String?> pendingNotificationRssUrl = ValueNotifier(null);
 final ValueNotifier<String?> pendingNotificationEpisodeId = ValueNotifier(null);
+final ValueNotifier<String?> pendingIOSHomeAction = ValueNotifier(null);
+
+const MethodChannel _iosHomeActionsChannel =
+    MethodChannel('uk.co.abergavennyradio/home_actions');
+
+Future<void> _configureIOSHomeActions() async {
+  if (Foundation.kIsWeb ||
+      Foundation.defaultTargetPlatform != TargetPlatform.iOS) return;
+
+  _iosHomeActionsChannel.setMethodCallHandler((call) async {
+    if (call.method == 'homeAction' && call.arguments is String) {
+      await _publishIOSHomeAction(call.arguments as String);
+    }
+  });
+
+  await refreshPendingIOSHomeAction();
+}
+
+Future<void> refreshPendingIOSHomeAction() async {
+  if (Foundation.kIsWeb ||
+      Foundation.defaultTargetPlatform != TargetPlatform.iOS) return;
+  try {
+    final initialAction =
+        await _iosHomeActionsChannel.invokeMethod<String>('getInitialAction');
+    if (initialAction != null) await _publishIOSHomeAction(initialAction);
+  } on PlatformException {
+    // The app still works normally on iOS versions without the native bridge.
+  }
+}
+
+Future<void> _publishIOSHomeAction(String action) async {
+  pendingIOSHomeAction.value = action;
+  try {
+    await _iosHomeActionsChannel.invokeMethod<void>(
+        'clearPendingAction', action);
+  } on PlatformException {
+    // A repeated check by the Home screen will safely recover the action.
+  }
+}
 
 void _applyThemeModeToApp(ThemeMode mode) {
   final isDark = mode == ThemeMode.dark ||

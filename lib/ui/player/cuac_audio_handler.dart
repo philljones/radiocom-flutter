@@ -38,7 +38,11 @@ class CuacAudioHandler extends BaseAudioHandler {
   }
 
   void _broadcastState() {
-    final playing = _player.playing;
+    // just_audio can keep `playing` true while a live stream is stalled in
+    // buffering. Report that state as not playing so car and lock-screen
+    // controls offer a working Play command that can rebuild the connection.
+    final playing = _player.playing &&
+        (!_isLive || _player.processingState == ProcessingState.ready);
     playbackState.add(playbackState.value.copyWith(
       controls: [
         if (!_isLive) _rewindControl,
