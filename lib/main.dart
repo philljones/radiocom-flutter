@@ -25,6 +25,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:cuacfm/ui/player/cuac_audio_handler.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cuacfm/utils/push_notifications.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -44,6 +45,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await TestStreamSwitch.initialize();
   await Hive.initFlutter();
   await Hive.openBox('playlist');
   await Hive.openBox('favourites');

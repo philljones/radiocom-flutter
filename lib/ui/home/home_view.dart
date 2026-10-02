@@ -23,6 +23,7 @@ import 'package:cuacfm/utils/custom_image.dart';
 import 'package:cuacfm/utils/player_view.dart';
 import 'package:cuacfm/utils/radiocom_colors.dart';
 import 'package:cuacfm/utils/safe_map.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -792,6 +793,8 @@ class MyHomePageState extends State<MyHomePage>
 
   @override
   void onLoadRadioStation(RadioStation station) {
+    station.streamUrl =
+        TestStreamSwitch.resolveCurrentStreamUrl(station.streamUrl);
     Injector.appInstance.registerSingleton<RadioStation>(
       () => station,
       override: true,

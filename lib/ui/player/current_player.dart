@@ -15,6 +15,7 @@ import 'package:cuacfm/domain/usecase/remove_from_playlist_use_case.dart';
 import 'package:cuacfm/domain/usecase/start_session_use_case.dart';
 import 'package:cuacfm/models/episode.dart';
 import 'package:cuacfm/models/now.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/services.dart';
 import 'package:audio_service/audio_service.dart';
@@ -316,7 +317,9 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   String get _playbackUrl => isPodcast
       ? (episode?.audio ?? '').trim()
-      : (now?.streamUrl() ?? '').trim();
+      : TestStreamSwitch.resolveCurrentStreamUrl(
+          (now?.streamUrl() ?? '').trim(),
+        );
 
   @override
   void restorePlayer(ConnectivityResult connection) {
