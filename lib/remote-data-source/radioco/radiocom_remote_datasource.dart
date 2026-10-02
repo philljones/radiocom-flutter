@@ -11,6 +11,7 @@ import 'package:cuacfm/models/time_table.dart';
 import 'package:cuacfm/remote-data-source/network/radioco_api.dart';
 import 'package:cuacfm/utils/cuac_client.dart';
 import 'package:cuacfm/utils/simple_client.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 import 'package:injector/injector.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -29,19 +30,24 @@ class RadiocoRemoteDataSource implements RadiocoRemoteDataSourceContract {
       if (station.streamUrl.isEmpty) {
         throw const FormatException('Station API returned no stream URL');
       }
+      final productionStreamUrl = station.streamUrl;
       try {
         final preferences = await SharedPreferences.getInstance();
-        await preferences.setString(_cachedStreamUrlKey, station.streamUrl);
+        await preferences.setString(_cachedStreamUrlKey, productionStreamUrl);
       } catch (_) {
         // A storage failure must not prevent a valid API stream from playing.
       }
+      station.streamUrl =
+          await TestStreamSwitch.resolveStreamUrl(productionStreamUrl);
       return station;
     } catch (exception) {
       try {
         final preferences = await SharedPreferences.getInstance();
         final cachedUrl =
             (preferences.getString(_cachedStreamUrlKey) ?? '').trim();
-        return RadioStation.base(streamUrl: cachedUrl);
+        return RadioStation.base(
+          streamUrl: await TestStreamSwitch.resolveStreamUrl(cachedUrl),
+        );
       } catch (_) {
         return RadioStation.base();
       }
@@ -49,7 +55,8 @@ class RadiocoRemoteDataSource implements RadiocoRemoteDataSourceContract {
   }
 
   Future<Now?> getLiveBroadcast() async {
-    Uri url = Uri.parse(radiocoAPI.baseUrl + radiocoAPI.live);
+    final endpoint = await TestStreamSwitch.resolveNowEndpoint(radiocoAPI.live);
+    Uri url = Uri.parse(radiocoAPI.baseUrl + endpoint);
     try {
       var res = await this.client.get(url);
       return Now.fromInstance(res);

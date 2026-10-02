@@ -20,6 +20,7 @@ import 'package:in_app_review/in_app_review.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cuacfm/utils/push_notifications.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 
 class Settings extends StatefulWidget {
   Settings({Key? key}) : super(key: key);
@@ -47,6 +48,7 @@ class SettingsState extends State<Settings>
   double _ratingCardScale = 1.0;
   bool _notificationsPaused = false;
   int _alertsUnread = 0;
+  bool _useTestStream = false;
 
   SettingsState() {
     DependencyInjector().injectByView(this);
@@ -158,6 +160,7 @@ class SettingsState extends State<Settings>
     _presenter.init();
     shouldShowPlayer = _presenter.currentPlayer.isPlaying();
     _radioStation = Injector.appInstance.get<RadioStation>();
+    if (testStreamSwitchEnabled) _loadTestStreamState();
 
     _presenter.currentPlayer.onConnection = (isError) {
       if (mounted) {
@@ -203,6 +206,24 @@ class SettingsState extends State<Settings>
       }
     }
     if (mounted) setState(() => _notificationsPaused = paused);
+  }
+
+  Future<void> _loadTestStreamState() async {
+    final useTestStream = await TestStreamSwitch.isUsingTestStream();
+    _radioStation.streamUrl = TestStreamSwitch.streamUrlFor(useTestStream);
+    if (mounted) setState(() => _useTestStream = useTestStream);
+  }
+
+  Future<void> _toggleTestStream(bool useTestStream) async {
+    await TestStreamSwitch.setUsingTestStream(useTestStream);
+    _radioStation.streamUrl = TestStreamSwitch.streamUrlFor(useTestStream);
+    final restartPlayback = !_presenter.currentPlayer.isPodcast &&
+        _presenter.currentPlayer.isPlaying();
+    if (restartPlayback) {
+      await _presenter.currentPlayer.stopAndPlay();
+    }
+    _presenter.getLiveProgram();
+    if (mounted) setState(() => _useTestStream = useTestStream);
   }
 
   Future<void> _loadRatingCardState() async {
@@ -760,6 +781,56 @@ class SettingsState extends State<Settings>
                           ],
                         ),
                       ),
+                      if (testStreamSwitchEnabled) ...[
+                        SizedBox(height: 16),
+                        Container(
+                          key: const Key("test_stream_switch"),
+                          decoration: BoxDecoration(
+                            color: _colors.palidwhitedark,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                                color: _colors.yellow.withValues(alpha: 0.7)),
+                          ),
+                          padding: const EdgeInsets.fromLTRB(16, 12, 12, 12),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      SafeMap.safe(
+                                          _localization
+                                              .translateMap("settings"),
+                                          ["config_section", "item5"]),
+                                      style: TextStyle(
+                                          letterSpacing: 0,
+                                          color: _colors.font,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 16),
+                                    ),
+                                    Text(
+                                      _useTestStream ? "test.mp3" : "live.mp3",
+                                      style: TextStyle(
+                                          letterSpacing: 0,
+                                          color: _colors.grey,
+                                          fontWeight: FontWeight.w400,
+                                          fontSize: 13),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Switch(
+                                value: _useTestStream,
+                                onChanged: _toggleTestStream,
+                                activeTrackColor: _colors.yellow,
+                                activeThumbColor: const Color(0xFF1A1A1A),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       SizedBox(height: 20),
                       // ── JOIN US ──────────────────────────────────────────────
                       GestureDetector(

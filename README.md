@@ -10,6 +10,17 @@ This app has a newsreader, live broadcast , podcast, photo gallery and integrati
 
 Now support multiple languages
 
+## Private test stream switch
+
+Normal builds use the production stream and do not show a stream selector. To
+include the private selector for `live.mp3` and `test.mp3`, build with:
+
+```sh
+flutter build ios --release --dart-define=ABER_TEST_STREAM_SWITCH=true
+```
+
+Omit `ABER_TEST_STREAM_SWITCH` for App Store and other public builds.
+
 ## Some screenshots
 
 Some screenshots of the iOS Flutter version

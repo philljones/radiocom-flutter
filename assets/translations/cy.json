@@ -18,7 +18,7 @@
     "rating_title": "Ydych chi’n mwynhau’r ap a’n darllediadau?", "rating_body": "Ystyriwch roi sgôr i ni yn y siop apiau fel y gall mwy o bobl ddarganfod Aber Radio.",
     "station_section": {"name": "YR ORSAF", "item1": "Hanes", "item2": "Oriel"},
     "alerts_section": {"name": "Hysbysiadau", "empty": "Dim hysbysiadau y mis hwn."},
-    "config_section": {"name": "GOSODIADAU", "item1": "Thema", "item1_light": "Golau", "item1_dark": "Tywyll", "item1_system": "System", "item2": "Gwybodaeth yr amserlen", "item4": "Oedi hysbysiadau", "item3": "Iaith", "item3_system": "System"},
+    "config_section": {"name": "GOSODIADAU", "item1": "Thema", "item1_light": "Golau", "item1_dark": "Tywyll", "item1_system": "System", "item2": "Gwybodaeth yr amserlen", "item4": "Oedi hysbysiadau", "item5": "Ffrwd brawf", "item3": "Iaith", "item3_system": "System"},
     "social_section": {"name": "RHWYDWEITHIAU CYMDEITHASOL", "item1": "Facebook", "item2": "Bluesky", "item3": "Instagram", "item4": "TikTok"},
     "more_info_section": {"name": "RHAGOR O WYBODAETH", "item1": "Gwefan", "item2": "Lleoliad", "item3": "Cysylltu"},
     "legal_info_section": {"name": "CYFREITHIOL", "item1": "Polisi preifatrwydd", "item2": "Telerau ac amodau", "item3": "Trwydded meddalwedd"}

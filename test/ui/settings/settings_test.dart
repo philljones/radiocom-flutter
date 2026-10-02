@@ -7,6 +7,7 @@ import 'package:cuacfm/ui/settings/settings_presenter.dart';
 import 'package:cuacfm/utils/connection_contract.dart';
 import 'package:cuacfm/utils/notification_subscription_contract.dart';
 import 'package:cuacfm/utils/player_view.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injector/injector.dart';
@@ -21,7 +22,8 @@ void main() {
   MockRadiocoRepository mockRepository = MockRadiocoRepository();
   MockConnection mockConnection = MockConnection();
   MockPlayer mockPlayer = MockPlayer();
-  MockNotifcationSubscription notifcationSubscription = MockNotifcationSubscription();
+  MockNotifcationSubscription notifcationSubscription =
+      MockNotifcationSubscription();
 
   setUpAll(() async {
     WidgetsFlutterBinding.ensureInitialized();
@@ -29,19 +31,19 @@ void main() {
     DependencyInjector().loadModules();
     mockTranslationsWithLocale();
     Injector.appInstance.registerDependency<CuacRepositoryContract>(
-            () => mockRepository,
+        () => mockRepository,
         override: true);
     Injector.appInstance.registerDependency<ConnectionContract>(
-            () => mockConnection,
+        () => mockConnection,
         override: true);
     Injector.appInstance.registerDependency<CurrentPlayerContract>(
-            () => mockPlayer,
+        () => mockPlayer,
         override: true);
     Injector.appInstance.registerDependency<RadioStation>(
-            () => RadioStationInstrument.givenARadioStation(),
+        () => RadioStationInstrument.givenARadioStation(),
         override: true);
     Injector.appInstance.registerDependency<NotificationSubscriptionContract>(
-            () => notifcationSubscription,
+        () => notifcationSubscription,
         override: true);
   });
 
@@ -53,7 +55,8 @@ void main() {
     Injector.appInstance.removeByKey<SettingsView>();
   });
 
-  testWidgets('that can init the setting screen screen with player', (WidgetTester tester) async{
+  testWidgets('that can init the setting screen screen with player',
+      (WidgetTester tester) async {
     when(mockRepository.getLiveBroadcast())
         .thenAnswer((_) => MockRadiocoRepository.now());
     when(mockConnection.isConnectionAvailable())
@@ -67,11 +70,13 @@ void main() {
     await tester.pumpWidget(startWidget(Settings()));
     expect(tester.widget<PlayerView>(find.byType(PlayerView)).shouldShow, true);
     expect(
-        find.byKey(PageStorageKey<String>("settings_container"),skipOffstage: true),
+        find.byKey(PageStorageKey<String>("settings_container"),
+            skipOffstage: true),
         findsOneWidget);
   });
 
-  testWidgets('that can init the setting screen screen with player no playing', (WidgetTester tester) async{
+  testWidgets('that can init the setting screen screen with player no playing',
+      (WidgetTester tester) async {
     when(mockRepository.getLiveBroadcast())
         .thenAnswer((_) => MockRadiocoRepository.now());
     when(mockConnection.isConnectionAvailable())
@@ -83,13 +88,35 @@ void main() {
     mockPlayer.currentSong = "mocklive";
 
     await tester.pumpWidget(startWidget(Settings()));
-    expect(tester.widget<PlayerView>(find.byType(PlayerView)).shouldShow, false);
     expect(
-        find.byKey(PageStorageKey<String>("settings_container"),skipOffstage: true),
+        tester.widget<PlayerView>(find.byType(PlayerView)).shouldShow, false);
+    expect(
+        find.byKey(PageStorageKey<String>("settings_container"),
+            skipOffstage: true),
         findsOneWidget);
   });
 
-  testWidgets('that in setting screen can handle error on connection while playing', (WidgetTester tester) async{
+  testWidgets('that only exposes the test stream switch in test builds',
+      (WidgetTester tester) async {
+    when(mockRepository.getLiveBroadcast())
+        .thenAnswer((_) => MockRadiocoRepository.now());
+    when(mockConnection.isConnectionAvailable())
+        .thenAnswer((_) => Future.value(true));
+    when(mockPlayer.isPlaying()).thenReturn(false);
+    mockPlayer.isPodcast = false;
+
+    await tester.pumpWidget(startWidget(Settings()));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('test_stream_switch'), skipOffstage: false),
+      testStreamSwitchEnabled ? findsOneWidget : findsNothing,
+    );
+  });
+
+  testWidgets(
+      'that in setting screen can handle error on connection while playing',
+      (WidgetTester tester) async {
     when(mockRepository.getLiveBroadcast())
         .thenAnswer((_) => MockRadiocoRepository.now());
     when(mockConnection.isConnectionAvailable())
@@ -99,9 +126,9 @@ void main() {
     when(mockPlayer.play()).thenAnswer((_) => Future.value(true));
     mockPlayer.isPodcast = false;
     mockPlayer.currentSong = "mocklive";
-    when(mockPlayer.onConnection).thenReturn((isError){
-      tester.allStates.forEach((state){
-        if( state is SettingsState){
+    when(mockPlayer.onConnection).thenReturn((isError) {
+      tester.allStates.forEach((state) {
+        if (state is SettingsState) {
           state.onConnectionError();
         }
       });
@@ -111,8 +138,7 @@ void main() {
     mockPlayer.onConnection!(true);
     await tester.pumpAndSettle();
 
-    expect(
-        find.byKey(Key("connection_snackbar"),skipOffstage: true),
+    expect(find.byKey(Key("connection_snackbar"), skipOffstage: true),
         findsOneWidget);
   });
 }
