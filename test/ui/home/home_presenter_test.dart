@@ -560,8 +560,8 @@ void main() {
     when(mockRepository.getAllPodcasts()).thenAnswer((_) => MockRadiocoRepository.podcasts());
     when(mockRepository.getRadioStationData()).thenAnswer((_) => MockRadiocoRepository.radioStation());
     when(mockRepository.getNews()).thenAnswer((_) => MockRadiocoRepository.news());
-    when(mockRepository.getOutStanding("https://cuacfm.org/wp-json/wp/v2/pages/3952")).thenAnswer((_) => MockRadiocoRepository.outstanding());
-    when(mockRepository.getOutStanding("https://cuacfm.org/wp-json/wp/v2/pages/6406")).thenAnswer((_) => MockRadiocoRepository.outstanding());
+    when(mockRepository.getOutStanding("https://api.aberradio.com/api/2/outstanding/1")).thenAnswer((_) => MockRadiocoRepository.outstanding());
+    when(mockRepository.getOutStanding("https://api.aberradio.com/api/2/outstanding/2")).thenAnswer((_) => MockRadiocoRepository.outstanding());
     when(mockConnection.isConnectionAvailable()).thenAnswer((_) => Future.value(true));
     when(mockPlayer.isPlaying()).thenReturn(true);
     when(mockPlayer.stop()).thenReturn(true);
@@ -571,7 +571,7 @@ void main() {
     presenter.init();
     await Future.delayed(Duration(milliseconds: 200));
 
-    verify(mockRepository.getOutStanding("https://cuacfm.org/wp-json/wp/v2/pages/3952")).called(1);
-    verify(mockRepository.getOutStanding("https://cuacfm.org/wp-json/wp/v2/pages/6406")).called(1);
+    verify(mockRepository.getOutStanding("https://api.aberradio.com/api/2/outstanding/1")).called(1);
+    verify(mockRepository.getOutStanding("https://api.aberradio.com/api/2/outstanding/2")).called(1);
   });
 }
