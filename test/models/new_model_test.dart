@@ -112,7 +112,8 @@ void main() {
     });
 
     test('that extracts first img tag when no featured visual', () {
-      final html = '<p>Text</p><img src="http://first.jpg"/><img src="http://second.jpg"/>';
+      final html =
+          '<p>Text</p><img src="http://first.jpg"/><img src="http://second.jpg"/>';
       final result = New.getImage(html);
       expect(result, equals('http://first.jpg'));
     });
@@ -155,7 +156,7 @@ void main() {
       final news = New.fromHistory('History content');
       // title comes from translation mock which returns empty string
       expect(news.title, isA<String>());
-      expect(news.link, contains('cuacfm.org'));
+      expect(news.link, equals('https://aberradio.com'));
       expect(news.description, equals('History content'));
       expect(news.image, isNotEmpty);
     });
@@ -170,41 +171,94 @@ void main() {
 
     test('that returns minutes_ago for recent news within one hour', () {
       final recentDate = DateTime.now().subtract(Duration(minutes: 5));
-      final news = New('Title', 'http://link', 'Desc', '', 'pub', pubDateTime: recentDate);
+      final news = New('Title', 'http://link', 'Desc', '', 'pub',
+          pubDateTime: recentDate);
       final result = news.timeAgo();
       expect(result, isA<String>());
     });
 
     test('that returns hours_ago for news from today', () {
       final recentDate = DateTime.now().subtract(Duration(hours: 2));
-      final news = New('Title', 'http://link', 'Desc', '', 'pub', pubDateTime: recentDate);
+      final news = New('Title', 'http://link', 'Desc', '', 'pub',
+          pubDateTime: recentDate);
       final result = news.timeAgo();
       expect(result, isA<String>());
     });
 
     test('that returns yesterday for news from exactly 1 day ago', () {
       final yesterday = DateTime.now().subtract(Duration(hours: 25));
-      final news = New('Title', 'http://link', 'Desc', '', 'pub', pubDateTime: yesterday);
+      final news = New('Title', 'http://link', 'Desc', '', 'pub',
+          pubDateTime: yesterday);
       final result = news.timeAgo();
       expect(result, isA<String>());
     });
 
     test('that returns days_ago for news from this week', () {
       final recentDate = DateTime.now().subtract(Duration(days: 3));
-      final news = New('Title', 'http://link', 'Desc', '', 'pub', pubDateTime: recentDate);
+      final news = New('Title', 'http://link', 'Desc', '', 'pub',
+          pubDateTime: recentDate);
       final result = news.timeAgo();
       expect(result, isA<String>());
     });
 
     test('that returns pubDate for old news beyond a week', () {
       final oldDate = DateTime.now().subtract(Duration(days: 10));
-      final news = New('Title', 'http://link', 'Desc', '', 'old date', pubDateTime: oldDate);
+      final news = New('Title', 'http://link', 'Desc', '', 'old date',
+          pubDateTime: oldDate);
       final result = news.timeAgo();
       expect(result, equals('old date'));
     });
   });
 
   group('New.fromInstance with alternate description keys', () {
+    test('that removes the hero image from the story body', () {
+      final cleaned = New.getCleanContent(
+        '<p><img src="https://example.com/hero.jpg"></p><p>Summary text</p>',
+      );
+
+      expect(cleaned, isNot(contains('<img')));
+      expect(cleaned, contains('Summary text'));
+    });
+
+    test('that identifies Abergavenny Chronicle links', () {
+      final news = New(
+        'Title',
+        'https://www.abergavennychronicle.com/news/story-1',
+        'Summary',
+        '',
+        '',
+      );
+
+      expect(news.isAbergavennyChronicle, isTrue);
+    });
+
+    test('that identifies the Abergavenny weather feed item', () {
+      final news = New(
+        'Abergavenny weather',
+        'https://api.aberradio.com/api/2/weather',
+        'Forecast',
+        '',
+        '',
+        category: 'Weather · Abergavenny',
+      );
+
+      expect(news.isAbergavennyWeather, isTrue);
+    });
+
+    test('that does not identify an unrelated weather story as the forecast',
+        () {
+      final news = New(
+        'Weather warning issued',
+        'https://www.abergavennychronicle.com/news/weather-warning',
+        'Story',
+        '',
+        '',
+        category: 'Weather',
+      );
+
+      expect(news.isAbergavennyWeather, isFalse);
+    });
+
     test('that parses description with content__cdata key', () {
       final map = {
         'title': {'\$t': 'Title'},

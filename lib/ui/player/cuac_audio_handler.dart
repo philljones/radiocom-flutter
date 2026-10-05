@@ -38,7 +38,11 @@ class CuacAudioHandler extends BaseAudioHandler {
   }
 
   void _broadcastState() {
-    final playing = _player.playing;
+    // just_audio can keep `playing` true while a live stream is stalled in
+    // buffering. Report that state as not playing so car and lock-screen
+    // controls offer a working Play command that can rebuild the connection.
+    final playing = _player.playing &&
+        (!_isLive || _player.processingState == ProcessingState.ready);
     playbackState.add(playbackState.value.copyWith(
       controls: [
         if (!_isLive) _rewindControl,
@@ -67,7 +71,22 @@ class CuacAudioHandler extends BaseAudioHandler {
   }
 
   @override
-  Future<void> play() => _player.play();
+  Future<void> play() async {
+    try {
+      final currentPlayer = Injector.appInstance.get<CurrentPlayerContract>();
+      if (currentPlayer.isPodcast) {
+        if (currentPlayer.playerState == AudioPlayerState.stop) {
+          await currentPlayer.play();
+        } else {
+          await currentPlayer.resume();
+        }
+      } else {
+        await currentPlayer.restartLiveStream();
+      }
+    } catch (_) {
+      await _player.play();
+    }
+  }
 
   @override
   Future<void> pause() async {

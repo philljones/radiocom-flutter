@@ -15,7 +15,8 @@ class _AnimatedBarItem extends StatefulWidget {
   final VoidCallback onTap;
   final String behaviorKey;
 
-  const _AnimatedBarItem({required this.child, required this.onTap, required this.behaviorKey});
+  const _AnimatedBarItem(
+      {required this.child, required this.onTap, required this.behaviorKey});
 
   @override
   State<_AnimatedBarItem> createState() => _AnimatedBarItemState();
@@ -43,7 +44,9 @@ class _AnimatedBarItemState extends State<_AnimatedBarItem> {
 enum BottomBarOption { HOME, SEARCH, NEWS, FAVOURITES, NONE, MENU }
 
 class BottomBar extends StatelessWidget {
-  BottomBar({required this.onOptionSelected, this.selectedOption = BottomBarOption.HOME});
+  BottomBar(
+      {required this.onOptionSelected,
+      this.selectedOption = BottomBarOption.HOME});
 
   final MenuOptionCallback onOptionSelected;
   final BottomBarOption selectedOption;
@@ -53,11 +56,30 @@ class BottomBar extends StatelessWidget {
     var queryData = MediaQuery.of(context);
     final _colors = Injector.appInstance.get<RadiocomColorsConract>();
     final _localization = Injector.appInstance.get<CuacLocalization>();
-    final tabHome = SafeMap.safe(_localization.translateMap("home"), ["tab_home"]).isNotEmpty ? SafeMap.safe(_localization.translateMap("home"), ["tab_home"]) : "Inicio";
-    final tabPodcasts = SafeMap.safe(_localization.translateMap("home"), ["tab_podcasts"]).isNotEmpty ? SafeMap.safe(_localization.translateMap("home"), ["tab_podcasts"]) : "Podcasts";
-    final tabNews = SafeMap.safe(_localization.translateMap("home"), ["tab_news"]).isNotEmpty ? SafeMap.safe(_localization.translateMap("home"), ["tab_news"]) : "Novas";
-    final tabFavourites = SafeMap.safe(_localization.translateMap("home"), ["tab_favourites"]).isNotEmpty ? SafeMap.safe(_localization.translateMap("home"), ["tab_favourites"]) : "Favoritos";
-    final tabMenu = SafeMap.safe(_localization.translateMap("home"), ["tab_menu"]).isNotEmpty ? SafeMap.safe(_localization.translateMap("home"), ["tab_menu"]) : "Menú";
+    final tabHome =
+        SafeMap.safe(_localization.translateMap("home"), ["tab_home"])
+                .isNotEmpty
+            ? SafeMap.safe(_localization.translateMap("home"), ["tab_home"])
+            : "Inicio";
+    final tabSchedule =
+        SafeMap.safe(_localization.translateMap("home"), ["tab_schedule"])
+                .isNotEmpty
+            ? SafeMap.safe(_localization.translateMap("home"), ["tab_schedule"])
+            : "Schedule";
+    final tabNews =
+        SafeMap.safe(_localization.translateMap("home"), ["tab_news"])
+                .isNotEmpty
+            ? SafeMap.safe(_localization.translateMap("home"), ["tab_news"])
+            : "Novas";
+    final tabFavourites = SafeMap.safe(
+            _localization.translateMap("home"), ["tab_favourites"]).isNotEmpty
+        ? SafeMap.safe(_localization.translateMap("home"), ["tab_favourites"])
+        : "Favourites";
+    final tabMenu =
+        SafeMap.safe(_localization.translateMap("home"), ["tab_menu"])
+                .isNotEmpty
+            ? SafeMap.safe(_localization.translateMap("home"), ["tab_menu"])
+            : "Menú";
     final bottomInset = queryData.padding.bottom;
 
     return Container(
@@ -76,52 +98,56 @@ class BottomBar extends StatelessWidget {
                 children: <Widget>[
                   _AnimatedBarItem(
                       behaviorKey: "bottom_bar_item1",
-                      onTap: () => onOptionSelected(BottomBarOption.HOME, false),
+                      onTap: () =>
+                          onOptionSelected(BottomBarOption.HOME, false),
                       child: (scale) => NeumorphicButton(
-                        down: selectedOption == BottomBarOption.HOME,
-                        icon: Icons.home,
-                        label: tabHome,
-                        iconScale: scale,
-                        iconSize: 23,
-                      )),
+                            down: selectedOption == BottomBarOption.HOME,
+                            icon: Icons.home,
+                            label: tabHome,
+                            iconScale: scale,
+                            iconSize: 23,
+                          )),
                   _AnimatedBarItem(
                       behaviorKey: "bottom_bar_item2",
-                      onTap: () => onOptionSelected(BottomBarOption.SEARCH, false),
+                      onTap: () =>
+                          onOptionSelected(BottomBarOption.SEARCH, false),
                       child: (scale) => NeumorphicButton(
-                        down: selectedOption == BottomBarOption.SEARCH,
-                        icon: Icons.headset,
-                        label: tabPodcasts,
-                        iconScale: scale,
-                      )),
+                            down: selectedOption == BottomBarOption.SEARCH,
+                            icon: Icons.calendar_month,
+                            label: tabSchedule,
+                            iconScale: scale,
+                          )),
                   _AnimatedBarItem(
                       behaviorKey: "bottom_bar_item3",
-                      onTap: () => onOptionSelected(BottomBarOption.NEWS, false),
+                      onTap: () =>
+                          onOptionSelected(BottomBarOption.NEWS, false),
                       child: (scale) => NeumorphicButton(
-                        down: selectedOption == BottomBarOption.NEWS,
-                        icon: FontAwesomeIcons.newspaper,
-                        label: tabNews,
-                        iconScale: scale,
-                        iconSize: 20,
-                      )),
+                            down: selectedOption == BottomBarOption.NEWS,
+                            icon: FontAwesomeIcons.newspaper,
+                            label: tabNews,
+                            iconScale: scale,
+                            iconSize: 20,
+                          )),
                   _AnimatedBarItem(
                       behaviorKey: "bottom_bar_item4",
-                      onTap: () => onOptionSelected(BottomBarOption.FAVOURITES, false),
+                      onTap: () =>
+                          onOptionSelected(BottomBarOption.FAVOURITES, false),
                       child: (scale) => NeumorphicButton(
-                        down: selectedOption == BottomBarOption.FAVOURITES,
-                        icon: Icons.favorite,
-                        label: tabFavourites,
-                        iconScale: scale,
-                      )),
+                            down: selectedOption == BottomBarOption.FAVOURITES,
+                            icon: Icons.favorite,
+                            label: tabFavourites,
+                            iconScale: scale,
+                          )),
                   _AnimatedBarItem(
                       behaviorKey: "bottom_bar_item5",
                       onTap: () => onOptionSelected(BottomBarOption.HOME, true),
                       child: (scale) => NeumorphicButton(
-                        down: selectedOption == BottomBarOption.MENU,
-                        icon: Icons.menu,
-                        label: tabMenu,
-                        iconScale: scale,
-                        iconSize: 25,
-                      )),
+                            down: selectedOption == BottomBarOption.MENU,
+                            icon: Icons.menu,
+                            label: tabMenu,
+                            iconScale: scale,
+                            iconSize: 25,
+                          )),
                 ],
               )),
           if (bottomInset > 0) SizedBox(height: bottomInset),

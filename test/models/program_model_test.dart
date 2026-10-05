@@ -34,6 +34,17 @@ void main() {
       expect(program.language, equals('Español'));
     });
 
+    test('that parses English and Welsh languages correctly', () {
+      expect(
+        Program.fromInstance({...baseMap, 'language': 'en'}).language,
+        equals('English'),
+      );
+      expect(
+        Program.fromInstance({...baseMap, 'language': 'cy'}).language,
+        equals('Cymraeg'),
+      );
+    });
+
     test('that parses all basic fields', () {
       final program = Program.fromInstance(baseMap);
       expect(program.name, equals('Test Show'));
@@ -47,6 +58,24 @@ void main() {
       final map = {...baseMap, 'category': null};
       final program = Program.fromInstance(map);
       expect(program.categoryType, equals(ProgramCategories.TV));
+    });
+  });
+
+  group('Program.getRuntimeMinutes', () {
+    test('includes hours and minutes', () {
+      expect(Program.getRuntimeMinutes('01:30:00'), equals(90));
+    });
+
+    test('rounds a partial minute up', () {
+      expect(Program.getRuntimeMinutes('00:30:01'), equals(31));
+    });
+
+    test('supports legacy numeric minute values', () {
+      expect(Program.getRuntimeMinutes('60'), equals(60));
+    });
+
+    test('returns zero for an invalid runtime', () {
+      expect(Program.getRuntimeMinutes('unknown'), equals(0));
     });
   });
 

@@ -49,10 +49,13 @@ class NewDetailState extends State<NewDetail>
     _queryData = MediaQuery.of(context);
     _colors = Injector.appInstance.get<RadiocomColorsConract>();
     final themeMode = appThemeModeNotifier.value;
-    final isDark = themeMode == ThemeMode.dark || (themeMode == ThemeMode.system && _queryData.platformBrightness == Brightness.dark);
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            _queryData.platformBrightness == Brightness.dark);
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-        statusBarColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFAF9F6),
+        statusBarColor:
+            isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFAF9F6),
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
         systemNavigationBarColor: shouldShowPlayer
             ? Colors.black
@@ -64,45 +67,53 @@ class NewDetailState extends State<NewDetail>
       child: Stack(
         children: [
           Scaffold(
-        key: scaffoldKey,
-        backgroundColor: _colors.palidwhite,
-        body: _getBodyLayout(),
-        bottomNavigationBar: Container(
-          color: _colors.palidwhite,
-          child: shouldShowPlayer
-              ? Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    PlayerView(
-                        shouldShow: shouldShowPlayer,
-                        isPlayingAudio: _presenter.currentPlayer.isPlaying(),
-                        onDetailClicked: () {
-                          _presenter.onPodcastControlsClicked(
-                              _presenter.currentPlayer.episode);
-                        },
-                        onCloseClicked: () {
-                          _presenter.currentPlayer.stop();
-                          if (mounted) setState(() { shouldShowPlayer = false; });
-                        },
-                        onMultimediaClicked: (isPlaying) {
-                          if (!mounted) return;
-                          setState(() {
-                            if (isPlaying) {
-                              _presenter.onPause();
-                            } else {
-                              _presenter.onResume();
-                            }
-                          });
-                        }),
-                    if (_queryData.padding.bottom > 0)
-                      Container(height: _queryData.padding.bottom, color: Colors.black),
-                  ],
-                )
-              : SizedBox(height: _queryData.padding.bottom),
-        ),
+            key: scaffoldKey,
+            backgroundColor: _colors.palidwhite,
+            body: _getBodyLayout(),
+            bottomNavigationBar: Container(
+              color: _colors.palidwhite,
+              child: shouldShowPlayer
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        PlayerView(
+                            shouldShow: shouldShowPlayer,
+                            isPlayingAudio:
+                                _presenter.currentPlayer.isPlaying(),
+                            onDetailClicked: () {
+                              _presenter.onPodcastControlsClicked(
+                                  _presenter.currentPlayer.episode);
+                            },
+                            onCloseClicked: () {
+                              _presenter.currentPlayer.stop();
+                              if (mounted)
+                                setState(() {
+                                  shouldShowPlayer = false;
+                                });
+                            },
+                            onMultimediaClicked: (isPlaying) {
+                              if (!mounted) return;
+                              setState(() {
+                                if (isPlaying) {
+                                  _presenter.onPause();
+                                } else {
+                                  _presenter.onResume();
+                                }
+                              });
+                            }),
+                        if (_queryData.padding.bottom > 0)
+                          Container(
+                              height: _queryData.padding.bottom,
+                              color: Colors.black),
+                      ],
+                    )
+                  : SizedBox(height: _queryData.padding.bottom),
+            ),
           ),
           Positioned(
-            top: 0, left: 0, right: 0,
+            top: 0,
+            left: 0,
+            right: 0,
             height: _queryData.padding.top,
             child: ColoredBox(color: _colors.palidwhite),
           ),
@@ -209,7 +220,9 @@ class NewDetailState extends State<NewDetail>
               ),
               // Degradado superior para os botóns
               Positioned(
-                top: 0, left: 0, right: 0,
+                top: 0,
+                left: 0,
+                right: 0,
                 height: _queryData.padding.top + 70,
                 child: Container(
                   decoration: BoxDecoration(
@@ -226,7 +239,9 @@ class NewDetailState extends State<NewDetail>
               ),
               // Degradado inferior con titular
               Positioned(
-                bottom: 0, left: 0, right: 0,
+                bottom: 0,
+                left: 0,
+                right: 0,
                 child: Container(
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
@@ -351,7 +366,11 @@ class NewDetailState extends State<NewDetail>
                         ),
                         SizedBox(height: 16),
                         Text(
-                          SafeMap.safe(Injector.appInstance.get<CuacLocalization>().translateMap("podcast_detail"), ["no_news_description"]),
+                          SafeMap.safe(
+                              Injector.appInstance
+                                  .get<CuacLocalization>()
+                                  .translateMap("podcast_detail"),
+                              ["no_news_description"]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: _colors.fontGrey,
@@ -366,62 +385,130 @@ class NewDetailState extends State<NewDetail>
                 )
               : Padding(
                   padding: const EdgeInsets.fromLTRB(20, 24, 20, 40),
-                  child: HtmlWidget(
-                    widget.newItem.description
-                        .replaceAll("\\r", "")
-                        .replaceAll("\\n", "")
-                        .replaceAll("\\", ""),
-                    onTapUrl: (url) async {
-                      await _presenter.onLinkClicked(url);
-                      return true;
-                    },
-                    textStyle: TextStyle(
-                      color: _colors.font,
-                      fontWeight: FontWeight.w400,
-                      fontSize: 16,
-                      height: 1.6,
-                      letterSpacing: 0,
-                    ),
-                    customWidgetBuilder: (element) {
-                      if (element.localName == 'hr') {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          child: Center(
-                            child: Text(
-                              '· · ·',
-                              style: TextStyle(
-                                color: _colors.fontGrey,
-                                fontSize: 20,
-                                letterSpacing: 8,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      HtmlWidget(
+                        widget.newItem.description
+                            .replaceAll("\\r", "")
+                            .replaceAll("\\n", "")
+                            .replaceAll("\\", ""),
+                        onTapUrl: (url) async {
+                          await _presenter.onLinkClicked(url);
+                          return true;
+                        },
+                        textStyle: TextStyle(
+                          color: _colors.font,
+                          fontWeight: FontWeight.w400,
+                          fontSize: 16,
+                          height: 1.6,
+                          letterSpacing: 0,
+                        ),
+                        customWidgetBuilder: (element) {
+                          if (element.localName == 'hr') {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Center(
+                                child: Text(
+                                  '· · ·',
+                                  style: TextStyle(
+                                    color: _colors.fontGrey,
+                                    fontSize: 20,
+                                    letterSpacing: 8,
+                                  ),
+                                ),
                               ),
+                            );
+                          }
+                          return null;
+                        },
+                        customStylesBuilder: (element) {
+                          switch (element.localName) {
+                            case 'a':
+                              return {
+                                'color': '#FDCC03',
+                                'font-weight': '600',
+                                'text-decoration': 'none'
+                              };
+                            case 'img':
+                              return {'width': '100%', 'height': 'auto'};
+                            case 'h1':
+                              return {
+                                'font-size': '28px',
+                                'font-weight': '800',
+                                'margin-bottom': '12px'
+                              };
+                            case 'h2':
+                              return {
+                                'font-size': '24px',
+                                'font-weight': '700',
+                                'margin-bottom': '10px'
+                              };
+                            case 'h3':
+                              return {
+                                'font-size': '21px',
+                                'font-weight': '700',
+                                'margin-bottom': '8px'
+                              };
+                            case 'h4':
+                              return {
+                                'font-size': '18px',
+                                'font-weight': '600',
+                                'margin-bottom': '8px'
+                              };
+                            case 'h5':
+                              return {
+                                'font-size': '17px',
+                                'font-weight': '600',
+                                'margin-bottom': '6px'
+                              };
+                            case 'h6':
+                              return {
+                                'font-size': '14px',
+                                'font-weight': '600',
+                                'margin-bottom': '6px'
+                              };
+                            default:
+                              return null;
+                          }
+                        },
+                      ),
+                      if (widget.newItem.isAbergavennyChronicle) ...[
+                        SizedBox(height: 28),
+                        FilledButton.icon(
+                          key: Key('read_original_story'),
+                          onPressed: () =>
+                              _presenter.onLinkClicked(widget.newItem.link),
+                          icon: Icon(Icons.open_in_new, size: 18),
+                          label: Text(
+                            'Read the full story at the Abergavenny Chronicle',
+                            textAlign: TextAlign.center,
+                          ),
+                          style: FilledButton.styleFrom(
+                            foregroundColor: Colors.black,
+                            backgroundColor: _colors.yellow,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18,
+                              vertical: 15,
+                            ),
+                            textStyle: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
-                        );
-                      }
-                      return null;
-                    },
-                    customStylesBuilder: (element) {
-                      switch (element.localName) {
-                        case 'a':
-                          return {'color': '#FDCC03', 'font-weight': '600', 'text-decoration': 'none'};
-                        case 'img':
-                          return {'width': '100%', 'height': 'auto'};
-                        case 'h1':
-                          return {'font-size': '28px', 'font-weight': '800', 'margin-bottom': '12px'};
-                        case 'h2':
-                          return {'font-size': '24px', 'font-weight': '700', 'margin-bottom': '10px'};
-                        case 'h3':
-                          return {'font-size': '21px', 'font-weight': '700', 'margin-bottom': '8px'};
-                        case 'h4':
-                          return {'font-size': '18px', 'font-weight': '600', 'margin-bottom': '8px'};
-                        case 'h5':
-                          return {'font-size': '17px', 'font-weight': '600', 'margin-bottom': '6px'};
-                        case 'h6':
-                          return {'font-size': '14px', 'font-weight': '600', 'margin-bottom': '6px'};
-                        default:
-                          return null;
-                      }
-                    },
+                        ),
+                        SizedBox(height: 22),
+                        Text(
+                          '© Abergavenny Chronicle. Headline, summary and image are shown for private development testing. The full article is available on the Chronicle website.',
+                          key: Key('chronicle_copyright'),
+                          style: TextStyle(
+                            color: _colors.fontGrey,
+                            fontSize: 12,
+                            height: 1.45,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
         ],

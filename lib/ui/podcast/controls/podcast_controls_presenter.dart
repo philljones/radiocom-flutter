@@ -55,10 +55,13 @@ class PodcastControlsPresenter {
     currentPlayer = Injector.appInstance.get<CurrentPlayerContract>();
     _getPlaylistUseCase = Injector.appInstance.get<GetPlaylistUseCase>();
     _clearPlaylistUseCase = Injector.appInstance.get<ClearPlaylistUseCase>();
-    _removeFromPlaylistUseCase = Injector.appInstance.get<RemoveFromPlaylistUseCase>();
-    _reorderPlaylistUseCase = Injector.appInstance.get<ReorderPlaylistUseCase>();
+    _removeFromPlaylistUseCase =
+        Injector.appInstance.get<RemoveFromPlaylistUseCase>();
+    _reorderPlaylistUseCase =
+        Injector.appInstance.get<ReorderPlaylistUseCase>();
     _isInPlaylistUseCase = Injector.appInstance.get<IsInPlaylistUseCase>();
-    _addToPlaylistStartUseCase = Injector.appInstance.get<AddToPlaylistStartUseCase>();
+    _addToPlaylistStartUseCase =
+        Injector.appInstance.get<AddToPlaylistStartUseCase>();
     _view.setupInitialRate(_getRateIndex(currentPlayer.getPlaybackRate()));
   }
 
@@ -79,7 +82,9 @@ class PodcastControlsPresenter {
   }
 
   void removeFromPlaylist(String audioUrl, VoidCallback onDone) {
-    invoker.execute(_removeFromPlaylistUseCase.withParams(audioUrl)).listen((_) {
+    invoker
+        .execute(_removeFromPlaylistUseCase.withParams(audioUrl))
+        .listen((_) {
       _playlist.removeWhere((m) => m['audio'] == audioUrl);
       onDone();
     });
@@ -95,8 +100,12 @@ class PodcastControlsPresenter {
   bool isInPlaylist(String audioUrl) =>
       _playlist.any((m) => m['audio'] == audioUrl);
 
-  void addEpisodeAtStartOfPlaylist(Episode episode, String song, String image, VoidCallback onDone) {
-    invoker.execute(_addToPlaylistStartUseCase.withParams(AddToPlaylistParams(episode, song, image))).listen((_) {
+  void addEpisodeAtStartOfPlaylist(
+      Episode episode, String song, String image, VoidCallback onDone) {
+    invoker
+        .execute(_addToPlaylistStartUseCase
+            .withParams(AddToPlaylistParams(episode, song, image)))
+        .listen((_) {
       loadPlaylist(onDone);
     });
   }
@@ -149,20 +158,25 @@ class PodcastControlsPresenter {
     String text;
     if (currentPlayer.isPodcast) {
       final ep = currentPlayer.episode;
-      final template = SafeMap.safe(localization.translateMap("actions"), ["share_episode"]);
+      final template =
+          SafeMap.safe(localization.translateMap("actions"), ["share_episode"]);
       text = template
-          .replaceFirst("%s", currentPlayer.currentSong)
-          .replaceFirst("%s", ep?.title ?? "") + (ep?.link ?? "https://cuacfm.org");
+              .replaceFirst("%s", currentPlayer.currentSong)
+              .replaceFirst("%s", ep?.title ?? "") +
+          (ep?.link ?? "https://aberradio.com");
     } else {
-      final template = SafeMap.safe(localization.translateMap("actions"), ["share_program"]);
-      text = template.replaceFirst("%s", currentPlayer.currentSong) + "https://cuacfm.org";
+      final template =
+          SafeMap.safe(localization.translateMap("actions"), ["share_program"]);
+      text = template.replaceFirst("%s", currentPlayer.currentSong) +
+          "https://aberradio.com";
     }
     try {
       final response = await http.get(Uri.parse(imageUrl));
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/share_image.jpg');
       await file.writeAsBytes(response.bodyBytes);
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: text));
+      await SharePlus.instance
+          .share(ShareParams(files: [XFile(file.path)], text: text));
     } catch (_) {
       SharePlus.instance.share(ShareParams(text: text));
     }

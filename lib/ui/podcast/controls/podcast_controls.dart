@@ -55,9 +55,8 @@ class PodcastControlsState extends State<PodcastControls>
               : currentPlayer.currentImage)
           : _getLiveImageUrl();
       final isAsset = !img.contains('http');
-      final imageProvider = isAsset
-          ? AssetImage(img) as ImageProvider
-          : NetworkImage(img);
+      final imageProvider =
+          isAsset ? AssetImage(img) as ImageProvider : NetworkImage(img);
       final palette = await PaletteGenerator.fromImageProvider(
         imageProvider,
         size: const Size(200, 200),
@@ -80,24 +79,26 @@ class PodcastControlsState extends State<PodcastControls>
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: _paletteColor == Colors.transparent || _paletteColor.computeLuminance() < 0.4
+        statusBarIconBrightness: _paletteColor == Colors.transparent ||
+                _paletteColor.computeLuminance() < 0.4
             ? Brightness.light
             : Brightness.dark,
         systemStatusBarContrastEnforced: false,
         systemNavigationBarColor: _colors.palidwhite,
-        systemNavigationBarIconBrightness: MediaQuery.of(context).platformBrightness == Brightness.dark
-            ? Brightness.light
-            : Brightness.dark,
+        systemNavigationBarIconBrightness:
+            MediaQuery.of(context).platformBrightness == Brightness.dark
+                ? Brightness.light
+                : Brightness.dark,
       ),
       child: Scaffold(
-      key: _scaffoldKey,
-      backgroundColor: _colors.palidwhite,
-      extendBodyBehindAppBar: true,
-      body: Transform.translate(
-        offset: Offset(0, _dragOffset),
-        child: _getBodyLayout(),
+        key: _scaffoldKey,
+        backgroundColor: _colors.palidwhite,
+        extendBodyBehindAppBar: true,
+        body: Transform.translate(
+          offset: Offset(0, _dragOffset),
+          child: _getBodyLayout(),
+        ),
       ),
-    ),
     );
   }
 
@@ -117,9 +118,7 @@ class PodcastControlsState extends State<PodcastControls>
     Future.delayed(const Duration(milliseconds: 380), _loadPaletteColor);
 
     currentPlayer.onUpdate = () {
-      if (currentPlayer.isPodcast) {
-        if (mounted) setState(() {});
-      }
+      if (mounted) setState(() {});
     };
 
     currentPlayer.onConnection = (isError) {
@@ -132,7 +131,9 @@ class PodcastControlsState extends State<PodcastControls>
     };
 
     _presenter.currentTimer.timerControlsCallback = (finnish) {
-      _presenter.currentPlayer.stop();
+      if (finnish) {
+        _presenter.currentPlayer.fadeOutAndStop();
+      }
       if (mounted && finnish) setState(() {});
     };
 
@@ -203,12 +204,16 @@ class PodcastControlsState extends State<PodcastControls>
       children: [
         // Degradado de fondo a ancho completo desde o píxel 0
         Positioned(
-          top: 0, left: 0, right: 0,
+          top: 0,
+          left: 0,
+          right: 0,
           height: mediaQuery.size.height * 0.8,
           child: TweenAnimationBuilder<Color?>(
             tween: ColorTween(
               begin: Colors.transparent,
-              end: _paletteColor == Colors.transparent ? Colors.transparent : _paletteColor,
+              end: _paletteColor == Colors.transparent
+                  ? Colors.transparent
+                  : _paletteColor,
             ),
             duration: const Duration(milliseconds: 600),
             curve: Curves.easeIn,
@@ -245,7 +250,8 @@ class PodcastControlsState extends State<PodcastControls>
         ),
         // Contido principal
         Padding(
-          padding: EdgeInsets.fromLTRB(24, topPad + 44, 24, mediaQuery.padding.bottom + 16),
+          padding: EdgeInsets.fromLTRB(
+              24, topPad + 44, 24, mediaQuery.padding.bottom + 16),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -257,7 +263,8 @@ class PodcastControlsState extends State<PodcastControls>
                   }
                 },
                 onVerticalDragEnd: (details) {
-                  if (_dragOffset > 120 || (details.primaryVelocity ?? 0) > 800) {
+                  if (_dragOffset > 120 ||
+                      (details.primaryVelocity ?? 0) > 800) {
                     Navigator.of(context).pop();
                   } else {
                     setState(() => _dragOffset = 0);
@@ -293,20 +300,21 @@ class PodcastControlsState extends State<PodcastControls>
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: () {
-                final img = currentPlayer.isPodcast
-                    ? (currentPlayer.currentImage.contains('default-programme-photo')
-                        ? 'assets/graphics/default_programme_cover.png'
-                        : currentPlayer.currentImage)
-                    : _getLiveImageUrl();
-                return img.contains('http')
-                    ? CachedNetworkImage(
-                        imageUrl: img,
-                        fit: BoxFit.cover,
-                        errorWidget: (_, __, ___) =>
-                            Icon(Icons.music_note, size: 60, color: _colors.grey),
-                      )
-                    : Image.asset(img, fit: BoxFit.cover);
-              }(),
+              final img = currentPlayer.isPodcast
+                  ? (currentPlayer.currentImage
+                          .contains('default-programme-photo')
+                      ? 'assets/graphics/default_programme_cover.png'
+                      : currentPlayer.currentImage)
+                  : _getLiveImageUrl();
+              return img.contains('http')
+                  ? CachedNetworkImage(
+                      imageUrl: img,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, __, ___) =>
+                          Icon(Icons.music_note, size: 60, color: _colors.grey),
+                    )
+                  : Image.asset(img, fit: BoxFit.cover);
+            }(),
           ),
         ),
       ),
@@ -336,7 +344,9 @@ class PodcastControlsState extends State<PodcastControls>
             ),
           const SizedBox(height: 6),
           Text(
-            ep != null && ep.title.isNotEmpty ? ep.title : currentPlayer.currentSong,
+            ep != null && ep.title.isNotEmpty
+                ? ep.title
+                : currentPlayer.currentSong,
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -388,9 +398,12 @@ class PodcastControlsState extends State<PodcastControls>
               children: [
                 _LiveDot(),
                 const SizedBox(width: 5),
-                const Text(
-                  "En directo",
-                  style: TextStyle(
+                Text(
+                  SafeMap.safe(
+                    _localization.translateMap("home"),
+                    ["live_msg"],
+                  ),
+                  style: const TextStyle(
                     color: Color(0xFF00C853),
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
@@ -426,6 +439,24 @@ class PodcastControlsState extends State<PodcastControls>
               height: 1.2,
             ),
           ),
+          if ((currentPlayer.now?.trackDisplay ?? '').isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              "${SafeMap.safe(_localization.translateMap("home"), [
+                    "now_playing"
+                  ])}: ${currentPlayer.now!.trackDisplay}",
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: _colors.fontGrey,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 0,
+                height: 1.3,
+              ),
+            ),
+          ],
           if (live != null && live.rssUrl.isNotEmpty) ...[
             const SizedBox(height: 6),
             FutureBuilder<List<Episode>>(
@@ -434,7 +465,8 @@ class PodcastControlsState extends State<PodcastControls>
                   .getEpisodes(live.rssUrl)
                   .then((result) => result.data ?? <Episode>[]),
               builder: (context, snapshot) {
-                if (!snapshot.hasData || snapshot.data!.isEmpty) return const SizedBox.shrink();
+                if (!snapshot.hasData || snapshot.data!.isEmpty)
+                  return const SizedBox.shrink();
                 final label = _parseEpisodeLabel(snapshot.data!.first.title);
                 return Text(
                   label,
@@ -477,11 +509,11 @@ class PodcastControlsState extends State<PodcastControls>
               return dur < pos ? pos : dur;
             }(),
             value: currentPlayer.position.inSeconds.ceilToDouble().clamp(
-              0,
-              currentPlayer.duration.inSeconds.ceilToDouble() <= 0
-                  ? 3420.0
-                  : currentPlayer.duration.inSeconds.ceilToDouble(),
-            ),
+                  0,
+                  currentPlayer.duration.inSeconds.ceilToDouble() <= 0
+                      ? 3420.0
+                      : currentPlayer.duration.inSeconds.ceilToDouble(),
+                ),
             onChanged: (val) {
               currentPlayer.seek(Duration(seconds: val.toInt()));
               setState(() {});
@@ -532,7 +564,9 @@ class PodcastControlsState extends State<PodcastControls>
           const SizedBox(width: 52),
         const SizedBox(width: 20),
         GestureDetector(
-          onTap: () => _presenter.onPlayPause(),
+          onTap: currentPlayer.isBuffering()
+              ? null
+              : () => _presenter.onPlayPause(),
           child: Container(
             width: 72,
             height: 72,
@@ -540,11 +574,19 @@ class PodcastControlsState extends State<PodcastControls>
               shape: BoxShape.circle,
               border: Border.all(color: _colors.yellow, width: 2),
             ),
-            child: Icon(
-              currentPlayer.isPlaying() ? Icons.pause : Icons.play_arrow,
-              color: _colors.yellow,
-              size: 40,
-            ),
+            child: currentPlayer.isBuffering()
+                ? Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: CircularProgressIndicator(
+                      color: _colors.yellow,
+                      strokeWidth: 3,
+                    ),
+                  )
+                : Icon(
+                    currentPlayer.isPlaying() ? Icons.pause : Icons.play_arrow,
+                    color: _colors.yellow,
+                    size: 40,
+                  ),
           ),
         ),
         const SizedBox(width: 20),
@@ -566,15 +608,18 @@ class PodcastControlsState extends State<PodcastControls>
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (currentPlayer.isPlaying() || currentPlayer.isPaused()) ...[
+        if ((currentPlayer.isPlaying() || currentPlayer.isPaused()) &&
+            currentPlayer.isPodcast) ...[
           _ActionChip(
             icon: Icons.queue_music,
-            label: "Playlist",
+            label: SafeMap.safe(
+                _localization.translateMap("podcast_controls"), ["play_queue"]),
             active: false,
             colors: _colors,
             onTap: () {
               _presenter.loadPlaylist(() {
-                _showBottomPanel((sheetContext) => _buildPlaylistPanel(sheetContext));
+                _showBottomPanel(
+                    (sheetContext) => _buildPlaylistPanel(sheetContext));
               });
             },
           ),
@@ -589,7 +634,8 @@ class PodcastControlsState extends State<PodcastControls>
             colors: _colors,
             onTap: () {
               setState(() => shouldShowFaster = false);
-              _showBottomPanel((sheetContext) => _buildSpeedPanel(sheetContext));
+              _showBottomPanel(
+                  (sheetContext) => _buildSpeedPanel(sheetContext));
             },
           ),
           const SizedBox(width: 10),
@@ -602,7 +648,8 @@ class PodcastControlsState extends State<PodcastControls>
             colors: _colors,
             onTap: () {
               setState(() => shouldShowTimer = false);
-              _showBottomPanel((sheetContext) => _buildTimerPanel(sheetContext));
+              _showBottomPanel(
+                  (sheetContext) => _buildTimerPanel(sheetContext));
             },
           ),
           const SizedBox(width: 10),
@@ -623,11 +670,25 @@ class PodcastControlsState extends State<PodcastControls>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text("Playlist", style: TextStyle(color: _colors.font, fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 0)),
+                Text(
+                    SafeMap.safe(_localization.translateMap("podcast_controls"),
+                        ["play_queue"]),
+                    style: TextStyle(
+                        color: _colors.font,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0)),
                 const Expanded(child: SizedBox()),
                 Icon(Icons.queue_music, color: _colors.fontGrey, size: 48),
                 const SizedBox(height: 12),
-                Text("A playlist está baleira", style: TextStyle(color: _colors.fontGrey, fontSize: 14, fontWeight: FontWeight.w400, letterSpacing: 0)),
+                Text(
+                    SafeMap.safe(_localization.translateMap("podcast_controls"),
+                        ["play_queue_empty"]),
+                    style: TextStyle(
+                        color: _colors.fontGrey,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 0)),
                 const Expanded(child: SizedBox()),
               ],
             ),
@@ -640,16 +701,32 @@ class PodcastControlsState extends State<PodcastControls>
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Playlist", style: TextStyle(color: _colors.font, fontSize: 18, fontWeight: FontWeight.w700, letterSpacing: 0)),
+                Text(
+                    SafeMap.safe(_localization.translateMap("podcast_controls"),
+                        ["play_queue"]),
+                    style: TextStyle(
+                        color: _colors.font,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 0)),
                 GestureDetector(
                   onTap: () {
                     _presenter.clearPlaylist(() => setSheetState(() {}));
                   },
                   child: Row(
                     children: [
-                      Icon(Icons.delete_sweep, color: _colors.fontGrey, size: 18),
+                      Icon(Icons.delete_sweep,
+                          color: _colors.fontGrey, size: 18),
                       const SizedBox(width: 4),
-                      Text("Limpar", style: TextStyle(color: _colors.fontGrey, fontSize: 13, fontWeight: FontWeight.w400, letterSpacing: 0)),
+                      Text(
+                          SafeMap.safe(
+                              _localization.translateMap("podcast_controls"),
+                              ["play_queue_clear"]),
+                          style: TextStyle(
+                              color: _colors.fontGrey,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w400,
+                              letterSpacing: 0)),
                     ],
                   ),
                 ),
@@ -687,12 +764,15 @@ class PodcastControlsState extends State<PodcastControls>
                         }
                         // Reproducir o episodio seleccionado e eliminalo da playlist
                         final episode = Episode.fromMap(item);
-                        _presenter.removeFromPlaylist(item['audio'] as String, () {});
+                        _presenter.removeFromPlaylist(
+                            item['audio'] as String, () {});
                         currentPlayer.isPodcast = true;
                         currentPlayer.episode = episode;
-                        currentPlayer.currentSong = item['programName'] ?? episode.title;
+                        currentPlayer.currentSong =
+                            item['programName'] ?? episode.title;
                         currentPlayer.currentSubtitle = episode.title;
-                        currentPlayer.currentImage = item['logoUrl'] ?? currentPlayer.currentImage;
+                        currentPlayer.currentImage =
+                            item['logoUrl'] ?? currentPlayer.currentImage;
                         currentPlayer.playerState = AudioPlayerState.stop;
                         currentPlayer.position = Duration.zero;
                         currentPlayer.duration = Duration.zero;
@@ -704,7 +784,8 @@ class PodcastControlsState extends State<PodcastControls>
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Row(
                           children: [
-                            Icon(Icons.drag_handle, color: _colors.fontGrey, size: 20),
+                            Icon(Icons.drag_handle,
+                                color: _colors.fontGrey, size: 20),
                             const SizedBox(width: 10),
                             Expanded(
                               child: Column(
@@ -712,24 +793,35 @@ class PodcastControlsState extends State<PodcastControls>
                                 children: [
                                   Text(
                                     item['programName'] ?? '',
-                                    style: TextStyle(color: _colors.fontGrey, fontSize: 11, fontWeight: FontWeight.w400, letterSpacing: 0),
+                                    style: TextStyle(
+                                        color: _colors.fontGrey,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w400,
+                                        letterSpacing: 0),
                                   ),
                                   Text(
                                     item['title'] ?? '',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(color: _colors.font, fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: 0),
+                                    style: TextStyle(
+                                        color: _colors.font,
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0),
                                   ),
                                 ],
                               ),
                             ),
                             GestureDetector(
                               onTap: () {
-                                _presenter.removeFromPlaylist(item['audio'] as String, () => setSheetState(() {}));
+                                _presenter.removeFromPlaylist(
+                                    item['audio'] as String,
+                                    () => setSheetState(() {}));
                               },
                               child: Padding(
                                 padding: const EdgeInsets.fromLTRB(8, 0, 4, 0),
-                                child: Icon(Icons.close, color: _colors.fontGrey, size: 18),
+                                child: Icon(Icons.close,
+                                    color: _colors.fontGrey, size: 18),
                               ),
                             ),
                           ],
@@ -746,7 +838,8 @@ class PodcastControlsState extends State<PodcastControls>
     );
   }
 
-  void _showBottomPanel(Widget Function(BuildContext sheetContext) panelBuilder) {
+  void _showBottomPanel(
+      Widget Function(BuildContext sheetContext) panelBuilder) {
     showModalBottomSheet(
       context: context,
       backgroundColor: _colors.palidwhite,
@@ -782,15 +875,29 @@ class PodcastControlsState extends State<PodcastControls>
   }
 
   Widget _buildTimerPanel(BuildContext sheetContext) {
-    final labels = ["Off", "15 min", "30 min", "45 min", "60 min", "75 min", "90 min", "105 min"];
+    const durations = [0, 1, 15, 30, 45, 60, 75, 90, 105];
+    final labels = [
+      "Off",
+      "1 min",
+      "15 min",
+      "30 min",
+      "45 min",
+      "60 min",
+      "75 min",
+      "90 min",
+      "105 min"
+    ];
     return Column(
       mainAxisSize: MainAxisSize.min,
-      children: List.generate(8, (index) {
+      children: List.generate(durations.length, (index) {
         final selected = sleepSelectedIndex == index;
         return GestureDetector(
           onTap: () {
             if (index == 0) currentTimeCountdown = Duration.zero;
-            _presenter.onTimerStart(Duration(minutes: index * 15), index);
+            _presenter.onTimerStart(
+              Duration(minutes: durations[index]),
+              index,
+            );
             setState(() => sleepSelectedIndex = index);
             Navigator.of(sheetContext).pop();
           },
@@ -862,8 +969,9 @@ class PodcastControlsState extends State<PodcastControls>
 
   String _getLiveImageUrl() {
     final live = widget.liveProgram;
-    if (live == null) return "https://cuacfm.org/wp-content/uploads/2026/04/cuac_music_cover.png";
-    if (live.logoUrl.isEmpty || live.logoUrl.contains('default-programme-photo')) {
+    if (live == null) return "https://aberradio.com/fb_cover_photo.png";
+    if (live.logoUrl.isEmpty ||
+        live.logoUrl.contains('default-programme-photo')) {
       return 'assets/graphics/default_programme_cover.png';
     }
     return live.logoUrl;
@@ -880,8 +988,10 @@ class PodcastControlsState extends State<PodcastControls>
     if (match != null) {
       final season = match.group(1);
       final ep = match.group(2);
-      final seasonLabel = SafeMap.safe(_localization.translateMap("general"), ["season"]);
-      final episodeLabel = SafeMap.safe(_localization.translateMap("general"), ["episode"]);
+      final seasonLabel =
+          SafeMap.safe(_localization.translateMap("general"), ["season"]);
+      final episodeLabel =
+          SafeMap.safe(_localization.translateMap("general"), ["episode"]);
       return "$seasonLabel $season, $episodeLabel $ep";
     }
     return title;
@@ -889,8 +999,18 @@ class PodcastControlsState extends State<PodcastControls>
 
   String _monthAbbr(int month) {
     const months = [
-      "ENE","FEB","MAR","ABR","MAY","JUN",
-      "JUL","AGO","SEP","OCT","NOV","DIC"
+      "ENE",
+      "FEB",
+      "MAR",
+      "ABR",
+      "MAY",
+      "JUN",
+      "JUL",
+      "AGO",
+      "SEP",
+      "OCT",
+      "NOV",
+      "DIC"
     ];
     return months[month - 1];
   }
@@ -929,25 +1049,33 @@ class PodcastControlsState extends State<PodcastControls>
                 ? "${date.second}"
                 : "0${date.second}";
     if (date.minute == 0 && date.hour == 0 && date.second != 0) {
-      seconds += SafeMap.safe(
-          _localization.translateMap("general"), ["seconds"]);
+      seconds +=
+          SafeMap.safe(_localization.translateMap("general"), ["seconds"]);
     }
     return currentTimeCountdown != Duration.zero
         ? SafeMap.safe(_localization.translateMap("podcast_controls"),
                 ["auto_off_active"]) +
-            hour + minutes + seconds
+            hour +
+            minutes +
+            seconds
         : SafeMap.safe(_localization.translateMap("podcast_controls"),
             ["auto_off_inactive"]);
   }
 
   double getValue(int index) {
     switch (index) {
-      case 0: return 0.8;
-      case 1: return 1.0;
-      case 2: return 1.2;
-      case 3: return 1.5;
-      case 4: return 2.0;
-      default: return 1.0;
+      case 0:
+        return 0.8;
+      case 1:
+        return 1.0;
+      case 2:
+        return 1.2;
+      case 3:
+        return 1.5;
+      case 4:
+        return 2.0;
+      default:
+        return 1.0;
     }
   }
 }
@@ -959,7 +1087,8 @@ class _LiveDot extends StatefulWidget {
   State<_LiveDot> createState() => _LiveDotState();
 }
 
-class _LiveDotState extends State<_LiveDot> with SingleTickerProviderStateMixin {
+class _LiveDotState extends State<_LiveDot>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -1027,19 +1156,17 @@ class _ActionChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon,
-                size: 15,
-                color: active ? colors.font : colors.grey),
+            Icon(icon, size: 15, color: active ? colors.font : colors.grey),
             const SizedBox(width: 5),
             Text(
-                    label,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: active ? colors.font : colors.grey,
-                      fontFeatures: [FontFeature.tabularFigures()],
-                    ),
-                  ),
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: active ? colors.font : colors.grey,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
           ],
         ),
       ),

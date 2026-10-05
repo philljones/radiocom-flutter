@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:cuacfm/models/outstanding.dart';
 import 'package:cuacfm/translations/localizations.dart';
 import 'package:cuacfm/utils/html_entities.dart';
@@ -17,13 +15,15 @@ class New {
   String category;
   DateTime? pubDateTime;
 
-  New(this.title, this.link, this.description, this.image, this.pubDate, {this.pubDateTime, this.category = ""});
+  New(this.title, this.link, this.description, this.image, this.pubDate,
+      {this.pubDateTime, this.category = ""});
 
   New.fromInstance(Map<String, dynamic> map)
       : title = HtmlEntities.decode(map["title"]?["\$t"] ?? map["title"] ?? ""),
         link = map["link"]?["\$t"] ?? map["link"] ?? "",
         pubDate = getDate(map["pubDate"]?["\$t"] ?? map["pubDate"] ?? ""),
-        pubDateTime = parseDateTime(map["pubDate"]?["\$t"] ?? map["pubDate"] ?? ""),
+        pubDateTime =
+            parseDateTime(map["pubDate"]?["\$t"] ?? map["pubDate"] ?? ""),
         category = getCategory(map["category"]),
         image = getImage(map["content:encoded"]?["\$t"] ??
             map["content\$encoded"]?["__cdata"] ??
@@ -54,15 +54,47 @@ class New {
   static String getCleanContent(String content) {
     var document = parse(content);
     // Remove featured image (webfeedsFeaturedVisual)
-    for (final el in document.body?.getElementsByClassName("webfeedsFeaturedVisual") ?? []) {
+    for (final el
+        in document.body?.getElementsByClassName("webfeedsFeaturedVisual") ??
+            []) {
       el.remove();
     }
     // Remove wp-block-image (WordPress featured image wrapper)
-    final wpImages = document.body?.getElementsByClassName("wp-block-image") ?? [];
+    final wpImages =
+        document.body?.getElementsByClassName("wp-block-image") ?? [];
     if (wpImages.isNotEmpty) {
       wpImages[0].remove();
     }
+    // The detail screen already uses the first story image as its hero image.
+    // Remove that same image from the body so it is not shown twice.
+    final images = document.body?.getElementsByTagName("img") ?? [];
+    if (images.isNotEmpty) {
+      final image = images.first;
+      final parent = image.parent;
+      if (parent?.localName == "p" && parent!.children.length == 1) {
+        parent.remove();
+      } else {
+        image.remove();
+      }
+    }
     return document.body?.innerHtml ?? content;
+  }
+
+  bool get isAbergavennyChronicle {
+    final host = Uri.tryParse(link)?.host.toLowerCase() ?? "";
+    return host == "abergavennychronicle.com" ||
+        host.endsWith(".abergavennychronicle.com");
+  }
+
+  bool get isAbergavennyWeather {
+    final uri = Uri.tryParse(link);
+    if (uri?.host.toLowerCase() == "api.aberradio.com" &&
+        uri?.path == "/api/2/weather") {
+      return true;
+    }
+
+    return title.trim().toLowerCase() == "abergavenny weather" &&
+        category.toLowerCase().contains("weather");
   }
 
   static DateTime? parseDateTime(String content) {
@@ -77,8 +109,22 @@ class New {
   static String getDate(String content) {
     if (content.isEmpty) return "";
     try {
-      final date = DateFormat("EEE, dd MMM yyyy HH:mm:ss Z", "en_US").parse(content);
-      const months = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
+      final date =
+          DateFormat("EEE, dd MMM yyyy HH:mm:ss Z", "en_US").parse(content);
+      const months = [
+        "ENE",
+        "FEB",
+        "MAR",
+        "ABR",
+        "MAY",
+        "JUN",
+        "JUL",
+        "AGO",
+        "SEP",
+        "OCT",
+        "NOV",
+        "DIC"
+      ];
       return "${date.day} ${months[date.month - 1]} ${date.year}";
     } catch (e) {
       return content;
@@ -120,31 +166,7 @@ class New {
       return document.body?.getElementsByTagName("img")[0].attributes["src"] ??
           "";
     } else {
-      String baseImage =
-          "https://cuacfm.org/wp-content/uploads/2015/04/cousomicros1.jpg";
-      switch (Random().nextInt(5)) {
-        case 0:
-          baseImage =
-              "https://cuacfm.org/wp-content/uploads/2025/05/parrulo-violeta.jpg?ssl=1";
-          break;
-        case 1:
-          baseImage =
-              "https://cuacfm.org/wp-content/uploads/2025/05/parrulo-amarillo.jpg?ssl=1";
-          break;
-        case 2:
-          baseImage =
-              "https://cuacfm.org/wp-content/uploads/2025/05/parrulo-azul.jpg?ssl=1";
-          break;
-        case 3:
-          baseImage =
-              "https://cuacfm.org/wp-content/uploads/2025/05/parrulo-naranja.jpg?ssl=1";
-          break;
-        case 4:
-          baseImage =
-              "https://cuacfm.org/wp-content/uploads/2015/04/cousomicros1.jpg";
-          break;
-      }
-      return baseImage;
+      return "https://aberradio.com/fb_cover_photo.png";
     }
   }
 
@@ -152,23 +174,20 @@ class New {
     final localization = Injector.appInstance.get<CuacLocalization>();
     return New(
         SafeMap.safe(localization.translateMap("new"), ["history_title"]),
-        "https://cuacfm.org/asociacion-cuac/cuacfm/",
+        "https://aberradio.com",
         content,
-        "https://cuacfm.org/wp-content/uploads/2015/04/cousomicros1.jpg",
+        "https://aberradio.com/fb_cover_photo.png",
         getDate("Wed, 20 Mar 1996 12:00:00 +0000"));
   }
 
   static New fromOutstanding(Outstanding outstanding) {
-    return New(
-        outstanding.title,
-        "https://cuacfm.org/novas/",
-        outstanding.description,
-        outstanding.logoUrl,
-        "");
+    return New(outstanding.title, "https://aberradio.com",
+        outstanding.description, outstanding.logoUrl, "");
   }
 
   static New fromPodcast(
-      String title, String subtitle, String content, String link, {String image = ""}) {
+      String title, String subtitle, String content, String link,
+      {String image = ""}) {
     return New(title, link, content, image, subtitle);
   }
 }

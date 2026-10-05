@@ -92,7 +92,8 @@ class NewDetailPresenter {
       final dir = await getTemporaryDirectory();
       final file = File('${dir.path}/share_image.jpg');
       await file.writeAsBytes(response.bodyBytes);
-      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: text));
+      await SharePlus.instance
+          .share(ShareParams(files: [XFile(file.path)], text: text));
     } catch (_) {
       SharePlus.instance.share(ShareParams(text: text));
     }
@@ -111,33 +112,54 @@ class NewDetailPresenter {
     }
   }
 
-  Future<void> _openRadiocoEpisode(String slug, String episodeCode, String fallbackUrl) async {
+  Future<void> _openRadiocoEpisode(
+      String slug, String episodeCode, String fallbackUrl) async {
     view.onLoadingEpisode(true);
     try {
       final repo = Injector.appInstance.get<CuacRepositoryContract>();
       final programsResult = await repo.getAllPodcasts();
-      if (programsResult.data == null || programsResult.data!.isEmpty) { _launchURL(fallbackUrl); return; }
+      if (programsResult.data == null || programsResult.data!.isEmpty) {
+        _launchURL(fallbackUrl);
+        return;
+      }
 
       final slugNorm = slug.replaceAll('-', ' ').toLowerCase();
       Program? program;
       for (final p in programsResult.data!) {
-        if (p.name.toLowerCase() == slugNorm) { program = p; break; }
+        if (p.name.toLowerCase() == slugNorm) {
+          program = p;
+          break;
+        }
       }
       program ??= programsResult.data!.firstWhere(
-        (p) => p.name.toLowerCase().contains(slugNorm) || slugNorm.contains(p.name.toLowerCase()),
+        (p) =>
+            p.name.toLowerCase().contains(slugNorm) ||
+            slugNorm.contains(p.name.toLowerCase()),
         orElse: () => throw Exception('Program not found'),
       );
 
-      if (program.rssUrl.isEmpty) { _launchURL(fallbackUrl); return; }
+      if (program.rssUrl.isEmpty) {
+        _launchURL(fallbackUrl);
+        return;
+      }
 
       final episodesResult = await repo.getEpisodes(program.rssUrl);
-      if (episodesResult.data == null || episodesResult.data!.isEmpty) { _launchURL(fallbackUrl); return; }
+      if (episodesResult.data == null || episodesResult.data!.isEmpty) {
+        _launchURL(fallbackUrl);
+        return;
+      }
 
       Episode? episode;
       for (final e in episodesResult.data!) {
-        if (e.title.toLowerCase().startsWith(episodeCode.toLowerCase())) { episode = e; break; }
+        if (e.title.toLowerCase().startsWith(episodeCode.toLowerCase())) {
+          episode = e;
+          break;
+        }
       }
-      if (episode == null) { _launchURL(fallbackUrl); return; }
+      if (episode == null) {
+        _launchURL(fallbackUrl);
+        return;
+      }
 
       currentPlayer.isPodcast = true;
       currentPlayer.episode = episode;
@@ -155,8 +177,12 @@ class NewDetailPresenter {
   }
 
   _launchURL(String url) async {
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.platformDefault);
+    final uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      final mode = uri.scheme == 'http' || uri.scheme == 'https'
+          ? LaunchMode.externalApplication
+          : LaunchMode.platformDefault;
+      await launchUrl(uri, mode: mode);
     } else {
       throw 'Could not launch $url';
     }

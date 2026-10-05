@@ -49,20 +49,45 @@ class Program {
         category = map["category"] ?? "";
 
   Map<String, dynamic> toMap() => {
-    'name': name,
-    'description': description,
-    'logoUrl': logoUrl,
-    'rssUrl': rssUrl,
-    'duration': duration,
-    'language': language,
-    'category': category,
-  };
+        'name': name,
+        'description': description,
+        'logoUrl': logoUrl,
+        'rssUrl': rssUrl,
+        'duration': duration,
+        'language': language,
+        'category': category,
+      };
 
   static String getLanguage(String language) {
-    if (language == "gl") {
-      return "Galego";
+    switch (language.trim().toLowerCase()) {
+      case "en":
+        return "English";
+      case "cy":
+        return "Cymraeg";
+      case "es":
+        return "Español";
+      case "gl":
+        return "Galego";
+      case "pt":
+        return "Português";
+      default:
+        return language.trim().toUpperCase();
     }
-    return "Español";
+  }
+
+  static int getRuntimeMinutes(String runtime) {
+    final value = runtime.trim();
+    final parts = value.split(':');
+    if (parts.length == 3) {
+      final hours = int.tryParse(parts[0]);
+      final minutes = int.tryParse(parts[1]);
+      final seconds = int.tryParse(parts[2]);
+      if (hours != null && minutes != null && seconds != null) {
+        final totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        return (totalSeconds / 60).ceil();
+      }
+    }
+    return int.tryParse(value) ?? 0;
   }
 
   static ProgramCategories mapCategoryType(String content) {

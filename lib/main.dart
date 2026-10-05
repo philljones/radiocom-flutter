@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cuacfm/domain/repository/alerts_repository_contract.dart';
 import 'package:cuacfm/injector/dependency_injector.dart';
 import 'package:cuacfm/local-data-source/alerts_local_datasource.dart';
@@ -22,13 +24,17 @@ import 'package:injector/injector.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cuacfm/ui/player/cuac_audio_handler.dart';
 import 'package:just_audio/just_audio.dart';
+import 'package:cuacfm/utils/push_notifications.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   if (message.data['type'] == 'new_episode') {
     await AlertsLocalDataSource.saveFromBackground({
       'programName': message.notification?.title ?? '',
-      'programLogoUrl': message.notification?.android?.imageUrl ?? message.data['logo_url'] ?? '',
+      'programLogoUrl': message.notification?.android?.imageUrl ??
+          message.data['logo_url'] ??
+          '',
       'rssUrl': message.data['rss_url'] ?? '',
       'episodeTitle': message.notification?.body ?? '',
       'episodeId': message.data['episode_id'] ?? '',
@@ -39,6 +45,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await TestStreamSwitch.initialize();
   await Hive.initFlutter();
   await Hive.openBox('playlist');
   await Hive.openBox('favourites');
@@ -52,41 +59,47 @@ void main() async {
   DependencyInjector().loadModules();
   await Firebase.initializeApp();
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-  await FirebaseMessaging.instance.requestPermission();
   await Injector.appInstance.get<AlertsRepositoryContract>().migratePending();
   Injector.appInstance.get<AlertsRepositoryContract>().cleanOldAlerts();
 
-  // Notificación cando a app estaba pechada
-  final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-  if (initialMessage != null) {
-    final rssUrl = initialMessage.data['rss_url'] as String?;
-    final episodeId = initialMessage.data['episode_id'] as String?;
-    if (rssUrl != null) pendingNotificationRssUrl.value = rssUrl;
-    if (episodeId != null) pendingNotificationEpisodeId.value = episodeId;
-  }
-
-  // Notificación en primeiro plano — gardar no historial
-  FirebaseMessaging.onMessage.listen((message) {
-    if (message.data['type'] == 'new_episode') {
-      Injector.appInstance.get<AlertsRepositoryContract>().saveFromForeground({
-        'programName': message.notification?.title ?? '',
-        'programLogoUrl': message.notification?.android?.imageUrl ?? message.data['logo_url'] ?? '',
-        'rssUrl': message.data['rss_url'] ?? '',
-        'episodeTitle': message.notification?.body ?? '',
-        'episodeId': message.data['episode_id'] ?? '',
-        'receivedAt': DateTime.now().toIso8601String(),
-      });
+  if (pushNotificationsEnabled) {
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    await FirebaseMessaging.instance.requestPermission();
+    // Notificación cando a app estaba pechada
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      final rssUrl = initialMessage.data['rss_url'] as String?;
+      final episodeId = initialMessage.data['episode_id'] as String?;
+      if (rssUrl != null) pendingNotificationRssUrl.value = rssUrl;
+      if (episodeId != null) pendingNotificationEpisodeId.value = episodeId;
     }
-  });
 
-  // Notificación cando a app estaba en segundo plano
-  FirebaseMessaging.onMessageOpenedApp.listen((message) {
-    final rssUrl = message.data['rss_url'] as String?;
-    final episodeId = message.data['episode_id'] as String?;
-    if (rssUrl != null) pendingNotificationRssUrl.value = rssUrl;
-    if (episodeId != null) pendingNotificationEpisodeId.value = episodeId;
-  });
+    // Notificación en primeiro plano — gardar no historial
+    FirebaseMessaging.onMessage.listen((message) {
+      if (message.data['type'] == 'new_episode') {
+        Injector.appInstance
+            .get<AlertsRepositoryContract>()
+            .saveFromForeground({
+          'programName': message.notification?.title ?? '',
+          'programLogoUrl': message.notification?.android?.imageUrl ??
+              message.data['logo_url'] ??
+              '',
+          'rssUrl': message.data['rss_url'] ?? '',
+          'episodeTitle': message.notification?.body ?? '',
+          'episodeId': message.data['episode_id'] ?? '',
+          'receivedAt': DateTime.now().toIso8601String(),
+        });
+      }
+    });
+
+    // Notificación cando a app estaba en segundo plano
+    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+      final rssUrl = message.data['rss_url'] as String?;
+      final episodeId = message.data['episode_id'] as String?;
+      if (rssUrl != null) pendingNotificationRssUrl.value = rssUrl;
+      if (episodeId != null) pendingNotificationEpisodeId.value = episodeId;
+    });
+  }
   //Setting SystmeUIMode
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge,
       overlays: [SystemUiOverlay.top, SystemUiOverlay.bottom]);
@@ -95,7 +108,7 @@ void main() async {
     builder: () => CuacAudioHandler(Injector.appInstance.get<AudioPlayer>()),
     config: const AudioServiceConfig(
       androidNotificationChannelId: 'com.ryanheise.bg_demo.channel.audio',
-      androidNotificationChannelName: 'CUAC FM',
+      androidNotificationChannelName: 'Aber Radio',
       androidNotificationIcon: 'drawable/ic_notification',
       androidNotificationOngoing: true,
       androidStopForegroundOnPause: true,
@@ -106,19 +119,61 @@ void main() async {
   );
   Injector.appInstance.registerSingleton<CuacAudioHandler>(() => audioHandler);
 
+  unawaited(_configureIOSHomeActions());
   runApp(MyApp());
 }
 
 // Notifiers globais para tema e locale — as pantallas subscribense a estes
-final ValueNotifier<ThemeMode> appThemeModeNotifier = ValueNotifier(ThemeMode.system);
+final ValueNotifier<ThemeMode> appThemeModeNotifier =
+    ValueNotifier(ThemeMode.system);
 final ValueNotifier<Locale?> appLocaleNotifier = ValueNotifier(null);
 final ValueNotifier<String?> pendingNotificationRssUrl = ValueNotifier(null);
 final ValueNotifier<String?> pendingNotificationEpisodeId = ValueNotifier(null);
+final ValueNotifier<String?> pendingIOSHomeAction = ValueNotifier(null);
+
+const MethodChannel _iosHomeActionsChannel =
+    MethodChannel('uk.co.abergavennyradio/home_actions');
+
+Future<void> _configureIOSHomeActions() async {
+  if (Foundation.kIsWeb ||
+      Foundation.defaultTargetPlatform != TargetPlatform.iOS) return;
+
+  _iosHomeActionsChannel.setMethodCallHandler((call) async {
+    if (call.method == 'homeAction' && call.arguments is String) {
+      await _publishIOSHomeAction(call.arguments as String);
+    }
+  });
+
+  await refreshPendingIOSHomeAction();
+}
+
+Future<void> refreshPendingIOSHomeAction() async {
+  if (Foundation.kIsWeb ||
+      Foundation.defaultTargetPlatform != TargetPlatform.iOS) return;
+  try {
+    final initialAction =
+        await _iosHomeActionsChannel.invokeMethod<String>('getInitialAction');
+    if (initialAction != null) await _publishIOSHomeAction(initialAction);
+  } on PlatformException {
+    // The app still works normally on iOS versions without the native bridge.
+  }
+}
+
+Future<void> _publishIOSHomeAction(String action) async {
+  pendingIOSHomeAction.value = action;
+  try {
+    await _iosHomeActionsChannel.invokeMethod<void>(
+        'clearPendingAction', action);
+  } on PlatformException {
+    // A repeated check by the Home screen will safely recover the action.
+  }
+}
 
 void _applyThemeModeToApp(ThemeMode mode) {
   final isDark = mode == ThemeMode.dark ||
       (mode == ThemeMode.system &&
-          WidgetsBinding.instance.platformDispatcher.platformBrightness == Brightness.dark);
+          WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+              Brightness.dark);
   Injector.appInstance.registerSingleton<RadiocomColorsConract>(
     () => isDark ? RadiocomColorsDark() : RadiocomColorsLight(),
     override: true,
@@ -129,7 +184,8 @@ void _applyThemeModeToApp(ThemeMode mode) {
     systemNavigationBarColor: Colors.transparent,
     systemNavigationBarContrastEnforced: false,
     systemNavigationBarDividerColor: Colors.transparent,
-    systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+    systemNavigationBarIconBrightness:
+        isDark ? Brightness.light : Brightness.dark,
     statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
   ));
 }
@@ -172,22 +228,27 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     final completed = prefs.getBool('onboarding_completed') ?? false;
     if (!completed) return;
     final lastVersion = prefs.getInt('onboarding_version') ?? 0;
-    if (mounted && onboardingVersion <= lastVersion) setState(() => _showOnboarding = false);
+    if (mounted && onboardingVersion <= lastVersion)
+      setState(() => _showOnboarding = false);
   }
 
   Future<void> _loadLocale() async {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getString('app_locale');
+    if (value != null && value != 'en' && value != 'cy') {
+      await prefs.remove('app_locale');
+    }
     appLocaleNotifier.value = _parseLocale(value);
   }
 
   static Locale? _parseLocale(String? value) {
     switch (value) {
-      case 'gl': return const Locale('gl', 'ES');
-      case 'es': return const Locale('es', 'ES');
-      case 'en': return const Locale('en', 'US');
-      case 'pt': return const Locale('pt', 'PT');
-      default: return null; // sistema
+      case 'en':
+        return const Locale('en', 'US');
+      case 'cy':
+        return const Locale('cy', 'GB');
+      default:
+        return null; // sistema
     }
   }
 
@@ -214,17 +275,23 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   static ThemeMode _parseThemeMode(String value) {
     switch (value) {
-      case 'light': return ThemeMode.light;
-      case 'dark': return ThemeMode.dark;
-      default: return ThemeMode.system;
+      case 'light':
+        return ThemeMode.light;
+      case 'dark':
+        return ThemeMode.dark;
+      default:
+        return ThemeMode.system;
     }
   }
 
   @override
   void didChangePlatformBrightness() {
-    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
+    final brightness =
+        WidgetsBinding.instance.platformDispatcher.platformBrightness;
     if (brightness != _brightness) {
-      setState(() { _brightness = brightness; });
+      setState(() {
+        _brightness = brightness;
+      });
       _applySystemChrome(brightness);
     }
   }
@@ -236,7 +303,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       statusBarColor: Colors.transparent,
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarDividerColor: Colors.transparent,
-      systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
       statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
     ));
   }
@@ -268,10 +336,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           themeMode: themeMode,
           locale: locale,
           supportedLocales: [
-            const Locale('gl', 'ES'),
-            const Locale('es', 'ES'),
             const Locale('en', 'US'),
-            const Locale('pt', 'PT')
+            const Locale('cy', 'GB')
           ],
           localizationsDelegates: [
             LocalizationDelegate(),
@@ -290,7 +356,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             }
             return supportedLocales.first;
           },
-          title: 'CUAC FM',
+          title: 'Aber Radio',
           navigatorObservers: [
             FirebaseAnalyticsObserver(analytics: FirebaseAnalytics.instance),
           ],
@@ -329,7 +395,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               ? OnboardingView(onFinished: () {
                   setState(() => _showOnboarding = false);
                 })
-              : MyHomePage(title: 'Benvida a CUAC FM'),
+              : MyHomePage(title: 'Welcome to Aber Radio'),
         ),
       ),
     );

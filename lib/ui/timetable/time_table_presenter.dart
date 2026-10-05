@@ -45,13 +45,15 @@ class TimeTablePresenter {
   }
 
   getTimetable() {
-    final formatter = DateFormat('dd/MM/yyyy');
+    final formatter = DateFormat('yyyy-MM-dd');
     final now = DateTime.now();
     final monday = now.subtract(Duration(days: now.weekday - 1));
     final nextMonday = monday.add(const Duration(days: 7));
     final after = formatter.format(monday);
     final before = formatter.format(nextMonday);
-    invoker.execute(getTimetableUseCase.withParams(GetTimetableUseCaseParams(after, before)))
+    invoker
+        .execute(getTimetableUseCase
+            .withParams(GetTimetableUseCaseParams(after, before)))
         .listen((result) {
       if (result is Success) {
         view.onLoadTimetable(result.data);
@@ -71,12 +73,8 @@ class TimeTablePresenter {
       } else {
         if (!currentPlayer.isPodcast) {
           currentPlayer.now = Now.mock();
-          currentPlayer.currentSong = Now
-              .mock()
-              .name;
-          currentPlayer.currentImage = Now
-              .mock()
-              .logoUrl;
+          currentPlayer.currentSong = Now.mock().name;
+          currentPlayer.currentImage = Now.mock().logoUrl;
           view.onNewData();
         }
       }
@@ -84,7 +82,7 @@ class TimeTablePresenter {
   }
 
   onResume() async {
-    if(currentPlayer.playerState == AudioPlayerState.stop){
+    if (currentPlayer.playerState == AudioPlayerState.stop) {
       await currentPlayer.play();
     } else {
       await currentPlayer.resume();
@@ -96,7 +94,7 @@ class TimeTablePresenter {
   }
 
   onPodcastControlsClicked(Episode? episode) {
-    if(episode != null) {
+    if (episode != null) {
       router.goToPodcastControls(episode);
     }
   }

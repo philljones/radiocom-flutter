@@ -9,7 +9,8 @@ import 'package:cuacfm/ui/podcast/controls/podcast_controls.dart';
 import 'package:cuacfm/ui/podcast/controls/podcast_controls_presenter.dart';
 import 'package:cuacfm/utils/connection_contract.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart' show Icons, Slider, BottomSheet;
+import 'package:flutter/material.dart'
+    show BottomSheet, CircularProgressIndicator, Icons, Slider;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:injector/injector.dart';
 import 'package:mockito/mockito.dart';
@@ -54,6 +55,7 @@ void main() {
   setUp(() async {
     mockPlayer = MockPlayer();
     when(mockPlayer.getPlaybackRate()).thenReturn(0.0);
+    when(mockPlayer.isBuffering()).thenReturn(false);
   });
 
   tearDown(() async {
@@ -91,7 +93,10 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
     }
 
-    expect(find.text("En directo", skipOffstage: false), findsOneWidget);
+    // Assert the player state rather than translated copy. The lightweight
+    // localization used by this test is intentionally incomplete, while the
+    // pause control is the behaviour this test needs to protect.
+    expect(find.byIcon(Icons.pause, skipOffstage: false), findsOneWidget);
 
     // Flush the timeout timer scheduled internally by
     // PaletteGenerator.fromImageProvider so it doesn't leak past the test.
@@ -130,6 +135,36 @@ void main() {
 
     // Flush the timeout timer scheduled internally by
     // PaletteGenerator.fromImageProvider so it doesn't leak past the test.
+    await tester.pump(const Duration(seconds: 16));
+  });
+
+  testWidgets('that live controls show progress while the stream connects',
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(768, 1024);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    when(mockRepository.getLiveBroadcast())
+        .thenAnswer((_) => MockRadiocoRepository.now());
+    when(mockConnection.isConnectionAvailable())
+        .thenAnswer((_) => Future.value(true));
+    when(mockPlayer.isPlaying()).thenReturn(false);
+    when(mockPlayer.isBuffering()).thenReturn(true);
+    mockPlayer.isPodcast = false;
+    mockPlayer.currentSong = "mocklive";
+    mockCurrentTimerContract.currentTime = 0;
+
+    await tester.pumpWidget(startWidget(
+        PodcastControls(episode: EpisodeInstrument.givenAnEpisode())));
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(find.byType(CircularProgressIndicator, skipOffstage: false),
+        findsOneWidget);
+    expect(find.byIcon(Icons.play_arrow, skipOffstage: false), findsNothing);
+
     await tester.pump(const Duration(seconds: 16));
   });
 
@@ -211,47 +246,51 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(BottomSheet), findsNothing);
+
+    // Flush the timeout timer scheduled internally by
+    // PaletteGenerator.fromImageProvider so it doesn't leak past the test.
+    await tester.pump(const Duration(seconds: 16));
   });
 
   testWidgets(
       'that in podcast controls can handle error on connection while playing',
-          (WidgetTester tester) async {
-        tester.view.physicalSize = const Size(768, 1024);
-        tester.view.devicePixelRatio = 1.0;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
+      (WidgetTester tester) async {
+    tester.view.physicalSize = const Size(768, 1024);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
 
-        when(mockRepository.getLiveBroadcast())
-            .thenAnswer((_) => MockRadiocoRepository.now());
-        when(mockConnection.isConnectionAvailable())
-            .thenAnswer((_) => Future.value(true));
-        when(mockPlayer.isPlaying()).thenReturn(false);
-        when(mockPlayer.stop()).thenReturn(true);
-        when(mockPlayer.play()).thenAnswer((_) => Future.value(true));
-        mockPlayer.isPodcast = false;
-        mockPlayer.currentSong = "mocklive";
-        mockCurrentTimerContract.currentTime = 0;
+    when(mockRepository.getLiveBroadcast())
+        .thenAnswer((_) => MockRadiocoRepository.now());
+    when(mockConnection.isConnectionAvailable())
+        .thenAnswer((_) => Future.value(true));
+    when(mockPlayer.isPlaying()).thenReturn(false);
+    when(mockPlayer.stop()).thenReturn(true);
+    when(mockPlayer.play()).thenAnswer((_) => Future.value(true));
+    mockPlayer.isPodcast = false;
+    mockPlayer.currentSong = "mocklive";
+    mockCurrentTimerContract.currentTime = 0;
 
-        when(mockPlayer.onConnection).thenReturn((isError) {
-          tester.allStates.forEach((state) {
-            if (state is PodcastControlsState) {
-              state.onConnectionError();
-            }
-          });
-        });
-
-        await tester.pumpWidget(startWidget(
-            PodcastControls(episode: EpisodeInstrument.givenAnEpisode())));
-        mockPlayer.onConnection!(true);
-        for (var i = 0; i < 10; i++) {
-          await tester.pump(const Duration(milliseconds: 100));
+    when(mockPlayer.onConnection).thenReturn((isError) {
+      tester.allStates.forEach((state) {
+        if (state is PodcastControlsState) {
+          state.onConnectionError();
         }
-
-        expect(find.byKey(Key("connection_snackbar"), skipOffstage: true),
-            findsOneWidget);
-
-        // Flush the timeout timer scheduled internally by
-        // PaletteGenerator.fromImageProvider so it doesn't leak past the test.
-        await tester.pump(const Duration(seconds: 16));
       });
+    });
+
+    await tester.pumpWidget(startWidget(
+        PodcastControls(episode: EpisodeInstrument.givenAnEpisode())));
+    mockPlayer.onConnection!(true);
+    for (var i = 0; i < 10; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+
+    expect(find.byKey(Key("connection_snackbar"), skipOffstage: true),
+        findsOneWidget);
+
+    // Flush the timeout timer scheduled internally by
+    // PaletteGenerator.fromImageProvider so it doesn't leak past the test.
+    await tester.pump(const Duration(seconds: 16));
+  });
 }

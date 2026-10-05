@@ -15,7 +15,7 @@ import 'package:cuacfm/domain/usecase/remove_from_playlist_use_case.dart';
 import 'package:cuacfm/domain/usecase/start_session_use_case.dart';
 import 'package:cuacfm/models/episode.dart';
 import 'package:cuacfm/models/now.dart';
-import 'package:cuacfm/models/radiostation.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:flutter/services.dart';
 import 'package:audio_service/audio_service.dart';
@@ -29,15 +29,15 @@ typedef void ConnectionCallback(bool isError);
 enum AudioPlayerState { play, stop, pause }
 
 abstract class CurrentPlayerContract {
-  Now? now;
+  Now? get now;
+  set now(Now? value);
   Episode? episode;
   Episode? tempEpisode;
   AudioPlayerState playerState = AudioPlayerState.stop;
   AudioPlayer audioPlayer = Injector.appInstance.get<AudioPlayer>();
   String currentSong = ":";
   String currentSubtitle = "";
-  String currentImage =
-      "https://cuacfm.org/wp-content/uploads/2026/04/cuac_music_cover.png";
+  String currentImage = "https://aberradio.com/fb_cover_photo.png";
   bool isPodcast = false;
   String playbackSource = 'app';
   Duration duration = Duration(seconds: 0);
@@ -55,11 +55,15 @@ abstract class CurrentPlayerContract {
   Future<bool> seek(Duration position);
   Future<bool> setVolume(double volume);
   Future<bool> play();
+  Future<bool> restartLiveStream();
   Future<bool> stopAndPlay();
+  Future<void> fadeOutAndStop(
+      {Duration duration = const Duration(seconds: 15)});
   void stop();
   Future resume();
   Future pause();
   bool isPlaying();
+  bool isBuffering();
   bool isStreamingAudio();
   bool isPaused();
   void release();
@@ -68,8 +72,15 @@ abstract class CurrentPlayerContract {
 }
 
 class CurrentPlayer implements CurrentPlayerContract {
+  Now? _now;
   @override
-  Now? now;
+  Now? get now => _now;
+  @override
+  set now(Now? value) {
+    _now = value;
+    _refreshNotificationMetadata();
+  }
+
   @override
   Episode? episode;
   @override
@@ -91,8 +102,7 @@ class CurrentPlayer implements CurrentPlayerContract {
   @override
   String currentSubtitle = "";
 
-  String _currentImage =
-      "https://cuacfm.org/wp-content/uploads/2026/04/cuac_music_cover.png";
+  String _currentImage = "https://aberradio.com/fb_cover_photo.png";
   @override
   String get currentImage => _currentImage;
   @override
@@ -102,10 +112,12 @@ class CurrentPlayer implements CurrentPlayerContract {
     _refreshNotificationMetadata();
   }
 
-  static const _fallbackArtUrl = "https://cuacfm.org/wp-content/uploads/2026/04/cuac_music_cover.png";
+  static const _fallbackArtUrl = "https://aberradio.com/fb_cover_photo.png";
   Uri get _artUri {
     final img = currentImage;
-    if (img.startsWith('assets/') || img.contains('default-programme-photo') || img.isEmpty) {
+    if (img.startsWith('assets/') ||
+        img.contains('default-programme-photo') ||
+        img.isEmpty) {
       return Uri.parse(_fallbackArtUrl);
     }
     return Uri.parse(img);
@@ -122,13 +134,24 @@ class CurrentPlayer implements CurrentPlayerContract {
   MediaItem _buildMediaItem() {
     final name = currentSong.trim();
     final hasName = name.isNotEmpty && name != ":";
+    final liveTrackTitle = now?.trackTitle.trim() ?? "";
+    final liveTrackArtist = now?.trackArtist.trim() ?? "";
     return MediaItem(
-      id: urlToHashId(isPodcast ? episode?.audio ?? "" : now?.streamUrl() ?? ""),
-      album: isPodcast ? "Podcast CUAC FM" : "Directo CUAC FM",
+      id: urlToHashId(
+          isPodcast ? episode?.audio ?? "" : now?.streamUrl() ?? ""),
+      album: isPodcast ? "Aber Radio Podcast" : "Aber Radio",
       title: isPodcast
           ? episode?.title ?? ""
-          : (hasName ? name : "Streaming en directo"),
-      artist: isPodcast && hasName ? name : "CUAC FM",
+          : (liveTrackTitle.isNotEmpty
+              ? liveTrackTitle
+              : (hasName ? name : "Aber Radio")),
+      artist: isPodcast && hasName
+          ? name
+          : liveTrackTitle.isNotEmpty
+              ? (liveTrackArtist.isNotEmpty
+                  ? liveTrackArtist
+                  : (hasName ? name : "Aber Radio"))
+              : "Aber Radio",
       artUri: _artUri,
     );
   }
@@ -197,25 +220,32 @@ class CurrentPlayer implements CurrentPlayerContract {
   }
 
   void _startWrappedSession() {
-    Injector.appInstance.get<Invoker>().execute(
-        Injector.appInstance.get<StartSessionUseCase>().withParams(
-            StartSessionParams(
+    Injector.appInstance
+        .get<Invoker>()
+        .execute(Injector.appInstance
+            .get<StartSessionUseCase>()
+            .withParams(StartSessionParams(
               isPodcast: isPodcast,
-              programName: isPodcast ? (currentSong.isNotEmpty ? currentSong : episode?.title ?? '') : '',
+              programName: isPodcast
+                  ? (currentSong.isNotEmpty
+                      ? currentSong
+                      : episode?.title ?? '')
+                  : '',
               category: '',
               episodeTitle: isPodcast ? episode?.title ?? '' : '',
               episodeId: isPodcast ? episode?.audio ?? '' : '',
-            ))).drain();
+            )))
+        .drain();
   }
 
   void _endWrappedSession() {
-    Injector.appInstance.get<Invoker>()
+    Injector.appInstance
+        .get<Invoker>()
         .execute(Injector.appInstance.get<EndSessionUseCase>())
         .drain();
   }
 
   void _logPlay() {
-    if (_suppressLiveLog) return;
     if (isPodcast) {
       final program = currentSong.trim();
       FirebaseAnalytics.instance.logEvent(
@@ -233,7 +263,7 @@ class CurrentPlayer implements CurrentPlayerContract {
       FirebaseAnalytics.instance.logEvent(
         name: 'live_play',
         parameters: {
-          'program': live.isNotEmpty && live != ':' ? live : 'Continuidade CUAC FM',
+          'program': live.isNotEmpty && live != ':' ? live : 'Aber Radio',
           'source': playbackSource,
         },
       );
@@ -275,45 +305,26 @@ class CurrentPlayer implements CurrentPlayerContract {
   StreamSubscription? _durationSubscription;
   StreamSubscription? _positionSubscription;
 
-  bool _pendingLiveRestart = false;
-  bool _suppressLiveLog = false;
-  int _liveRetryCount = 0;
-  Timer? _liveRetryTimer;
-  bool _userPaused = false;
-  static const _maxLiveRetries = 5;
+  bool _livePlaybackRequested = false;
+  bool _livePlaybackStarting = false;
+  bool _liveRecoveryInProgress = false;
+  int _fadeSequence = 0;
+
+  bool get _isLiveReady =>
+      !isPodcast &&
+      audioPlayer.playing &&
+      audioPlayer.processingState == ProcessingState.ready;
+
+  String get _playbackUrl => isPodcast
+      ? (episode?.audio ?? '').trim()
+      : TestStreamSwitch.resolveCurrentStreamUrl(
+          (now?.streamUrl() ?? '').trim(),
+        );
 
   @override
-  void restorePlayer(ConnectivityResult connection) async {
-    if (!isPodcast) {
-      if (connection == ConnectivityResult.none) {
-        if (isPlaying()) {
-          await _stop();
-          _pendingLiveRestart = true;
-          if (onConnection != null) {
-            onConnection!(true);
-          }
-          if (podcastConnectivityResult != null) {
-            podcastConnectivityResult!(true);
-          }
-        }
-      } else if ((isPlaying() && connection != connectivityResult) ||
-          _pendingLiveRestart) {
-        _pendingLiveRestart = false;
-        restorePosition = position;
-        restoreDuration = duration;
-        tempEpisode = episode;
-        await _stop();
-        _suppressLiveLog = true;
-        await play();
-        _suppressLiveLog = false;
-        if (onConnection != null) {
-          onConnection!(false);
-        }
-        if (podcastConnectivityResult != null) {
-          podcastConnectivityResult!(false);
-        }
-      }
-    }
+  void restorePlayer(ConnectivityResult connection) {
+    // Brief interruptions are left to the native player. If it remains
+    // stalled, the next user Play command creates a fresh live connection.
     connectivityResult = connection;
   }
 
@@ -346,13 +357,19 @@ class CurrentPlayer implements CurrentPlayerContract {
   Future<void> _playNextInPlaylist() async {
     final invoker = Injector.appInstance.get<Invoker>();
     List<Map<String, dynamic>> items = [];
-    await for (final result in invoker.execute(Injector.appInstance.get<GetPlaylistUseCase>())) {
-      if (result is Success) items = List<Map<String, dynamic>>.from(result.data ?? []);
+    await for (final result
+        in invoker.execute(Injector.appInstance.get<GetPlaylistUseCase>())) {
+      if (result is Success)
+        items = List<Map<String, dynamic>>.from(result.data ?? []);
     }
     if (items.isEmpty) return;
 
     final next = items.first;
-    invoker.execute(Injector.appInstance.get<RemoveFromPlaylistUseCase>().withParams(next['audio'] as String)).drain();
+    invoker
+        .execute(Injector.appInstance
+            .get<RemoveFromPlaylistUseCase>()
+            .withParams(next['audio'] as String))
+        .drain();
 
     final nextEpisode = Episode.fromMap(next);
     isPodcast = true;
@@ -372,17 +389,36 @@ class CurrentPlayer implements CurrentPlayerContract {
   @override
   Future<bool> play() async {
     if (playerState != AudioPlayerState.play) {
-      _userPaused = false;
+      _cancelFade();
+      if (!isPodcast) {
+        _livePlaybackRequested = true;
+        _livePlaybackStarting = true;
+        onUpdate?.call();
+      }
       // Cancel previous subscriptions to avoid accumulation
       await _stateSubscription?.cancel();
       await _durationSubscription?.cancel();
       await _positionSubscription?.cancel();
 
       _stateSubscription = audioPlayer.playerStateStream.listen((event) async {
-        if (!isPodcast &&
-            event.playing &&
-            event.processingState == ProcessingState.ready) {
-          _liveRetryCount = 0;
+        if (!isPodcast) {
+          if (event.playing && event.processingState == ProcessingState.ready) {
+            final wasStarting = _livePlaybackStarting;
+            _livePlaybackStarting = false;
+            if (playerState != AudioPlayerState.play) {
+              playerState = AudioPlayerState.play;
+              onUpdate?.call();
+            } else if (wasStarting) {
+              onUpdate?.call();
+            }
+          } else if (_livePlaybackRequested &&
+              playerState == AudioPlayerState.play) {
+            // `playing` means playback was requested, even while the live
+            // stream is buffering. Expose Play whenever audio is not ready so
+            // the user can replace a stalled connection from any control.
+            playerState = AudioPlayerState.pause;
+            onUpdate?.call();
+          }
         }
         if (isPodcast && event.processingState == ProcessingState.completed) {
           await _stop();
@@ -391,37 +427,43 @@ class CurrentPlayer implements CurrentPlayerContract {
           restorePosition = Duration.zero;
           await _playNextInPlaylist();
           if (onUpdate != null) onUpdate!();
-        } else if (event.processingState == ProcessingState.idle &&
-            playerState != AudioPlayerState.stop) {
+        } else if (event.processingState == ProcessingState.idle) {
           if (!isPodcast) {
-            if (!_userPaused) {
-              _scheduleLiveRetry();
+            if (_livePlaybackRequested &&
+                playerState != AudioPlayerState.pause) {
+              playerState = AudioPlayerState.pause;
+              onUpdate?.call();
             }
           } else {
             playerState = AudioPlayerState.stop;
             isPodcast = false;
             if (onUpdate != null) onUpdate!();
           }
-        } else if (event.playing && playerState == AudioPlayerState.pause) {
+        } else if (event.playing &&
+            playerState == AudioPlayerState.pause &&
+            (isPodcast || event.processingState == ProcessingState.ready)) {
           playerState = AudioPlayerState.play;
           if (onUpdate != null) onUpdate!();
           if (onConnection != null) onConnection!(false);
-        } else if (!event.playing && playerState == AudioPlayerState.play &&
-            event.processingState != ProcessingState.completed) {
+        } else if (!event.playing &&
+            playerState == AudioPlayerState.play &&
+            event.processingState != ProcessingState.completed &&
+            (isPodcast || !_livePlaybackRequested)) {
           playerState = AudioPlayerState.pause;
           if (onUpdate != null) onUpdate!();
           if (onConnection != null) onConnection!(false);
         }
       }, onError: (Object e, StackTrace s) {
-        if (!isPodcast && !_userPaused &&
-            playerState != AudioPlayerState.stop) {
-          _scheduleLiveRetry();
+        if (!isPodcast && _livePlaybackRequested) {
+          _livePlaybackStarting = false;
+          playerState = AudioPlayerState.pause;
+          onUpdate?.call();
         }
       });
 
       if (isPodcast) {
-
-        _durationSubscription = audioPlayer.durationStream.listen((Duration? d) {
+        _durationSubscription =
+            audioPlayer.durationStream.listen((Duration? d) {
           duration = d ?? Duration(hours: 1);
           if (onUpdate != null && duration > Duration.zero) {
             onUpdate!();
@@ -440,27 +482,40 @@ class CurrentPlayer implements CurrentPlayerContract {
         } else {
           position = Duration(seconds: 1);
           duration = Duration(hours: 24);
-          _liveRetryCount = 0;
         }
       });
 
-      setVolume(1.0);
-      if ((isPodcast && episode?.audio != null && episode!.audio.isNotEmpty) ||
-          (!isPodcast &&
-              now?.streamUrl() != null &&
-              now!.streamUrl().isNotEmpty)) {
+      // Always start a new item at the app's normal volume. This also repairs
+      // an interrupted Auto Off fade whose cleanup did not get to run.
+      volume = 1.0;
+      await audioPlayer.setVolume(volume);
+      final playbackUrl = _playbackUrl;
+      if (playbackUrl.isNotEmpty) {
         if (!isPodcast) {
           playbackRate = 1.0;
           audioPlayer.setSpeed(playbackRate);
         }
-        AudioSource audioSource = AudioSource.uri(Uri.parse(isPodcast
-            ? episode?.audio ?? RadioStation.base().streamUrl
-            : now?.streamUrl() ?? RadioStation.base().streamUrl));
-        audioPlayer.setAudioSource(audioSource);
-        _publishNowPlaying();
-        await audioPlayer.play();
-        await audioPlayer.seek(position);
-        if (audioPlayer.playing) {
+        AudioSource audioSource = AudioSource.uri(Uri.parse(playbackUrl));
+        try {
+          await audioPlayer.setAudioSource(audioSource);
+          _publishNowPlaying();
+          if (isPodcast) {
+            await audioPlayer.play();
+          } else {
+            unawaited(audioPlayer.play());
+            _startWrappedSession();
+            _logPlay();
+          }
+          await audioPlayer.seek(position);
+        } catch (_) {
+          if (!isPodcast) {
+            _livePlaybackStarting = false;
+            playerState = AudioPlayerState.pause;
+            onUpdate?.call();
+          }
+          return false;
+        }
+        if (isPodcast && audioPlayer.playing) {
           playerState = AudioPlayerState.play;
           _startWrappedSession();
           _logPlay();
@@ -478,6 +533,11 @@ class CurrentPlayer implements CurrentPlayerContract {
         }
         return true;
       } else {
+        if (!isPodcast) {
+          _livePlaybackStarting = false;
+          _livePlaybackRequested = false;
+          onUpdate?.call();
+        }
         return false;
       }
     } else {
@@ -486,11 +546,35 @@ class CurrentPlayer implements CurrentPlayerContract {
   }
 
   @override
+  Future<bool> restartLiveStream() async {
+    if (isPodcast) return false;
+    if (_isLiveReady) return true;
+    _cancelFade();
+    _livePlaybackRequested = true;
+    if (_liveRecoveryInProgress) return false;
+
+    _liveRecoveryInProgress = true;
+    try {
+      await _stop();
+      if (audioPlayer.processingState != ProcessingState.idle) {
+        await audioPlayer.stop();
+      }
+      playerState = AudioPlayerState.stop;
+      onUpdate?.call();
+      return await play();
+    } finally {
+      _liveRecoveryInProgress = false;
+    }
+  }
+
+  @override
   Future<bool> stopAndPlay() async {
     if (playerState == AudioPlayerState.play ||
         playerState == AudioPlayerState.pause) {
+      final playbackUrl = _playbackUrl;
+      if (playbackUrl.isEmpty) return false;
+      _cancelFade();
       _endWrappedSession();
-      _userPaused = false;
       if (!isPodcast) {
         playbackRate = 1.0;
         audioPlayer.setSpeed(playbackRate);
@@ -499,15 +583,18 @@ class CurrentPlayer implements CurrentPlayerContract {
       if (!audioPlayer.playing) playerState = AudioPlayerState.pause;
       duration = Duration(seconds: 0);
       position = Duration(seconds: 0);
-      if (!isPodcast) {
-        setVolume(1.0);
-      }
-      AudioSource audioSource = AudioSource.uri(Uri.parse(isPodcast
-          ? episode?.audio ?? RadioStation.base().streamUrl
-          : now?.streamUrl() ?? RadioStation.base().streamUrl));
+      // stopAndPlay is also a fresh playback request, so do not inherit a
+      // partially faded player volume.
+      volume = 1.0;
+      await audioPlayer.setVolume(volume);
+      AudioSource audioSource = AudioSource.uri(Uri.parse(playbackUrl));
       audioPlayer.setAudioSource(audioSource);
       _publishNowPlaying();
-      await audioPlayer.play();
+      if (isPodcast) {
+        await audioPlayer.play();
+      } else {
+        unawaited(audioPlayer.play());
+      }
       await audioPlayer.seek(position);
       if (audioPlayer.playing) {
         playerState = AudioPlayerState.play;
@@ -520,34 +607,52 @@ class CurrentPlayer implements CurrentPlayerContract {
     }
   }
 
-  void _scheduleLiveRetry() {
-    if (_liveRetryTimer?.isActive ?? false) return;
-    if (_liveRetryCount >= _maxLiveRetries) {
-      _liveRetryCount = 0;
-      playerState = AudioPlayerState.stop;
-      isPodcast = false;
-      if (onUpdate != null) onUpdate!();
-      return;
-    }
-    _liveRetryCount++;
-    _liveRetryTimer = Timer(const Duration(seconds: 2), () async {
-      if (isPodcast || _userPaused || playerState == AudioPlayerState.stop) {
-        return;
-      }
-      _suppressLiveLog = true;
-      await _stop();
-      await play();
-      _suppressLiveLog = false;
-    });
+  @override
+  void stop() {
+    _cancelFade();
+    _livePlaybackRequested = false;
+    _livePlaybackStarting = false;
+    _stop();
   }
 
   @override
-  void stop() {
-    _pendingLiveRestart = false;
-    _userPaused = false;
-    _liveRetryTimer?.cancel();
-    _liveRetryCount = 0;
-    _stop();
+  Future<void> fadeOutAndStop(
+      {Duration duration = const Duration(seconds: 15)}) async {
+    if (playerState != AudioPlayerState.play) {
+      stop();
+      return;
+    }
+
+    final sequence = ++_fadeSequence;
+    final startVolume = volume.clamp(0.0, 1.0);
+    final steps = (duration.inMilliseconds / 250).ceil().clamp(1, 80);
+    final stepDuration = Duration(
+      milliseconds: (duration.inMilliseconds / steps).round(),
+    );
+
+    for (var step = 1; step <= steps; step++) {
+      await Future.delayed(stepDuration);
+      if (sequence != _fadeSequence || playerState != AudioPlayerState.play) {
+        return;
+      }
+      volume = startVolume * (1 - step / steps);
+      await audioPlayer.setVolume(volume);
+    }
+
+    if (sequence == _fadeSequence) {
+      await _stop();
+      volume = 1.0;
+      await audioPlayer.setVolume(volume);
+      onUpdate?.call();
+    }
+  }
+
+  void _cancelFade() {
+    _fadeSequence++;
+    if (volume != 1.0) {
+      volume = 1.0;
+      audioPlayer.setVolume(volume);
+    }
   }
 
   Future<void> _stop() async {
@@ -573,8 +678,12 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   @override
   Future resume() async {
+    if (!isPodcast) {
+      await restartLiveStream();
+      return;
+    }
     if (playerState == AudioPlayerState.pause) {
-      _userPaused = false;
+      _cancelFade();
       playerState = AudioPlayerState.play;
       await audioPlayer.play();
     }
@@ -582,8 +691,12 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   @override
   Future pause() async {
+    if (!isPodcast) {
+      _livePlaybackRequested = false;
+      _livePlaybackStarting = false;
+    }
     if (playerState == AudioPlayerState.play) {
-      _userPaused = true;
+      _cancelFade();
       await audioPlayer.pause();
       if (!audioPlayer.playing) playerState = AudioPlayerState.pause;
     }
@@ -595,8 +708,11 @@ class CurrentPlayer implements CurrentPlayerContract {
   }
 
   @override
+  bool isBuffering() => !isPodcast && _livePlaybackStarting;
+
+  @override
   bool isStreamingAudio() {
-    return position.inMilliseconds > 0;
+    return isPodcast ? position.inMilliseconds > 0 : _isLiveReady;
   }
 
   @override
@@ -606,7 +722,9 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   @override
   void release() async {
-    _liveRetryTimer?.cancel();
+    _cancelFade();
+    _livePlaybackRequested = false;
+    _livePlaybackStarting = false;
     playerState = AudioPlayerState.stop;
     position = Duration(seconds: 0);
     duration = Duration(seconds: 0);

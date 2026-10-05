@@ -6,11 +6,11 @@ import 'package:cuacfm/injector/dependency_injector.dart';
 import 'package:cuacfm/models/episode.dart';
 import 'package:cuacfm/models/program.dart';
 import 'package:cuacfm/utils/notification_subscription_contract.dart';
+import 'package:cuacfm/utils/push_notifications.dart';
 import 'package:cuacfm/translations/localizations.dart';
 import 'package:cuacfm/ui/home/home_presenter.dart';
 import 'package:cuacfm/ui/podcast/detail_podcast_presenter.dart';
 import 'package:cuacfm/utils/custom_image.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:cuacfm/utils/bottom_bar.dart';
 import 'package:cuacfm/utils/player_view.dart';
 import 'package:cuacfm/utils/radiocom_colors.dart';
@@ -19,9 +19,8 @@ import 'package:cuacfm/utils/toast.dart';
 import 'package:cuacfm/utils/wave.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:html/parser.dart' as html_parser;
+import 'package:cuacfm/utils/html_to_text.dart';
 import 'package:injector/injector.dart';
-import 'package:intl/intl.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:progress_indicators/progress_indicators.dart';
@@ -56,23 +55,26 @@ class DetailPodcastState extends State<DetailPodcastPage>
   SnackBar? snackBarConnection;
   late CuacLocalization _localization;
   final ScrollController _scrollController = ScrollController();
+  Timer? _deferredContentTimer;
   bool _isScrolled = false;
-  final NotificationSubscription _notificationService = NotificationSubscription();
+  final NotificationSubscription _notificationService =
+      NotificationSubscription();
 
   DetailPodcastState() {
     DependencyInjector().injectByView(this);
   }
 
   String stripHtml(String html) {
-    final doc = html_parser.parse(html);
-    return doc.body?.text.trim() ?? '';
+    return htmlToPlainText(html);
   }
 
   Future<void> _loadPaletteColor() async {
     try {
-      final ImageProvider imageProvider = widget.program.logoUrl.contains('default-programme-photo')
-          ? AssetImage('assets/graphics/default_programme_cover.png') as ImageProvider
-          : NetworkImage(widget.program.logoUrl);
+      final ImageProvider imageProvider =
+          widget.program.logoUrl.contains('default-programme-photo')
+              ? AssetImage('assets/graphics/default_programme_cover.png')
+                  as ImageProvider
+              : NetworkImage(widget.program.logoUrl);
       final palette = await PaletteGenerator.fromImageProvider(
         imageProvider,
         size: Size(200, 200),
@@ -110,7 +112,10 @@ class DetailPodcastState extends State<DetailPodcastPage>
                   },
                   onCloseClicked: () {
                     _presenter.currentPlayer.stop();
-                    if (mounted) setState(() { shouldShowPlayer = false; });
+                    if (mounted)
+                      setState(() {
+                        shouldShowPlayer = false;
+                      });
                   },
                   onMultimediaClicked: (isPlaying) {
                     if (!mounted) return;
@@ -136,7 +141,9 @@ class DetailPodcastState extends State<DetailPodcastPage>
               ],
             )));
     final themeMode = appThemeModeNotifier.value;
-    final isDark = themeMode == ThemeMode.dark || (themeMode == ThemeMode.system && MediaQuery.of(context).platformBrightness == Brightness.dark);
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            MediaQuery.of(context).platformBrightness == Brightness.dark);
     final statusBarNeedsDarkIcons = _paletteColor.computeLuminance() > 0.179;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
@@ -147,7 +154,8 @@ class DetailPodcastState extends State<DetailPodcastPage>
             : (statusBarNeedsDarkIcons ? Brightness.dark : Brightness.light),
         systemNavigationBarColor: Colors.transparent,
         systemNavigationBarContrastEnforced: false,
-        systemNavigationBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        systemNavigationBarIconBrightness:
+            isDark ? Brightness.light : Brightness.dark,
       ),
       child: _scaffold,
     );
@@ -172,10 +180,16 @@ class DetailPodcastState extends State<DetailPodcastPage>
       if (mounted) setState(() => _isFavorite = isFav);
     });
     _notificationService.isSubscribed(_program.rssUrl).then((value) {
-      if (mounted) setState(() { _isNotificationEnabled = value; });
+      if (mounted)
+        setState(() {
+          _isNotificationEnabled = value;
+        });
     });
-    _presenter.loadEpisodes(_program.rssUrl);
-    _loadPaletteColor();
+    _deferredContentTimer = Timer(const Duration(milliseconds: 250), () {
+      if (!mounted) return;
+      _presenter.loadEpisodes(_program.rssUrl);
+      _loadPaletteColor();
+    });
     _scrollController.addListener(() {
       final scrolled = _scrollController.offset > 50;
       if (scrolled != _isScrolled && mounted) {
@@ -216,6 +230,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
 
   @override
   void dispose() {
+    _deferredContentTimer?.cancel();
     _scrollController.dispose();
     WidgetsBinding.instance.removeObserver(this);
     Injector.appInstance.removeByKey<DetailPodcastView>();
@@ -294,11 +309,8 @@ class DetailPodcastState extends State<DetailPodcastPage>
   }
 
   Widget _buildHeader() {
-    final int durationMinutes = (DateFormat("hh:mm:ss")
-                .parse(widget.program.duration)
-                .hour *
-            60)
-        .toInt();
+    final int durationMinutes =
+        Program.getRuntimeMinutes(widget.program.duration);
     final String description = stripHtml(widget.program.description);
     final bool hasLongDescription = description.length > 180;
 
@@ -312,7 +324,9 @@ class DetailPodcastState extends State<DetailPodcastPage>
             TweenAnimationBuilder<Color?>(
               tween: ColorTween(
                 begin: _colors.palidwhite,
-                end: _paletteColor == Colors.transparent ? _colors.palidwhite : _paletteColor,
+                end: _paletteColor == Colors.transparent
+                    ? _colors.palidwhite
+                    : _paletteColor,
               ),
               duration: const Duration(milliseconds: 600),
               curve: Curves.easeIn,
@@ -359,7 +373,8 @@ class DetailPodcastState extends State<DetailPodcastPage>
                     color: Colors.black.withValues(alpha: 0.3),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                  child: const Icon(Icons.arrow_back,
+                      color: Colors.white, size: 20),
                 ),
               ),
             ),
@@ -389,7 +404,8 @@ class DetailPodcastState extends State<DetailPodcastPage>
             widget.program.language +
                 " • " +
                 durationMinutes.toString() +
-                SafeMap.safe(_localization.translateMap("general"), ["minutes"]),
+                SafeMap.safe(
+                    _localization.translateMap("general"), ["minutes"]),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _colors.fontGrey,
@@ -432,8 +448,10 @@ class DetailPodcastState extends State<DetailPodcastPage>
                     },
                     child: Text(
                       _descriptionExpanded
-                          ? SafeMap.safe(_localization.translateMap("actions"), ["see_less"])
-                          : SafeMap.safe(_localization.translateMap("actions"), ["see_more"]),
+                          ? SafeMap.safe(_localization.translateMap("actions"),
+                              ["see_less"])
+                          : SafeMap.safe(_localization.translateMap("actions"),
+                              ["see_more"]),
                       style: TextStyle(
                         color: _colors.font,
                         fontSize: 14,
@@ -492,7 +510,8 @@ class DetailPodcastState extends State<DetailPodcastPage>
                     ),
                     SizedBox(height: 4),
                     Text(
-                      SafeMap.safe(_localization.translateMap("actions"), ["add_favourite"]),
+                      SafeMap.safe(_localization.translateMap("actions"),
+                          [_isFavorite ? "in_my_shows" : "add_favourite"]),
                       style: TextStyle(
                         color: _isFavorite ? Colors.red : _colors.fontGrey,
                         fontSize: 12,
@@ -513,26 +532,40 @@ class DetailPodcastState extends State<DetailPodcastPage>
 
               // Botón notificacións
               GestureDetector(
-                onTap: () async {
-                  if (_isNotificationEnabled) {
-                    await _notificationService.unsubscribeFromTopic(widget.program.rssUrl);
-                  } else {
-                    await _notificationService.subscribeToTopic(widget.program.rssUrl);
-                  }
-                  if (mounted) setState(() { _isNotificationEnabled = !_isNotificationEnabled; });
-                },
+                onTap: !pushNotificationsEnabled
+                    ? null
+                    : () async {
+                        if (_isNotificationEnabled) {
+                          await _notificationService
+                              .unsubscribeFromTopic(widget.program.rssUrl);
+                        } else {
+                          await _notificationService
+                              .subscribeToTopic(widget.program.rssUrl);
+                        }
+                        if (mounted)
+                          setState(() {
+                            _isNotificationEnabled = !_isNotificationEnabled;
+                          });
+                      },
                 child: Column(
                   children: [
                     Icon(
-                      _isNotificationEnabled ? Icons.notifications_active : Icons.notifications_none,
-                      color: _isNotificationEnabled ? _colors.yellow : _colors.fontGrey,
+                      _isNotificationEnabled
+                          ? Icons.notifications_active
+                          : Icons.notifications_none,
+                      color: _isNotificationEnabled
+                          ? _colors.yellow
+                          : _colors.fontGrey,
                       size: 28,
                     ),
                     SizedBox(height: 4),
                     Text(
-                      SafeMap.safe(_localization.translateMap("podcast_detail"), ["alerts"]),
+                      SafeMap.safe(_localization.translateMap("podcast_detail"),
+                          ["alerts"]),
                       style: TextStyle(
-                        color: _isNotificationEnabled ? _colors.yellow : _colors.fontGrey,
+                        color: _isNotificationEnabled
+                            ? _colors.yellow
+                            : _colors.fontGrey,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 0,
@@ -542,7 +575,10 @@ class DetailPodcastState extends State<DetailPodcastPage>
                 ),
               ),
 
-              Container(width: 1, height: 40, color: _colors.fontGrey.withValues(alpha: 0.15)),
+              Container(
+                  width: 1,
+                  height: 40,
+                  color: _colors.fontGrey.withValues(alpha: 0.15)),
 
               // Botón compartir
               GestureDetector(
@@ -556,7 +592,8 @@ class DetailPodcastState extends State<DetailPodcastPage>
                     ),
                     SizedBox(height: 4),
                     Text(
-                      SafeMap.safe(_localization.translateMap("actions"), ["share"]),
+                      SafeMap.safe(
+                          _localization.translateMap("actions"), ["share"]),
                       style: TextStyle(
                         color: _colors.fontGrey,
                         fontSize: 12,
@@ -612,8 +649,20 @@ class DetailPodcastState extends State<DetailPodcastPage>
                       direction: DismissDirection.startToEnd,
                       confirmDismiss: (_) async {
                         final completer = Completer<bool>();
-                        _presenter.addToPlaylistIfNew(ep, widget.program.name, widget.program.logoUrl, (added) {
-                          CuacToast.show(context, added ? "Engadido á Playlist" : "Xa está na Playlist");
+                        _presenter.addToPlaylistIfNew(
+                            ep, widget.program.name, widget.program.logoUrl,
+                            (added) {
+                          CuacToast.show(
+                              context,
+                              added
+                                  ? SafeMap.safe(
+                                      _localization
+                                          .translateMap("podcast_controls"),
+                                      ["play_queue_added"])
+                                  : SafeMap.safe(
+                                      _localization
+                                          .translateMap("podcast_controls"),
+                                      ["play_queue_exists"]));
                           completer.complete(false);
                         });
                         return completer.future;
@@ -622,17 +671,20 @@ class DetailPodcastState extends State<DetailPodcastPage>
                         color: Colors.green,
                         alignment: Alignment.centerLeft,
                         padding: const EdgeInsets.only(left: 20.0),
-                        child: Icon(Icons.playlist_add, color: Colors.white, size: 28),
+                        child: Icon(Icons.playlist_add,
+                            color: Colors.white, size: 28),
                       ),
                       child: Material(
                         color: _colors.transparent,
                         child: InkWell(
                           onTap: () {
                             _presenter.onDetailEpisode(
-                                ep, widget.program.name, widget.program.logoUrl, program: widget.program);
+                                ep, widget.program.name, widget.program.logoUrl,
+                                program: widget.program);
                           },
                           child: Padding(
-                            padding: EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 12.0),
+                            padding:
+                                EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 12.0),
                             child: Row(
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
@@ -649,7 +701,8 @@ class DetailPodcastState extends State<DetailPodcastPage>
                                 SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         dateLabel,
@@ -680,14 +733,17 @@ class DetailPodcastState extends State<DetailPodcastPage>
                                 GestureDetector(
                                   onTap: () {
                                     if (_presenter.isSamePodcast(ep)) {
-                                      if (!_presenter.currentPlayer.isPlaying()) {
+                                      if (!_presenter.currentPlayer
+                                          .isPlaying()) {
                                         _presenter.onResume();
                                       }
                                     } else {
                                       isLoadingEpisode = true;
                                       shouldShowPlayer = true;
                                       _presenter.onSelectedEpisode(
-                                          ep, widget.program.logoUrl, widget.program.name);
+                                          ep,
+                                          widget.program.logoUrl,
+                                          widget.program.name);
                                     }
                                     if (!mounted) return;
                                     setState(() {});
@@ -702,7 +758,8 @@ class DetailPodcastState extends State<DetailPodcastPage>
                                           : isPlaying
                                               ? EqualizerIcon(size: 24.0)
                                               : Icon(Icons.play_circle_outline,
-                                                  color: _colors.yellow, size: 38.0),
+                                                  color: _colors.yellow,
+                                                  size: 38.0),
                                     ),
                                   ),
                                 ),
@@ -723,25 +780,24 @@ class DetailPodcastState extends State<DetailPodcastPage>
                 );
               } else {
                 element = isLoadingEpisodes
-                    ? Center(child: Padding(
-                        padding: EdgeInsets.all(30.0),
-                        child: getLoadingStatePlayer()))
+                    ? Center(
+                        child: Padding(
+                            padding: EdgeInsets.all(30.0),
+                            child: getLoadingStatePlayer()))
                     : emptyState
                         ? Center(
                             key: PageStorageKey<String>("emptyState"),
                             child: Padding(
-                              padding: EdgeInsets.fromLTRB(15.0, 40.0, 15.0, shouldShowPlayer ? 80.0 : 40.0),
+                              padding: EdgeInsets.fromLTRB(15.0, 40.0, 15.0,
+                                  shouldShowPlayer ? 80.0 : 40.0),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  FaIcon(
-                                    FontAwesomeIcons.heartCrack,
-                                    color: _colors.fontGrey,
-                                    size: 56,
-                                  ),
-                                  SizedBox(height: 16),
                                   Text(
-                                    SafeMap.safe(_localization.translateMap("podcast_detail"), ["empty_episodes_msg"]),
+                                    SafeMap.safe(
+                                        _localization
+                                            .translateMap("podcast_detail"),
+                                        ["empty_episodes_msg"]),
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: _colors.fontGrey,

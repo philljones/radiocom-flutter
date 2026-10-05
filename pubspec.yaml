@@ -1,7 +1,7 @@
 name: cuacfm
 description: A radio station with radioco integration.
 
-version: 3.1.0+1
+version: 3.6.1+26
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
@@ -65,13 +65,10 @@ flutter:
   assets:
       - assets/graphics/icon_info.png
       - assets/graphics/play_podcast.png
-      - assets/graphics/cuac-logo.png
-      - assets/graphics/cuac-logo-v2.png
+      - assets/graphics/aber-radio-logo.png
+      - assets/graphics/aber-radio-app-icon.png
       - assets/graphics/empty-logo.png
       - assets/graphics/joinus.jpg
-      - assets/graphics/cuac-utilidade-publica.png
-      - assets/graphics/cuac-icon-app.png
-      - assets/graphics/cuac_music_cover.png
       - assets/graphics/default_programme_cover.png
       - assets/graphics/categories/tv.jpeg
       - assets/graphics/categories/news.jpeg
@@ -89,6 +86,7 @@ flutter:
       - assets/translations/es.json
       - assets/translations/gl.json
       - assets/translations/pt.json
+      - assets/translations/cy.json
 
   fonts:
     - family: PublicSans

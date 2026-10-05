@@ -9,8 +9,7 @@ import 'package:just_audio/just_audio.dart';
 // Fake AudioPlayer — provides only what CuacAudioHandler actually reads
 // ---------------------------------------------------------------------------
 class _FakeAudioPlayer extends Fake implements AudioPlayer {
-  final _playbackEventCtrl =
-      StreamController<PlaybackEvent>.broadcast();
+  final _playbackEventCtrl = StreamController<PlaybackEvent>.broadcast();
   final _playingCtrl = StreamController<bool>.broadcast();
   final _durationCtrl = StreamController<Duration?>.broadcast();
 
@@ -23,13 +22,14 @@ class _FakeAudioPlayer extends Fake implements AudioPlayer {
 
   // Controllable state
   bool _playing = false;
+  ProcessingState _processingState = ProcessingState.idle;
   Duration _position = Duration.zero;
   Duration? _duration;
 
   @override
   bool get playing => _playing;
   @override
-  ProcessingState get processingState => ProcessingState.idle;
+  ProcessingState get processingState => _processingState;
   @override
   Duration get position => _position;
   @override
@@ -190,8 +190,7 @@ void main() {
       fakePlayer._position = const Duration(seconds: 60);
       fakePlayer._duration = const Duration(seconds: 120);
       await handler.rewind();
-      expect(fakePlayer.seekCalls.single,
-          equals(const Duration(seconds: 30)));
+      expect(fakePlayer.seekCalls.single, equals(const Duration(seconds: 30)));
     });
 
     test('fastForward seeks forward 30 s when not live', () async {
@@ -199,8 +198,7 @@ void main() {
       fakePlayer._position = const Duration(seconds: 30);
       fakePlayer._duration = const Duration(seconds: 120);
       await handler.fastForward();
-      expect(fakePlayer.seekCalls.single,
-          equals(const Duration(seconds: 60)));
+      expect(fakePlayer.seekCalls.single, equals(const Duration(seconds: 60)));
     });
 
     test('rewind clamps to Duration.zero when position < 30 s', () async {
@@ -216,8 +214,7 @@ void main() {
       fakePlayer._position = const Duration(seconds: 100);
       fakePlayer._duration = const Duration(seconds: 120);
       await handler.fastForward();
-      expect(fakePlayer.seekCalls.single,
-          equals(const Duration(seconds: 120)));
+      expect(fakePlayer.seekCalls.single, equals(const Duration(seconds: 120)));
     });
 
     test('fastForward does not seek past end when duration is zero', () async {
@@ -227,8 +224,7 @@ void main() {
       fakePlayer._duration = Duration.zero; // treated as unknown
       await handler.fastForward();
       // target = 60s, duration == 0 so no upper-bound clamp applied
-      expect(fakePlayer.seekCalls.single,
-          equals(const Duration(seconds: 60)));
+      expect(fakePlayer.seekCalls.single, equals(const Duration(seconds: 60)));
     });
   });
 
@@ -248,6 +244,24 @@ void main() {
       fakePlayer.emitPlaying(false);
       await Future.microtask(() {});
       expect(handler.playbackState.value.playing, isFalse);
+    });
+
+    test('live buffering is exposed as not playing', () async {
+      handler.setNowPlaying(_testMediaItem(isLive: true), isLive: true);
+      fakePlayer._playing = true;
+      fakePlayer._processingState = ProcessingState.buffering;
+      fakePlayer.emitPlaying(true);
+      await Future.microtask(() {});
+      expect(handler.playbackState.value.playing, isFalse);
+    });
+
+    test('live ready state is exposed as playing', () async {
+      handler.setNowPlaying(_testMediaItem(isLive: true), isLive: true);
+      fakePlayer._playing = true;
+      fakePlayer._processingState = ProcessingState.ready;
+      fakePlayer.emitPlaying(true);
+      await Future.microtask(() {});
+      expect(handler.playbackState.value.playing, isTrue);
     });
 
     test('mediaItem duration is updated when not live', () async {

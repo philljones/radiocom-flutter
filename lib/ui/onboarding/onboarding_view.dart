@@ -12,7 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 const _yellow = Color(0xFFFCD444);
 const _dark = Color(0xFF1A1A1A);
-const onboardingVersion = 1;
+// Show the revised English onboarding once to existing development installs.
+const onboardingVersion = 2;
 
 class OnboardingView extends StatefulWidget {
   final VoidCallback onFinished;
@@ -42,9 +43,9 @@ class _OnboardingViewState extends State<OnboardingView>
   int _loadingMsgIndex = 0;
   Timer? _loadingMsgTimer;
   static const _loadingMessages = [
-    'Abrindo arquivo de CUAC FM',
-    'Buscando programas',
-    'Creando recomendación',
+    'Exploring the Aber Radio archive',
+    'Finding programmes',
+    'Preparing recommendations',
   ];
 // Estado de accións do usuario
   final Set<String> _favoritedRssUrls = {};
@@ -58,18 +59,18 @@ class _OnboardingViewState extends State<OnboardingView>
   String? _selectedLocale; // null = sistema (galego por defecto na app)
 
   static const _categoryLabels = {
-    ProgramCategories.TV: 'Cine e series',
-    ProgramCategories.NEWS: 'Novas e política',
-    ProgramCategories.SPORTS: 'Deportes',
+    ProgramCategories.TV: 'Film & TV',
+    ProgramCategories.NEWS: 'News & politics',
+    ProgramCategories.SPORTS: 'Sport',
     ProgramCategories.SOCIETY: 'Magazine',
-    ProgramCategories.EDUCATION: 'Educativo',
-    ProgramCategories.COMEDY: 'Humor',
-    ProgramCategories.MUSIC: 'Música',
-    ProgramCategories.SCIENCE: 'Ciencia',
-    ProgramCategories.ARTS: 'Arte',
-    ProgramCategories.GOVERNMENT: 'Goberno e Org.',
-    ProgramCategories.HEALTH: 'Saúde',
-    ProgramCategories.TECH: 'Tecnoloxía',
+    ProgramCategories.EDUCATION: 'Education',
+    ProgramCategories.COMEDY: 'Comedy',
+    ProgramCategories.MUSIC: 'Music',
+    ProgramCategories.SCIENCE: 'Science',
+    ProgramCategories.ARTS: 'Arts',
+    ProgramCategories.GOVERNMENT: 'Gov. & organisations',
+    ProgramCategories.HEALTH: 'Health',
+    ProgramCategories.TECH: 'Technology',
   };
 
   @override
@@ -79,7 +80,8 @@ class _OnboardingViewState extends State<OnboardingView>
     _dotsController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 600),
-    )..addListener(() {
+    )
+      ..addListener(() {
         final next = (_dotsController.value * 3).floor() + 1;
         if (next != _dotsCount && mounted) setState(() => _dotsCount = next);
       })
@@ -126,16 +128,18 @@ class _OnboardingViewState extends State<OnboardingView>
   }
 
   Future<void> _buildRecommendations() async {
-    if (mounted) setState(() {
-      _buildingRecommendations = true;
-      _recommendedPrograms = [];
-      _loadingMsgIndex = 0;
-    });
+    if (mounted)
+      setState(() {
+        _buildingRecommendations = true;
+        _recommendedPrograms = [];
+        _loadingMsgIndex = 0;
+      });
     _loadingMsgTimer?.cancel();
     _loadingMsgTimer = Timer.periodic(const Duration(milliseconds: 1400), (_) {
-      if (mounted) setState(() {
-        _loadingMsgIndex = (_loadingMsgIndex + 1) % _loadingMessages.length;
-      });
+      if (mounted)
+        setState(() {
+          _loadingMsgIndex = (_loadingMsgIndex + 1) % _loadingMessages.length;
+        });
     });
     final repo = Injector.appInstance.get<CuacRepositoryContract>();
     for (final cat in _selectedCategories) {
@@ -169,15 +173,18 @@ class _OnboardingViewState extends State<OnboardingView>
 
     _loadingMsgTimer?.cancel();
     _loadingMsgTimer = null;
-    if (mounted) setState(() { _buildingRecommendations = false; });
+    if (mounted)
+      setState(() {
+        _buildingRecommendations = false;
+      });
   }
 
-void _toggleFavorite(Program program) {
+  void _toggleFavorite(Program program) {
     setState(() {
       if (_favoritedRssUrls.contains(program.rssUrl)) {
         _presenter.removeFavorite(program.rssUrl);
         _favoritedRssUrls.remove(program.rssUrl);
-        _showFeedback("${program.name} eliminado de favoritos");
+        _showFeedback("${program.name} removed from Favourites");
       } else {
         _presenter.addFavorite({
           'name': program.name,
@@ -189,7 +196,7 @@ void _toggleFavorite(Program program) {
           'category': program.category,
         });
         _favoritedRssUrls.add(program.rssUrl);
-        _showFeedback("${program.name} engadido a favoritos");
+        _showFeedback("${program.name} added to Favourites");
       }
     });
   }
@@ -202,11 +209,11 @@ void _toggleFavorite(Program program) {
       if (_playlistedRssUrls.contains(program.rssUrl)) {
         _presenter.removeFromPlaylist(lastEpisode.audio);
         _playlistedRssUrls.remove(program.rssUrl);
-        _showFeedback("\"${lastEpisode.title}\" eliminado da playlist");
+        _showFeedback("\"${lastEpisode.title}\" removed from playlist");
       } else {
         _presenter.addToPlaylist(lastEpisode, program.name, program.logoUrl);
         _playlistedRssUrls.add(program.rssUrl);
-        _showFeedback("\"${lastEpisode.title}\" engadido a playlist");
+        _showFeedback("\"${lastEpisode.title}\" added to playlist");
       }
     });
   }
@@ -264,21 +271,24 @@ void _toggleFavorite(Program program) {
                     _buildWelcomePage(),
                     _buildInfoPage(
                       icon: Icons.play_circle_filled,
-                      text: "Escoita a nosa emisión en directo, sen publicidade e en calquera parte do mundo.",
+                      text: "Listen to Aber Radio live, wherever you are.",
                     ),
                     _buildInfoPage(
                       icon: Icons.favorite,
-                      text: "Sigue os teus programas favoritos.",
+                      text: "Keep your favourite programmes together.",
                     ),
                     _buildInfoPage(
                       icon: Icons.playlist_play,
-                      text: "Crea a túa playlist.",
-                      subtitle: "Desliza un episodio cara á dereita para engadilo á playlist.",
+                      text: "Create your own playlist.",
+                      subtitle:
+                          "Swipe an episode to the right to add it to your playlist.",
                     ),
                     _buildInfoPage(
                       icon: Icons.notifications_active,
-                      text: "Activa alertas dos teus programas favoritos e recibe unha notificación cada vez que publiquen un novo episodio.",
-                      subtitle: "Podes pausar todas as alertas en calquera momento desde a configuración.",
+                      text:
+                          "Turn on alerts for favourite programmes and receive a notification when a new episode is published.",
+                      subtitle:
+                          "You can pause all alerts at any time in Settings.",
                     ),
                     _buildCategoryPage(),
                     _buildLocalePage(),
@@ -304,7 +314,7 @@ void _toggleFavorite(Program program) {
           ClipRRect(
             borderRadius: BorderRadius.circular(24),
             child: Image.asset(
-              "assets/graphics/cuac-icon-app.png",
+              "assets/graphics/aber-radio-app-icon.png",
               width: 120,
               height: 120,
               fit: BoxFit.contain,
@@ -312,7 +322,7 @@ void _toggleFavorite(Program program) {
           ),
           const SizedBox(height: 32),
           const Text(
-            "CUAC FM",
+            "ABER RADIO",
             style: TextStyle(
               color: _dark,
               fontSize: 32,
@@ -322,7 +332,7 @@ void _toggleFavorite(Program program) {
           ),
           const SizedBox(height: 16),
           const Text(
-            "Somos a radio comunitaria da Coruña.\nGrazas por escoitarnos.",
+            "Community radio for Abergavenny and the surrounding area.\nThanks for listening.",
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _dark,
@@ -339,7 +349,8 @@ void _toggleFavorite(Program program) {
 
   // ── Pantallas 2-4: Información ────────────────────────────────────────────
 
-  Widget _buildInfoPage({required IconData icon, required String text, String? subtitle}) {
+  Widget _buildInfoPage(
+      {required IconData icon, required String text, String? subtitle}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
@@ -388,80 +399,79 @@ void _toggleFavorite(Program program) {
   // ── Pantalla 5: Categorías e programas ────────────────────────────────────
 
   Widget _buildCategoryPage() {
-    final showRecommendations =
-        _selectedCategories.length == _maxCategories &&
-            _recommendedPrograms.isNotEmpty;
+    final showRecommendations = _selectedCategories.length == _maxCategories &&
+        _recommendedPrograms.isNotEmpty;
     return Column(
-        children: [
-          const SizedBox(height: 20),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
-            child: Text(
-              showRecommendations ? "Recomendacións" : "Comecemos",
-                style: const TextStyle(
-                  color: _dark,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0,
-                ),
-              ),
+      children: [
+        const SizedBox(height: 20),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            showRecommendations ? "Recommendations" : "Let's get started",
+            style: const TextStyle(
+              color: _dark,
+              fontSize: 26,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0,
             ),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Text(
-                showRecommendations
-                    ? "Engade a favoritos ou á playlist."
-                    : "Escolle $_maxCategories temas que che interesen (${_selectedCategories.length}/$_maxCategories).",
-                style: const TextStyle(
-                  color: _dark,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w400,
-                  letterSpacing: 0,
-                ),
-              ),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            showRecommendations
+                ? "Add programmes to Favourites or your play queue."
+                : "Choose $_maxCategories topics that interest you (${_selectedCategories.length}/$_maxCategories).",
+            style: const TextStyle(
+              color: _dark,
+              fontSize: 15,
+              fontWeight: FontWeight.w400,
+              letterSpacing: 0,
             ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                switchInCurve: Curves.easeOut,
-                switchOutCurve: Curves.easeIn,
-                transitionBuilder: (child, animation) =>
-                    FadeTransition(opacity: animation, child: child),
-                child: _buildingRecommendations
-                    ? _buildLoadingRecommendations()
-                    : showRecommendations
-                        ? _buildProgramsList()
-                        : _buildCategoryGrid(),
-              ),
-            ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 250),
-              child: _feedbackMessage != null
-                  ? Container(
-                      key: ValueKey(_feedbackMessage),
-                      margin: const EdgeInsets.fromLTRB(24, 0, 24, 8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: _dark,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        _feedbackMessage!,
-                        style: const TextStyle(
-                          color: _yellow,
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: 0,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    )
-                  : const SizedBox.shrink(key: ValueKey('empty')),
-            ),
-          ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            transitionBuilder: (child, animation) =>
+                FadeTransition(opacity: animation, child: child),
+            child: _buildingRecommendations
+                ? _buildLoadingRecommendations()
+                : showRecommendations
+                    ? _buildProgramsList()
+                    : _buildCategoryGrid(),
+          ),
+        ),
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          child: _feedbackMessage != null
+              ? Container(
+                  key: ValueKey(_feedbackMessage),
+                  margin: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: _dark,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    _feedbackMessage!,
+                    style: const TextStyle(
+                      color: _yellow,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                )
+              : const SizedBox.shrink(key: ValueKey('empty')),
+        ),
+      ],
     );
   }
 
@@ -541,12 +551,9 @@ void _toggleFavorite(Program program) {
                         ? _dark.withValues(alpha: 0.15)
                         : _dark.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: isSelected
-                    ? Border.all(color: _dark, width: 2)
-                    : null,
+                border: isSelected ? Border.all(color: _dark, width: 2) : null,
               ),
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               child: Row(
                 children: [
                   Expanded(
@@ -571,7 +578,7 @@ void _toggleFavorite(Program program) {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          "$count programas",
+                          "$count ${count == 1 ? 'programme' : 'programmes'}",
                           style: TextStyle(
                             color: isSelected
                                 ? Colors.white.withValues(alpha: 0.6)
@@ -609,10 +616,11 @@ void _toggleFavorite(Program program) {
             }),
             child: Row(
               children: [
-                Icon(Icons.arrow_back, color: _dark.withValues(alpha: 0.7), size: 18),
+                Icon(Icons.arrow_back,
+                    color: _dark.withValues(alpha: 0.7), size: 18),
                 const SizedBox(width: 6),
                 Text(
-                  "Cambiar categorías",
+                  "Change topics",
                   style: TextStyle(
                     color: _dark.withValues(alpha: 0.7),
                     fontSize: 13,
@@ -776,10 +784,8 @@ void _toggleFavorite(Program program) {
 
   Widget _buildLocalePage() {
     final locales = [
-      {'code': 'gl', 'label': 'Galego'},
-      {'code': 'es', 'label': 'Español'},
       {'code': 'en', 'label': 'English'},
-      {'code': 'pt', 'label': 'Português'},
+      {'code': 'cy', 'label': 'Cymraeg'},
     ];
 
     return Padding(
@@ -798,7 +804,7 @@ void _toggleFavorite(Program program) {
           ),
           const SizedBox(height: 36),
           const Text(
-            "Por último escolle o idioma da app",
+            "Finally, choose the app language",
             textAlign: TextAlign.center,
             style: TextStyle(
               color: _dark,
@@ -809,23 +815,14 @@ void _toggleFavorite(Program program) {
             ),
           ),
           const SizedBox(height: 32),
-          Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: locales.take(2).map((l) => _buildLocaleChip(l)).toList(),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: locales.skip(2).map((l) => _buildLocaleChip(l)).toList(),
-              ),
-            ],
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: locales.map((l) => _buildLocaleChip(l)).toList(),
           ),
           const SizedBox(height: 16),
           Text(
             _selectedLocale == null
-                ? "Se non escolles ningún usarase o idioma do sistema"
+                ? "If you don't choose one, the app will use your system language."
                 : "",
             textAlign: TextAlign.center,
             style: TextStyle(
@@ -880,7 +877,7 @@ void _toggleFavorite(Program program) {
                 elevation: 0,
               ),
               child: Text(
-                isLastPage ? "Comezar" : "Seguinte",
+                isLastPage ? "Get started" : "Next",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -899,7 +896,7 @@ void _toggleFavorite(Program program) {
                 );
               },
               child: Text(
-                "Saltar",
+                "Skip",
                 style: TextStyle(
                   color: _dark.withValues(alpha: 0.5),
                   fontSize: 14,

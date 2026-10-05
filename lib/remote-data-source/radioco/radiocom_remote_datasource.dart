@@ -11,9 +11,12 @@ import 'package:cuacfm/models/time_table.dart';
 import 'package:cuacfm/remote-data-source/network/radioco_api.dart';
 import 'package:cuacfm/utils/cuac_client.dart';
 import 'package:cuacfm/utils/simple_client.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 import 'package:injector/injector.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RadiocoRemoteDataSource implements RadiocoRemoteDataSourceContract {
+  static const _cachedStreamUrlKey = 'last_successful_stream_url';
   final CUACClient client = Injector.appInstance.get<CUACClient>();
   RadiocoAPIContract radiocoAPI =
       Injector.appInstance.get<RadiocoAPIContract>();
@@ -23,14 +26,37 @@ class RadiocoRemoteDataSource implements RadiocoRemoteDataSourceContract {
     Uri url = Uri.parse(radiocoAPI.baseUrl + radiocoAPI.radioStation);
     try {
       var res = await this.client.get(url);
-      return RadioStation.fromInstance(res);
+      final station = RadioStation.fromInstance(res);
+      if (station.streamUrl.isEmpty) {
+        throw const FormatException('Station API returned no stream URL');
+      }
+      final productionStreamUrl = station.streamUrl;
+      try {
+        final preferences = await SharedPreferences.getInstance();
+        await preferences.setString(_cachedStreamUrlKey, productionStreamUrl);
+      } catch (_) {
+        // A storage failure must not prevent a valid API stream from playing.
+      }
+      station.streamUrl =
+          await TestStreamSwitch.resolveStreamUrl(productionStreamUrl);
+      return station;
     } catch (exception) {
-      return RadioStation.base();
+      try {
+        final preferences = await SharedPreferences.getInstance();
+        final cachedUrl =
+            (preferences.getString(_cachedStreamUrlKey) ?? '').trim();
+        return RadioStation.base(
+          streamUrl: await TestStreamSwitch.resolveStreamUrl(cachedUrl),
+        );
+      } catch (_) {
+        return RadioStation.base();
+      }
     }
   }
 
   Future<Now?> getLiveBroadcast() async {
-    Uri url = Uri.parse(radiocoAPI.baseUrl + radiocoAPI.live);
+    final endpoint = await TestStreamSwitch.resolveNowEndpoint(radiocoAPI.live);
+    Uri url = Uri.parse(radiocoAPI.baseUrl + endpoint);
     try {
       var res = await this.client.get(url);
       return Now.fromInstance(res);
@@ -77,9 +103,9 @@ class RadiocoRemoteDataSource implements RadiocoRemoteDataSourceContract {
       RadioStation radioStation = Injector.appInstance.get<RadioStation>();
 
       List<dynamic> res = await this.client.get(
-        Uri.parse(radioStation.newsRss),
-        responseType: HTTPResponseType.XML,
-      );
+            Uri.parse(radioStation.newsRss),
+            responseType: HTTPResponseType.XML,
+          );
       List<New> newsList = res.map((n) => new New.fromInstance(n)).toList();
       return newsList;
     } catch (err) {
@@ -91,9 +117,9 @@ class RadiocoRemoteDataSource implements RadiocoRemoteDataSourceContract {
   Future<List<Episode>> getEpisodes(String feedUrl) async {
     try {
       List<dynamic> res = await this.client.get(
-        Uri.parse(feedUrl),
-        responseType: HTTPResponseType.XML,
-      );
+            Uri.parse(feedUrl),
+            responseType: HTTPResponseType.XML,
+          );
       List<Episode> episodesList =
           res.map((n) => new Episode.fromInstance(n)).toList();
       return episodesList;
@@ -107,15 +133,15 @@ class RadiocoRemoteDataSource implements RadiocoRemoteDataSourceContract {
   Future<Outstanding?> getOutstanding(String url) async {
     try {
       dynamic res = await this.client.get(
-        Uri.parse(url),
-        responseType: HTTPResponseType.JSON,
-      );
+            Uri.parse(url),
+            responseType: HTTPResponseType.JSON,
+          );
       if (res["status"] == publishState) {
         Outstanding outstandingTemp = Outstanding.fromInstance(res);
         dynamic resPicture = await this.client.get(
-          Uri.parse(outstandingTemp.logoUrl),
-          responseType: HTTPResponseType.JSON,
-        );
+              Uri.parse(outstandingTemp.logoUrl),
+              responseType: HTTPResponseType.JSON,
+            );
         outstandingTemp.updatePicture(resPicture["source_url"]);
         return outstandingTemp;
       } else {

@@ -130,15 +130,19 @@ class _EpisodeDetailState extends State<EpisodeDetail>
     _queryData = MediaQuery.of(context);
     _colors = Injector.appInstance.get<RadiocomColorsConract>();
     final themeMode = appThemeModeNotifier.value;
-    final isDark = themeMode == ThemeMode.dark || (themeMode == ThemeMode.system && _queryData.platformBrightness == Brightness.dark);
+    final isDark = themeMode == ThemeMode.dark ||
+        (themeMode == ThemeMode.system &&
+            _queryData.platformBrightness == Brightness.dark);
     final showPlayer = _currentPlayer.isPlaying() || _currentPlayer.isPaused();
 
     return Stack(
       children: [
         AnnotatedRegion<SystemUiOverlayStyle>(
           value: SystemUiOverlayStyle(
-            statusBarColor: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFAF9F6),
-            statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+            statusBarColor:
+                isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFAF9F6),
+            statusBarIconBrightness:
+                isDark ? Brightness.light : Brightness.dark,
             systemNavigationBarColor: showPlayer
                 ? Colors.black
                 : (isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFAF9F6)),
@@ -158,15 +162,21 @@ class _EpisodeDetailState extends State<EpisodeDetail>
                         isPlayingAudio: _currentPlayer.isPlaying(),
                         onDetailClicked: () {
                           Navigator.of(context).push(PageRouteBuilder(
-                            settings: const RouteSettings(name: "podcastcontrolsepisodedetail"),
-                            pageBuilder: (_, __, ___) => PodcastControls(episode: _currentPlayer.episode),
-                            transitionsBuilder: (_, animation, __, child) => SlideTransition(
-                              position: Tween(begin: const Offset(0, 1), end: Offset.zero)
+                            settings: const RouteSettings(
+                                name: "podcastcontrolsepisodedetail"),
+                            pageBuilder: (_, __, ___) => PodcastControls(
+                                episode: _currentPlayer.episode),
+                            transitionsBuilder: (_, animation, __, child) =>
+                                SlideTransition(
+                              position: Tween(
+                                      begin: const Offset(0, 1),
+                                      end: Offset.zero)
                                   .chain(CurveTween(curve: Curves.easeOutCubic))
                                   .animate(animation),
                               child: child,
                             ),
-                            transitionDuration: const Duration(milliseconds: 350),
+                            transitionDuration:
+                                const Duration(milliseconds: 350),
                           ));
                         },
                         onCloseClicked: () {
@@ -184,14 +194,18 @@ class _EpisodeDetailState extends State<EpisodeDetail>
                         },
                       ),
                       if (_queryData.padding.bottom > 0)
-                        Container(height: _queryData.padding.bottom, color: Colors.black),
+                        Container(
+                            height: _queryData.padding.bottom,
+                            color: Colors.black),
                     ],
                   )
                 : SizedBox.shrink(),
           ),
         ),
         Positioned(
-          top: 0, left: 0, right: 0,
+          top: 0,
+          left: 0,
+          right: 0,
           height: _queryData.padding.top,
           child: ColoredBox(color: _colors.palidwhite),
         ),
@@ -221,7 +235,9 @@ class _EpisodeDetailState extends State<EpisodeDetail>
                 ),
               ),
               Positioned(
-                top: 0, left: 0, right: 0,
+                top: 0,
+                left: 0,
+                right: 0,
                 height: _queryData.padding.top + 70,
                 child: Container(
                   decoration: BoxDecoration(
@@ -248,7 +264,8 @@ class _EpisodeDetailState extends State<EpisodeDetail>
                       color: Colors.black.withValues(alpha: 0.4),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.arrow_back, color: Colors.white, size: 20),
+                    child:
+                        Icon(Icons.arrow_back, color: Colors.white, size: 20),
                   ),
                 ),
               ),
@@ -313,7 +330,8 @@ class _EpisodeDetailState extends State<EpisodeDetail>
           SizedBox(height: 8),
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-            child: Container(height: 1, color: _colors.fontGrey.withValues(alpha: 0.15)),
+            child: Container(
+                height: 1, color: _colors.fontGrey.withValues(alpha: 0.15)),
           ),
 
           // ── Botóns de acción centrados con divisores ──────────────────
@@ -321,25 +339,39 @@ class _EpisodeDetailState extends State<EpisodeDetail>
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(
               children: [
-                Expanded(child: _actionButton(
-                  icon: _isCurrentEpisodePlaying() ? Icons.pause : Icons.play_arrow,
+                Expanded(
+                    child: _actionButton(
+                  icon: _isCurrentEpisodePlaying()
+                      ? Icons.pause
+                      : Icons.play_arrow,
                   label: "Play",
                   active: _isCurrentEpisodePlaying(),
                   onTap: _onPlayEpisode,
                   size: 32,
                 )),
-                Container(width: 1, height: 40, color: _colors.fontGrey.withValues(alpha: 0.15)),
-                Expanded(child: _actionButton(
+                Container(
+                    width: 1,
+                    height: 40,
+                    color: _colors.fontGrey.withValues(alpha: 0.15)),
+                Expanded(
+                    child: _actionButton(
                   icon: Icons.playlist_add,
-                  label: "Playlist",
+                  label: SafeMap.safe(
+                      _localization.translateMap("podcast_controls"),
+                      ["play_queue"]),
                   active: _inPlaylist,
                   onTap: _togglePlaylist,
                   size: 32,
                 )),
-                Container(width: 1, height: 40, color: _colors.fontGrey.withValues(alpha: 0.15)),
-                Expanded(child: _actionButton(
+                Container(
+                    width: 1,
+                    height: 40,
+                    color: _colors.fontGrey.withValues(alpha: 0.15)),
+                Expanded(
+                    child: _actionButton(
                   icon: Icons.podcasts,
-                  label: SafeMap.safe(_localization.translateMap("actions"), ["program"]),
+                  label: SafeMap.safe(
+                      _localization.translateMap("actions"), ["program"]),
                   active: false,
                   onTap: () async {
                     if (widget.program != null) {
@@ -347,16 +379,22 @@ class _EpisodeDetailState extends State<EpisodeDetail>
                       return;
                     }
                     try {
-                      final repo = Injector.appInstance.get<CuacRepositoryContract>();
+                      final repo =
+                          Injector.appInstance.get<CuacRepositoryContract>();
                       final result = await repo.getAllPodcasts();
                       if (result.data == null || result.data!.isEmpty) return;
                       final nameLower = widget.programName.toLowerCase();
                       Program? program;
                       for (final p in result.data!) {
-                        if (p.name.toLowerCase() == nameLower) { program = p; break; }
+                        if (p.name.toLowerCase() == nameLower) {
+                          program = p;
+                          break;
+                        }
                       }
                       program ??= result.data!.firstWhere(
-                        (p) => p.name.toLowerCase().contains(nameLower) || nameLower.contains(p.name.toLowerCase()),
+                        (p) =>
+                            p.name.toLowerCase().contains(nameLower) ||
+                            nameLower.contains(p.name.toLowerCase()),
                         orElse: () => result.data!.first,
                       );
                       if (!mounted) return;
@@ -366,30 +404,44 @@ class _EpisodeDetailState extends State<EpisodeDetail>
                     } catch (_) {}
                   },
                 )),
-                Container(width: 1, height: 40, color: _colors.fontGrey.withValues(alpha: 0.15)),
-                Expanded(child: _actionButton(
+                Container(
+                    width: 1,
+                    height: 40,
+                    color: _colors.fontGrey.withValues(alpha: 0.15)),
+                Expanded(
+                    child: _actionButton(
                   icon: Icons.share,
-                  label: SafeMap.safe(_localization.translateMap("actions"), ["share"]),
+                  label: SafeMap.safe(
+                      _localization.translateMap("actions"), ["share"]),
                   active: false,
                   onTap: () async {
-                    final template = SafeMap.safe(_localization.translateMap("actions"), ["share_episode"]);
+                    final template = SafeMap.safe(
+                        _localization.translateMap("actions"),
+                        ["share_episode"]);
                     final text = template
-                        .replaceFirst("%s", widget.programName)
-                        .replaceFirst("%s", ep.title) + ep.link;
+                            .replaceFirst("%s", widget.programName)
+                            .replaceFirst("%s", ep.title) +
+                        ep.link;
                     try {
-                      final response = await http.get(Uri.parse(widget.logoUrl));
+                      final response =
+                          await http.get(Uri.parse(widget.logoUrl));
                       final dir = await getTemporaryDirectory();
                       final file = File('${dir.path}/share_image.jpg');
                       await file.writeAsBytes(response.bodyBytes);
-                      await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], text: text));
+                      await SharePlus.instance.share(
+                          ShareParams(files: [XFile(file.path)], text: text));
                     } catch (_) {
                       SharePlus.instance.share(ShareParams(text: text));
                     }
                   },
                 )),
                 if (ep.link.isNotEmpty) ...[
-                  Container(width: 1, height: 40, color: _colors.fontGrey.withValues(alpha: 0.15)),
-                  Expanded(child: _actionButton(
+                  Container(
+                      width: 1,
+                      height: 40,
+                      color: _colors.fontGrey.withValues(alpha: 0.15)),
+                  Expanded(
+                      child: _actionButton(
                     icon: Icons.open_in_new,
                     label: "Web",
                     active: false,
@@ -408,7 +460,8 @@ class _EpisodeDetailState extends State<EpisodeDetail>
           // ── Divisor ───────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
-            child: Container(height: 1, color: _colors.fontGrey.withValues(alpha: 0.15)),
+            child: Container(
+                height: 1, color: _colors.fontGrey.withValues(alpha: 0.15)),
           ),
 
           // ── Descrición ────────────────────────────────────────────────
@@ -423,7 +476,8 @@ class _EpisodeDetailState extends State<EpisodeDetail>
                             color: _colors.fontGrey, size: 48),
                         SizedBox(height: 14),
                         Text(
-                          SafeMap.safe(_localization.translateMap("podcast_detail"),
+                          SafeMap.safe(
+                              _localization.translateMap("podcast_detail"),
                               ["no_description"]),
                           textAlign: TextAlign.center,
                           style: TextStyle(
@@ -453,7 +507,11 @@ class _EpisodeDetailState extends State<EpisodeDetail>
                     ),
                     customStylesBuilder: (element) {
                       if (element.localName == 'a') {
-                        return {'color': '#FDCC03', 'font-weight': '600', 'text-decoration': 'none'};
+                        return {
+                          'color': '#FDCC03',
+                          'font-weight': '600',
+                          'text-decoration': 'none'
+                        };
                       }
                       return null;
                     },
@@ -483,8 +541,18 @@ class _EpisodeDetailState extends State<EpisodeDetail>
 
   String _monthAbbr(int month) {
     const months = [
-      "xan", "feb", "mar", "abr", "mai", "xuñ",
-      "xul", "ago", "set", "out", "nov", "dec"
+      "xan",
+      "feb",
+      "mar",
+      "abr",
+      "mai",
+      "xuñ",
+      "xul",
+      "ago",
+      "set",
+      "out",
+      "nov",
+      "dec"
     ];
     return months[month - 1];
   }
@@ -517,15 +585,25 @@ class _ActionButtonState extends State<_ActionButton> {
 
   @override
   Widget build(BuildContext context) {
-    final color = (_pressed || widget.active) ? widget.activeColor : widget.inactiveColor;
+    final color =
+        (_pressed || widget.active) ? widget.activeColor : widget.inactiveColor;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTapDown: (_) => setState(() { _scale = 0.85; _pressed = true; }),
+      onTapDown: (_) => setState(() {
+        _scale = 0.85;
+        _pressed = true;
+      }),
       onTapUp: (_) {
-        setState(() { _scale = 1.0; _pressed = false; });
+        setState(() {
+          _scale = 1.0;
+          _pressed = false;
+        });
         widget.onTap();
       },
-      onTapCancel: () => setState(() { _scale = 1.0; _pressed = false; }),
+      onTapCancel: () => setState(() {
+        _scale = 1.0;
+        _pressed = false;
+      }),
       child: Center(
         child: AnimatedScale(
           scale: _scale,
@@ -533,7 +611,8 @@ class _ActionButtonState extends State<_ActionButton> {
           curve: Curves.easeInOut,
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 120),
-            child: Icon(widget.icon, color: color, size: widget.size, key: ValueKey(color)),
+            child: Icon(widget.icon,
+                color: color, size: widget.size, key: ValueKey(color)),
           ),
         ),
       ),

@@ -87,6 +87,13 @@ class MockPlayer extends Mock implements CurrentPlayerContract {
         returnValue: Future.value(true),
       );
   @override
+  Future<void> fadeOutAndStop(
+          {Duration duration = const Duration(seconds: 15)}) =>
+      super.noSuchMethod(
+        Invocation.method(#fadeOutAndStop, [], {#duration: duration}),
+        returnValue: Future<void>.value(),
+      );
+  @override
   void stop() => super.noSuchMethod(Invocation.method(#stop, []));
   @override
   Future resume() => super.noSuchMethod(
@@ -101,6 +108,11 @@ class MockPlayer extends Mock implements CurrentPlayerContract {
   @override
   bool isPlaying() =>
       super.noSuchMethod(Invocation.method(#isPlaying, []), returnValue: false);
+  @override
+  bool isBuffering() => super.noSuchMethod(
+        Invocation.method(#isBuffering, []),
+        returnValue: false,
+      );
   @override
   bool isStreamingAudio() => super.noSuchMethod(
         Invocation.method(#isStreamingAudio, []),

@@ -18,8 +18,7 @@ void main() {
   MockRemoteDataSource mockRemoteDataSource = MockRemoteDataSource();
   setUpAll(() async {
     getTranslations();
-    repository = CuacRepository(
-        remoteDataSource: mockRemoteDataSource);
+    repository = CuacRepository(remoteDataSource: mockRemoteDataSource);
   });
 
   tearDownAll(() async {});
@@ -33,13 +32,13 @@ void main() {
     expect(result.getData()?.stationName, equals("CUAC FM INSTRUMENT"));
   });
 
-  test('that can fetch base station date if network fails', () async {
+  test('that reports failure when no stream URL is available', () async {
     when(mockRemoteDataSource.getRadioStationData())
         .thenAnswer((_) => Future.value(RadioStation.base()));
     Result<RadioStation> result = await repository.getRadioStationData();
 
-    expect(result.status, equals(Status.ok));
-    expect(result.getData()?.stationName, equals("CUAC FM"));
+    expect(result.status, equals(Status.fail));
+    expect(result.getData()?.stationName, equals("Aber Radio"));
   });
 
   test('that can fetch now data from network', () async {
@@ -57,13 +56,13 @@ void main() {
     Result<Now> result = await repository.getLiveBroadcast();
 
     expect(result.status, equals(Status.fail));
-    expect(result.getData()?.name, equals("Continuidade CUAC FM"));
+    expect(result.getData()?.name, equals("Aber Radio"));
   });
 
   test('that can fetch timetable from network', () async {
     when(mockRemoteDataSource.getTimetableData("hey", "ho"))
         .thenAnswer((_) => MockRemoteDataSource.timetable(false));
-    Result<List<TimeTable>> result = await repository.getTimetableData("","");
+    Result<List<TimeTable>> result = await repository.getTimetableData("", "");
 
     expect(result.status, equals(Status.ok));
     expect(result.getData()?.length, equals(1));
@@ -72,7 +71,7 @@ void main() {
   test('that can fetch empty now when data from network fail', () async {
     when(mockRemoteDataSource.getTimetableData("hey", "ho"))
         .thenAnswer((_) => MockRemoteDataSource.timetable(true));
-    Result<List<TimeTable>> result = await repository.getTimetableData("","");
+    Result<List<TimeTable>> result = await repository.getTimetableData("", "");
 
     expect(result.status, equals(Status.fail));
     expect(result.getData()?.length, equals(0));
@@ -117,16 +116,19 @@ void main() {
   test('that can fetch outstanding from network', () async {
     when(mockRemoteDataSource.getOutstanding(any))
         .thenAnswer((_) => MockRemoteDataSource.outstanding(false));
-    Result<Outstanding> result = await repository.getOutStanding("https://example.com/outstanding");
+    Result<Outstanding> result =
+        await repository.getOutStanding("https://example.com/outstanding");
 
     expect(result.status, equals(Status.ok));
     expect(result.data?.title, contains("Nada"));
   });
 
-  test('that can fetch empty outstanding when data from network fail', () async {
+  test('that can fetch empty outstanding when data from network fail',
+      () async {
     when(mockRemoteDataSource.getOutstanding(any))
         .thenAnswer((_) => MockRemoteDataSource.outstanding(true));
-    Result<Outstanding> result = await repository.getOutStanding("https://example.com/outstanding");
+    Result<Outstanding> result =
+        await repository.getOutStanding("https://example.com/outstanding");
 
     expect(result.status, equals(Status.fail));
   });
@@ -134,7 +136,8 @@ void main() {
   test('that can fetch episodes from network', () async {
     when(mockRemoteDataSource.getEpisodes(any))
         .thenAnswer((_) => MockRemoteDataSource.episodes(false));
-    Result<List<Episode>> result = await repository.getEpisodes("http://feed.rss");
+    Result<List<Episode>> result =
+        await repository.getEpisodes("http://feed.rss");
 
     expect(result.status, equals(Status.ok));
     expect(result.getData()?.length, equals(1));
@@ -143,7 +146,8 @@ void main() {
   test('that can fetch empty episodes when network fails', () async {
     when(mockRemoteDataSource.getEpisodes(any))
         .thenAnswer((_) => MockRemoteDataSource.episodes(true));
-    Result<List<Episode>> result = await repository.getEpisodes("http://feed.rss");
+    Result<List<Episode>> result =
+        await repository.getEpisodes("http://feed.rss");
 
     expect(result.status, equals(Status.fail));
     expect(result.getData()?.length, equals(0));
@@ -156,7 +160,8 @@ void main() {
     clearInteractions(mockRemoteDataSource);
     await repository.getOutStanding("https://example.com/outstanding");
 
-    verify(mockRemoteDataSource.getOutstanding("https://example.com/outstanding")).called(1);
+    verify(mockRemoteDataSource
+            .getOutstanding("https://example.com/outstanding"))
+        .called(1);
   });
-
 }

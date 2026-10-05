@@ -118,7 +118,8 @@ class DependencyInjector {
     } else if (view is PodcastControlsState) {
       injector.registerDependency<PodcastControlsView>(() => view);
     } else if (view is EpisodeDetailView) {
-      injector.registerDependency<EpisodeDetailView>(() => view, override: true);
+      injector.registerDependency<EpisodeDetailView>(() => view,
+          override: true);
     } else if (view is AlertsView) {
       injector.registerDependency<AlertsView>(() => view, override: true);
     }
@@ -210,6 +211,7 @@ class DependencyInjector {
           getNewsUseCase: injector.get<GetNewsUseCase>(),
           getOutstandingUseCase: injector.get<GetOutstandingUseCase>(),
           getFavoritesUseCase: injector.get<GetFavoritesUseCase>(),
+          addFavoriteUseCase: injector.get<AddFavoriteUseCase>(),
           removeFavoriteUseCase: injector.get<RemoveFavoriteUseCase>());
     });
 
@@ -242,7 +244,8 @@ class DependencyInjector {
           invoker: injector.get<Invoker>(),
           router: injector.get<SettingsRouterContract>(),
           getLiveDataUseCase: injector.get<GetLiveProgramUseCase>(),
-          getAlertsUnreadCountUseCase: injector.get<GetAlertsUnreadCountUseCase>());
+          getAlertsUnreadCountUseCase:
+              injector.get<GetAlertsUnreadCountUseCase>());
     });
 
     injector.registerDependency<SettingsDetailPresenter>(() {
@@ -299,90 +302,115 @@ class DependencyInjector {
 
     // Remote use cases
     injector.registerDependency<GetAllPodcastUseCase>(() {
-      return GetAllPodcastUseCase(radiocoRepository: injector.get<CuacRepositoryContract>());
+      return GetAllPodcastUseCase(
+          radiocoRepository: injector.get<CuacRepositoryContract>());
     });
     injector.registerDependency<GetOutstandingUseCase>(() {
-      return GetOutstandingUseCase(radiocoRepository: injector.get<CuacRepositoryContract>());
+      return GetOutstandingUseCase(
+          radiocoRepository: injector.get<CuacRepositoryContract>());
     });
     injector.registerDependency<GetStationUseCase>(() {
-      return GetStationUseCase(radiocoRepository: injector.get<CuacRepositoryContract>());
+      return GetStationUseCase(
+          radiocoRepository: injector.get<CuacRepositoryContract>());
     });
     injector.registerDependency<GetLiveProgramUseCase>(() {
-      return GetLiveProgramUseCase(radiocoRepository: injector.get<CuacRepositoryContract>());
+      return GetLiveProgramUseCase(
+          radiocoRepository: injector.get<CuacRepositoryContract>());
     });
     injector.registerDependency<GetTimetableUseCase>(() {
-      return GetTimetableUseCase(radiocoRepository: injector.get<CuacRepositoryContract>());
+      return GetTimetableUseCase(
+          radiocoRepository: injector.get<CuacRepositoryContract>());
     });
     injector.registerDependency<GetNewsUseCase>(() {
-      return GetNewsUseCase(radiocoRepository: injector.get<CuacRepositoryContract>());
+      return GetNewsUseCase(
+          radiocoRepository: injector.get<CuacRepositoryContract>());
     });
     injector.registerDependency<GetEpisodesUseCase>(() {
-      return GetEpisodesUseCase(radiocoRepository: injector.get<CuacRepositoryContract>());
+      return GetEpisodesUseCase(
+          radiocoRepository: injector.get<CuacRepositoryContract>());
     });
 
     // Favorites use cases
     injector.registerDependency<GetFavoritesUseCase>(() {
-      return GetFavoritesUseCase(repository: injector.get<FavoritesRepositoryContract>());
+      return GetFavoritesUseCase(
+          repository: injector.get<FavoritesRepositoryContract>());
     });
     injector.registerDependency<AddFavoriteUseCase>(() {
-      return AddFavoriteUseCase(repository: injector.get<FavoritesRepositoryContract>());
+      return AddFavoriteUseCase(
+          repository: injector.get<FavoritesRepositoryContract>());
     });
     injector.registerDependency<RemoveFavoriteUseCase>(() {
-      return RemoveFavoriteUseCase(repository: injector.get<FavoritesRepositoryContract>());
+      return RemoveFavoriteUseCase(
+          repository: injector.get<FavoritesRepositoryContract>());
     });
     injector.registerDependency<IsFavoriteUseCase>(() {
-      return IsFavoriteUseCase(repository: injector.get<FavoritesRepositoryContract>());
+      return IsFavoriteUseCase(
+          repository: injector.get<FavoritesRepositoryContract>());
     });
 
     // Playlist use cases
     injector.registerDependency<GetPlaylistUseCase>(() {
-      return GetPlaylistUseCase(repository: injector.get<PlaylistRepositoryContract>());
+      return GetPlaylistUseCase(
+          repository: injector.get<PlaylistRepositoryContract>());
     });
     injector.registerDependency<AddToPlaylistUseCase>(() {
-      return AddToPlaylistUseCase(repository: injector.get<PlaylistRepositoryContract>());
+      return AddToPlaylistUseCase(
+          repository: injector.get<PlaylistRepositoryContract>());
     });
     injector.registerDependency<AddToPlaylistStartUseCase>(() {
-      return AddToPlaylistStartUseCase(repository: injector.get<PlaylistRepositoryContract>());
+      return AddToPlaylistStartUseCase(
+          repository: injector.get<PlaylistRepositoryContract>());
     });
     injector.registerDependency<RemoveFromPlaylistUseCase>(() {
-      return RemoveFromPlaylistUseCase(repository: injector.get<PlaylistRepositoryContract>());
+      return RemoveFromPlaylistUseCase(
+          repository: injector.get<PlaylistRepositoryContract>());
     });
     injector.registerDependency<IsInPlaylistUseCase>(() {
-      return IsInPlaylistUseCase(repository: injector.get<PlaylistRepositoryContract>());
+      return IsInPlaylistUseCase(
+          repository: injector.get<PlaylistRepositoryContract>());
     });
     injector.registerDependency<ClearPlaylistUseCase>(() {
-      return ClearPlaylistUseCase(repository: injector.get<PlaylistRepositoryContract>());
+      return ClearPlaylistUseCase(
+          repository: injector.get<PlaylistRepositoryContract>());
     });
     injector.registerDependency<ReorderPlaylistUseCase>(() {
-      return ReorderPlaylistUseCase(repository: injector.get<PlaylistRepositoryContract>());
+      return ReorderPlaylistUseCase(
+          repository: injector.get<PlaylistRepositoryContract>());
     });
 
     // Alerts use cases
     injector.registerDependency<GetAlertsUseCase>(() {
-      return GetAlertsUseCase(repository: injector.get<AlertsRepositoryContract>());
+      return GetAlertsUseCase(
+          repository: injector.get<AlertsRepositoryContract>());
     });
     injector.registerDependency<MarkAlertsReadUseCase>(() {
-      return MarkAlertsReadUseCase(repository: injector.get<AlertsRepositoryContract>());
+      return MarkAlertsReadUseCase(
+          repository: injector.get<AlertsRepositoryContract>());
     });
     injector.registerDependency<GetAlertsUnreadCountUseCase>(() {
-      return GetAlertsUnreadCountUseCase(repository: injector.get<AlertsRepositoryContract>());
+      return GetAlertsUnreadCountUseCase(
+          repository: injector.get<AlertsRepositoryContract>());
     });
     injector.registerDependency<SaveAlertUseCase>(() {
-      return SaveAlertUseCase(repository: injector.get<AlertsRepositoryContract>());
+      return SaveAlertUseCase(
+          repository: injector.get<AlertsRepositoryContract>());
     });
 
     // Wrapped use cases
     injector.registerDependency<StartSessionUseCase>(() {
-      return StartSessionUseCase(repository: injector.get<WrappedRepositoryContract>());
+      return StartSessionUseCase(
+          repository: injector.get<WrappedRepositoryContract>());
     });
     injector.registerDependency<EndSessionUseCase>(() {
-      return EndSessionUseCase(repository: injector.get<WrappedRepositoryContract>());
+      return EndSessionUseCase(
+          repository: injector.get<WrappedRepositoryContract>());
     });
   }
 
   loadDataModules() {
     injector.registerDependency<CuacRepositoryContract>(() {
-      return CuacRepository(remoteDataSource: injector.get<RadiocoRemoteDataSourceContract>());
+      return CuacRepository(
+          remoteDataSource: injector.get<RadiocoRemoteDataSourceContract>());
     });
 
     injector.registerDependency<FavoritesRepositoryContract>(() {

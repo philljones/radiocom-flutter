@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cuacfm/domain/invoker/invoker.dart';
 import 'package:cuacfm/domain/result/result.dart';
+import 'package:cuacfm/domain/usecase/add_favorite_use_case.dart';
 import 'package:cuacfm/domain/usecase/get_all_podcast_use_case.dart';
 import 'package:cuacfm/domain/usecase/get_favorites_use_case.dart';
 import 'package:cuacfm/domain/usecase/get_live_program_use_case.dart';
@@ -77,6 +78,7 @@ class HomePresenter {
   GetNewsUseCase getNewsUseCase;
   GetOutstandingUseCase getOutstandingUseCase;
   GetFavoritesUseCase getFavoritesUseCase;
+  AddFavoriteUseCase addFavoriteUseCase;
   RemoveFavoriteUseCase removeFavoriteUseCase;
   HomeRouterContract router;
   late ConnectionContract connection;
@@ -97,6 +99,7 @@ class HomePresenter {
       required this.getNewsUseCase,
       required this.getOutstandingUseCase,
       required this.getFavoritesUseCase,
+      required this.addFavoriteUseCase,
       required this.removeFavoriteUseCase}) {
     currentTimer = Injector.appInstance.get<CurrentTimerContract>();
     connection = Injector.appInstance.get<ConnectionContract>();
@@ -155,6 +158,7 @@ class HomePresenter {
 
   onPodcastClicked(Program podcast) {
     router.goToPodcastDetail(podcast, onReturn: () {
+      loadFavorites();
       if (currentPlayer.isPlaying()) {
         _homeView.onNotifyUser(StatusPlayer.PLAYING);
       }
@@ -344,7 +348,9 @@ class HomePresenter {
   }
 
   _getOutstanding() {
-    invoker.execute(getOutstandingUseCase.withParams(radiocoAPI.outstandingUrl)).listen((result) {
+    invoker
+        .execute(getOutstandingUseCase.withParams(radiocoAPI.outstandingUrl))
+        .listen((result) {
       if (result is Success) {
         _homeView.onLoadOutstanding(result.data);
       } else {
@@ -366,6 +372,12 @@ class HomePresenter {
     });
   }
 
+  addFavorite(Program program) {
+    invoker.execute(addFavoriteUseCase.withParams(program.toMap())).listen((_) {
+      loadFavorites();
+    });
+  }
+
   removeFavorite(String rssUrl) {
     invoker.execute(removeFavoriteUseCase.withParams(rssUrl)).listen((_) {
       loadFavorites();
@@ -373,7 +385,9 @@ class HomePresenter {
   }
 
   _getOutstanding2() {
-    invoker.execute(getOutstandingUseCase.withParams(radiocoAPI.outstandingUrl2)).listen((result) {
+    invoker
+        .execute(getOutstandingUseCase.withParams(radiocoAPI.outstandingUrl2))
+        .listen((result) {
       if (result is Success) {
         _homeView.onLoadOutstanding2(result.data);
       }
@@ -382,12 +396,12 @@ class HomePresenter {
 
   _getTimetable() {
     DateTime nowDate = new DateTime.now();
-    var formatter = new DateFormat('dd/MM/yyyy');
+    var formatter = new DateFormat('yyyy-MM-dd');
     String now = formatter.format(nowDate);
-    String tomorrow = formatter.format(nowDate.add(const Duration(days: 1)));
+    String endOfWindow = formatter.format(nowDate.add(const Duration(days: 6)));
     invoker
-        .execute(
-            getTimetableUseCase.withParams(GetTimetableUseCaseParams(now, tomorrow)))
+        .execute(getTimetableUseCase
+            .withParams(GetTimetableUseCaseParams(now, endOfWindow)))
         .listen((result) {
       if (result is Success) {
         _homeView.onLoadTimetable(result.data);
@@ -400,7 +414,7 @@ class HomePresenter {
 
   _getRecentPodcast(bool refreshAll) {
     DateTime nowDate = new DateTime.now();
-    var formatter = new DateFormat('dd/MM/yyyy');
+    var formatter = new DateFormat('yyyy-MM-dd');
     String now = formatter.format(nowDate);
     String yesterday =
         formatter.format(nowDate.toUtc().subtract(new Duration(days: 7)));

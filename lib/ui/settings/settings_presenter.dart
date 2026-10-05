@@ -1,4 +1,3 @@
-
 import 'package:cuacfm/main.dart';
 import 'package:cuacfm/domain/invoker/invoker.dart';
 import 'package:cuacfm/domain/result/result.dart';
@@ -27,7 +26,6 @@ abstract class SettingsView {
   onAlertsUnreadCount(int count);
 }
 
-
 class SettingsPresenter {
   SettingsView _settingsView;
   SettingsRouterContract router;
@@ -43,7 +41,8 @@ class SettingsPresenter {
       required this.router,
       required this.getLiveDataUseCase,
       required this.getAlertsUnreadCountUseCase}) {
-    notificationSubscription = Injector.appInstance.get<NotificationSubscriptionContract>();
+    notificationSubscription =
+        Injector.appInstance.get<NotificationSubscriptionContract>();
     connection = Injector.appInstance.get<ConnectionContract>();
     currentPlayer = Injector.appInstance.get<CurrentPlayerContract>();
   }
@@ -63,7 +62,7 @@ class SettingsPresenter {
   }
 
   onViewResumed() async {
-    if(await connection.isConnectionAvailable()) {
+    if (await connection.isConnectionAvailable()) {
       getLiveProgram();
     }
   }
@@ -77,15 +76,11 @@ class SettingsPresenter {
           currentPlayer.currentImage = result.data.logoUrl;
           _settingsView.onNewData();
         }
-      }else {
+      } else {
         if (!currentPlayer.isPodcast) {
           currentPlayer.now = Now.mock();
-          currentPlayer.currentSong = Now
-              .mock()
-              .name;
-          currentPlayer.currentImage = Now
-              .mock()
-              .logoUrl;
+          currentPlayer.currentSong = Now.mock().name;
+          currentPlayer.currentImage = Now.mock().logoUrl;
           _settingsView.onNewData();
         }
       }
@@ -93,7 +88,7 @@ class SettingsPresenter {
   }
 
   onResume() async {
-    if(currentPlayer.playerState == AudioPlayerState.stop){
+    if (currentPlayer.playerState == AudioPlayerState.stop) {
       await currentPlayer.play();
     } else {
       await currentPlayer.resume();
@@ -104,67 +99,68 @@ class SettingsPresenter {
     await currentPlayer.pause();
   }
 
-  onMailClicked(String mailTo){
+  onMailClicked(String mailTo) {
     var url = "mailto:$mailTo";
     _launchURL(url);
   }
 
-  onHistoryClicked(String content){
+  onHistoryClicked(String content) {
     router.goToHistory(New.fromHistory(content));
   }
 
-  onAlertsClicked(){
+  onAlertsClicked() {
     router.goToAlerts();
   }
 
-  onGalleryClicked(){
+  onGalleryClicked() {
     router.goToLegal(LegalType.NONE);
   }
 
-  onFacebookClicked(String facebookUrl){
+  onFacebookClicked(String facebookUrl) {
     _launchURL(facebookUrl);
   }
 
-  onTwitterClicked(String twitterUrl){
+  onTwitterClicked(String twitterUrl) {
     _launchURL(twitterUrl);
   }
 
-  onInstagramClicked(){
+  onInstagramClicked() {
     _launchURL("https://www.instagram.com/cuacfm");
   }
 
-  onTikTokClicked(){
+  onTikTokClicked() {
     _launchURL("https://www.tiktok.com/@cuacfm");
   }
 
-  onWebPageClicked(String stationWeb){
+  onWebPageClicked(String stationWeb) {
     _launchURL(stationWeb);
   }
 
   onMapsClicked(double lat, double long) async {
-    final geoUri = Uri.parse("geo:$lat,$long?q=$lat,$long(CUAC FM)");
+    final geoUri = Uri.parse("geo:$lat,$long?q=$lat,$long(Aber Radio)");
     if (await canLaunchUrl(geoUri)) {
       await launchUrl(geoUri, mode: LaunchMode.platformDefault);
     } else {
-      final fallback = Uri.parse("https://www.google.com/maps/search/?api=1&query=$lat,$long");
+      final fallback = Uri.parse(
+          "https://www.google.com/maps/search/?api=1&query=$lat,$long");
       await launchUrl(fallback, mode: LaunchMode.externalApplication);
     }
   }
 
-  onTermsClicked(){
+  onTermsClicked() {
     router.goToLegal(LegalType.TERMS);
   }
 
-  onPrivacyClicked(){
+  onPrivacyClicked() {
     router.goToLegal(LegalType.PRIVACY);
   }
 
-  onSoftwareLicenseClicked(){
+  onSoftwareLicenseClicked() {
     router.goToLegal(LegalType.LICENSE);
   }
 
   onPodcastControlsClicked(Episode? episode) {
-    if(episode != null) {
+    if (episode != null) {
       router.goToPodcastControls(episode);
     }
   }
@@ -174,11 +170,14 @@ class SettingsPresenter {
     if (value == null) {
       await prefs.remove('app_locale');
       final systemLocale = WidgetsBinding.instance.platformDispatcher.locale;
-      final supported = ['en', 'es', 'gl', 'pt'];
-      final langCode = supported.contains(systemLocale.languageCode) ? systemLocale.languageCode : 'gl';
+      final supported = ['en', 'es', 'gl', 'pt', 'cy'];
+      final langCode = supported.contains(systemLocale.languageCode)
+          ? systemLocale.languageCode
+          : 'en';
       final loc = CuacLocalization(Locale(langCode));
       await loc.load();
-      Injector.appInstance.registerSingleton<CuacLocalization>(() => loc, override: true);
+      Injector.appInstance
+          .registerSingleton<CuacLocalization>(() => loc, override: true);
       MyApp.setLocale(null);
     } else {
       await prefs.setString('app_locale', value);
@@ -186,7 +185,8 @@ class SettingsPresenter {
       if (locale != null) {
         final loc = CuacLocalization(locale);
         await loc.load();
-        Injector.appInstance.registerSingleton<CuacLocalization>(() => loc, override: true);
+        Injector.appInstance
+            .registerSingleton<CuacLocalization>(() => loc, override: true);
       }
       MyApp.setLocale(locale);
     }
@@ -197,9 +197,14 @@ class SettingsPresenter {
     await prefs.setString('theme_mode', value);
     ThemeMode mode;
     switch (value) {
-      case 'light': mode = ThemeMode.light; break;
-      case 'dark': mode = ThemeMode.dark; break;
-      default: mode = ThemeMode.system;
+      case 'light':
+        mode = ThemeMode.light;
+        break;
+      case 'dark':
+        mode = ThemeMode.dark;
+        break;
+      default:
+        mode = ThemeMode.system;
     }
     MyApp.setThemeMode(mode);
     _settingsView.onDarkModeStatus(value == 'dark');
@@ -208,7 +213,7 @@ class SettingsPresenter {
   onLiveNotificationStatus(bool status) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('live_shows_info', status);
-    if(status) {
+    if (status) {
       notificationSubscription.subscribeToTopic("live_shows_info");
     } else {
       notificationSubscription.unsubscribeFromTopic("live_shows_info");
@@ -219,11 +224,11 @@ class SettingsPresenter {
 
   _getLiveNotificationStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var result =  prefs.getBool('live_shows_info');
-    if(result == null){
+    var result = prefs.getBool('live_shows_info');
+    if (result == null) {
       onLiveNotificationStatus(true);
     }
-    return result==null? true : result;
+    return result == null ? true : result;
   }
 
   _getDarkModeStatus() async {
@@ -239,7 +244,8 @@ class SettingsPresenter {
 
   getLocaleValue() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    return prefs.getString('app_locale');
+    final value = prefs.getString('app_locale');
+    return value == 'en' || value == 'cy' ? value : null;
   }
 
   _launchURL(String url) async {

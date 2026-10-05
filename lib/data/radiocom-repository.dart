@@ -17,6 +17,9 @@ class CuacRepository implements CuacRepositoryContract {
 
   Future<Result<RadioStation>> getRadioStationData() async {
     RadioStation station = await remoteDataSource.getRadioStationData();
+    if (station.streamUrl.isEmpty) {
+      return Error(station, Status.fail, "no stream configured");
+    }
     return Success(station, Status.ok);
   }
 

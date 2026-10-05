@@ -5,10 +5,10 @@ void main() {
   group('RadioStation.base', () {
     test('that creates base station with expected values', () {
       final station = RadioStation.base();
-      expect(station.stationName, equals('CUAC FM'));
-      expect(station.streamUrl, isNotEmpty);
-      expect(station.latitude, closeTo(43.327, 0.01));
-      expect(station.longitude, closeTo(-8.409, 0.01));
+      expect(station.stationName, equals('Aber Radio'));
+      expect(station.streamUrl, isEmpty);
+      expect(station.latitude, closeTo(51.8254, 0.01));
+      expect(station.longitude, closeTo(-3.0194, 0.01));
       expect(station.stationPhotos, isNotEmpty);
       expect(station.facebookUrl, isNotEmpty);
       expect(station.blueskyUrl, isNotEmpty);
@@ -44,6 +44,20 @@ void main() {
       expect(station.streamUrl, equals('http://stream.mp3'));
       expect(station.facebookUrl, equals('http://facebook.com/test'));
       expect(station.blueskyUrl, equals('http://bsky.app/test'));
+    });
+
+    test('that leaves the stream empty when the API omits stream_url', () {
+      final station = RadioStation.fromInstance({
+        'station_photos': [],
+        'history': '',
+        'latitude': 51.8247,
+        'longitude': -3.0196,
+        'news_rss': '',
+        'facebook_url': '',
+        'twitter_url': '',
+      });
+
+      expect(station.streamUrl, isEmpty);
     });
   });
 }
