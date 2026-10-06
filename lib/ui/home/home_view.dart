@@ -436,7 +436,8 @@ class MyHomePageState extends State<MyHomePage>
             isLoadingPlay = false;
           }
           shouldShowPlayer = _presenter.currentPlayer.isPlaying() ||
-              _presenter.currentPlayer.isPaused();
+              _presenter.currentPlayer.isPaused() ||
+              _presenter.currentPlayer.isBuffering();
         });
       }
     };
@@ -1344,6 +1345,8 @@ class MyHomePageState extends State<MyHomePage>
                                   },
                                   onTapUp: (_) {
                                     setState(() => _playButtonScale = 1.0);
+                                    if (_presenter.currentPlayer.isBuffering())
+                                      return;
                                     final isPlayingLive =
                                         _presenter.currentPlayer.isPlaying() &&
                                             !_presenter.currentPlayer.isPodcast;
@@ -1371,7 +1374,9 @@ class MyHomePageState extends State<MyHomePage>
                                         color: Color(0xFF1F1E23),
                                         shape: BoxShape.circle,
                                       ),
-                                      child: isLoadingPlay
+                                      child: (isLoadingPlay ||
+                                              _presenter.currentPlayer
+                                                  .isBuffering())
                                           ? Padding(
                                               padding: const EdgeInsets.all(14),
                                               child: CircularProgressIndicator(
@@ -2722,7 +2727,8 @@ class MyHomePageState extends State<MyHomePage>
                       backgroundColor: const Color(0xFF1F1E23),
                       foregroundColor: Colors.white,
                     ),
-                    icon: isLoadingPlay
+                    icon: (isLoadingPlay ||
+                            _presenter.currentPlayer.isBuffering())
                         ? const SizedBox(
                             width: 20,
                             height: 20,
