@@ -11,6 +11,13 @@ class SceneDelegate: FlutterSceneDelegate {
         if let shortcut = connectionOptions.shortcutItem {
             (UIApplication.shared.delegate as? AppDelegate)?.handleShortcut(shortcut)
         }
+        if let windowScene = scene as? UIWindowScene,
+           let app = UIApplication.shared.delegate as? AppDelegate {
+            let radioWindow = UIWindow(windowScene: windowScene)
+            radioWindow.rootViewController = FlutterViewController(engine: app.radioEngine, nibName: nil, bundle: nil)
+            window = radioWindow
+            radioWindow.makeKeyAndVisible()
+        }
         super.scene(scene, willConnectTo: session, options: connectionOptions)
     }
 

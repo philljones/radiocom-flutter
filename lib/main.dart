@@ -25,6 +25,7 @@ import 'package:audio_service/audio_service.dart';
 import 'package:cuacfm/ui/player/cuac_audio_handler.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:cuacfm/utils/push_notifications.dart';
+import 'package:cuacfm/utils/carplay.dart';
 import 'package:cuacfm/utils/test_stream_switch.dart';
 
 @pragma('vm:entry-point')
@@ -121,6 +122,7 @@ void main() async {
   Injector.appInstance.registerSingleton<CuacAudioHandler>(() => audioHandler);
 
   unawaited(_configureIOSHomeActions());
+  unawaited(configureCarPlay());
   runApp(MyApp());
 }
 
