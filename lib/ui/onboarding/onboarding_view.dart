@@ -11,7 +11,10 @@ const onboardingVersion = 2;
 
 class OnboardingView extends StatefulWidget {
   final VoidCallback onFinished;
-  const OnboardingView({Key? key, required this.onFinished}) : super(key: key);
+  final Future<bool> Function()? requestNotificationPermission;
+  const OnboardingView(
+      {Key? key, required this.onFinished, this.requestNotificationPermission})
+      : super(key: key);
 
   @override
   State<OnboardingView> createState() => _OnboardingViewState();
@@ -24,7 +27,6 @@ class _OnboardingViewState extends State<OnboardingView> {
   static const _totalPages = 4;
   String? _selectedLocale;
   bool _requestingNotifications = false;
-  bool _notificationsAllowed = false;
 
   @override
   void dispose() {
@@ -39,9 +41,9 @@ class _OnboardingViewState extends State<OnboardingView> {
   Future<void> _enableNotifications() async {
     setState(() => _requestingNotifications = true);
     try {
-      final allowed = await requestPushPermission();
+      final allowed = await (widget.requestNotificationPermission?.call() ??
+          requestPushPermission());
       if (!mounted) return;
-      setState(() => _notificationsAllowed = allowed);
       if (!allowed) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text(
@@ -72,7 +74,12 @@ class _OnboardingViewState extends State<OnboardingView> {
     widget.onFinished();
   }
 
-  void _nextPage() {
+  Future<void> _nextPage() async {
+    if (_requestingNotifications) return;
+    if (_currentPage == 3 && pushNotificationsEnabled) {
+      await _enableNotifications();
+      if (!mounted) return;
+    }
     if (_currentPage < _totalPages) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 350),
@@ -99,9 +106,10 @@ class _OnboardingViewState extends State<OnboardingView> {
                 child: PageView(
                   controller: _pageController,
                   onPageChanged: _onPageChanged,
-                  physics: _currentPage == _totalPages
-                      ? const NeverScrollableScrollPhysics()
-                      : const BouncingScrollPhysics(),
+                  physics:
+                      _requestingNotifications || _currentPage == _totalPages
+                          ? const NeverScrollableScrollPhysics()
+                          : const BouncingScrollPhysics(),
                   children: [
                     _buildWelcomePage(),
                     _buildInfoPage(
@@ -118,22 +126,6 @@ class _OnboardingViewState extends State<OnboardingView> {
                           "Turn on alerts for your favourite programmes and receive a notification when they go live.",
                       subtitle:
                           "You can pause all alerts at any time in Settings.",
-                      action: pushNotificationsEnabled
-                          ? Padding(
-                              padding: const EdgeInsets.only(top: 16),
-                              child: TextButton(
-                                onPressed: _requestingNotifications ||
-                                        _notificationsAllowed
-                                    ? null
-                                    : _enableNotifications,
-                                child: Text(_requestingNotifications
-                                    ? 'Enabling notifications…'
-                                    : _notificationsAllowed
-                                        ? 'Notifications enabled'
-                                        : 'Enable notifications'),
-                              ),
-                            )
-                          : null,
                     ),
                     _buildLocalePage(),
                   ],
@@ -194,10 +186,7 @@ class _OnboardingViewState extends State<OnboardingView> {
   // ── Pantallas 2-4: Información ────────────────────────────────────────────
 
   Widget _buildInfoPage(
-      {required IconData icon,
-      required String text,
-      String? subtitle,
-      Widget? action}) {
+      {required IconData icon, required String text, String? subtitle}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
@@ -238,7 +227,6 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
           ],
-          if (action != null) action,
         ],
       ),
     );
@@ -360,7 +348,9 @@ class _OnboardingViewState extends State<OnboardingView> {
             width: double.infinity,
             height: 52,
             child: ElevatedButton(
-              onPressed: isLastPage ? _finish : _nextPage,
+              onPressed: _requestingNotifications
+                  ? null
+                  : (isLastPage ? _finish : _nextPage),
               style: ElevatedButton.styleFrom(
                 backgroundColor: _dark,
                 foregroundColor: _yellow,
@@ -381,13 +371,15 @@ class _OnboardingViewState extends State<OnboardingView> {
           ),
           if (!isLastPage)
             TextButton(
-              onPressed: () {
-                _pageController.animateToPage(
-                  _totalPages,
-                  duration: const Duration(milliseconds: 350),
-                  curve: Curves.easeInOut,
-                );
-              },
+              onPressed: _requestingNotifications
+                  ? null
+                  : () {
+                      _pageController.animateToPage(
+                        _totalPages,
+                        duration: const Duration(milliseconds: 350),
+                        curve: Curves.easeInOut,
+                      );
+                    },
               child: Text(
                 "Skip",
                 style: TextStyle(

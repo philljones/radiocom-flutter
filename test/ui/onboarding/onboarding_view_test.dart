@@ -10,7 +10,9 @@ void main() {
       (tester) async {
     var finished = false;
     await tester.pumpWidget(MaterialApp(
-      home: OnboardingView(onFinished: () => finished = true),
+      home: OnboardingView(
+          onFinished: () => finished = true,
+          requestNotificationPermission: () async => true),
     ));
     final pages = tester.widget<PageView>(find.byType(PageView));
     expect(pages.childrenDelegate.estimatedChildCount, 5);
@@ -21,7 +23,8 @@ void main() {
       expect(pages.controller!.page, page.toDouble());
       if (page == 3) {
         expect(
-          find.text('Turn on alerts for your favourite programmes and receive a '
+          find.text(
+              'Turn on alerts for your favourite programmes and receive a '
               'notification when they go live.'),
           findsOneWidget,
         );
@@ -37,6 +40,31 @@ void main() {
     expect(prefs.getBool('onboarding_completed'), isTrue);
     expect(prefs.getInt('onboarding_version'), onboardingVersion);
   });
+
+  for (final allowed in [true, false]) {
+    testWidgets('alerts Next continues after permission answer $allowed',
+        (tester) async {
+      var requests = 0;
+      await tester.pumpWidget(MaterialApp(
+          home: OnboardingView(
+        onFinished: () {},
+        requestNotificationPermission: () async {
+          requests++;
+          return allowed;
+        },
+      )));
+      for (var i = 0; i < 3; i++) {
+        await tester.tap(find.text('Next'));
+        await tester.pumpAndSettle();
+      }
+      expect(requests, 0);
+      expect(find.text('Enable notifications'), findsNothing);
+      await tester.tap(find.text('Next'));
+      await tester.pumpAndSettle();
+      expect(requests, 1);
+      expect(find.text('Finally, choose the app language'), findsOneWidget);
+    });
+  }
 
   testWidgets('Skip still opens the final language page', (tester) async {
     await tester.pumpWidget(MaterialApp(
