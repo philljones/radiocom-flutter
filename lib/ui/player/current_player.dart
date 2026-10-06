@@ -307,6 +307,7 @@ class CurrentPlayer implements CurrentPlayerContract {
 
   bool _livePlaybackRequested = false;
   bool _livePlaybackStarting = false;
+  bool _liveSourcePrepared = false;
   bool _liveRecoveryInProgress = false;
   int _fadeSequence = 0;
 
@@ -393,6 +394,7 @@ class CurrentPlayer implements CurrentPlayerContract {
       if (!isPodcast) {
         _livePlaybackRequested = true;
         _livePlaybackStarting = true;
+        _liveSourcePrepared = false;
         onUpdate?.call();
       }
       // Cancel previous subscriptions to avoid accumulation
@@ -402,7 +404,8 @@ class CurrentPlayer implements CurrentPlayerContract {
 
       _stateSubscription = audioPlayer.playerStateStream.listen((event) async {
         if (!isPodcast) {
-          if (event.playing && event.processingState == ProcessingState.ready) {
+          if (_liveSourcePrepared &&
+              event.playing && event.processingState == ProcessingState.ready) {
             final wasStarting = _livePlaybackStarting;
             _livePlaybackStarting = false;
             if (playerState != AudioPlayerState.play) {
@@ -441,7 +444,9 @@ class CurrentPlayer implements CurrentPlayerContract {
           }
         } else if (event.playing &&
             playerState == AudioPlayerState.pause &&
-            (isPodcast || event.processingState == ProcessingState.ready)) {
+            (isPodcast ||
+                (_liveSourcePrepared &&
+                    event.processingState == ProcessingState.ready))) {
           playerState = AudioPlayerState.play;
           if (onUpdate != null) onUpdate!();
           if (onConnection != null) onConnection!(false);
@@ -498,6 +503,7 @@ class CurrentPlayer implements CurrentPlayerContract {
         AudioSource audioSource = AudioSource.uri(Uri.parse(playbackUrl));
         try {
           await audioPlayer.setAudioSource(audioSource);
+          _liveSourcePrepared = !isPodcast;
           _publishNowPlaying();
           if (isPodcast) {
             await audioPlayer.play();
@@ -506,7 +512,9 @@ class CurrentPlayer implements CurrentPlayerContract {
             _startWrappedSession();
             _logPlay();
           }
-          await audioPlayer.seek(position);
+          // Seeking is meaningful only for recordings. Seeking a live stream
+          // after Play can trigger another buffering cycle before audio starts.
+          if (isPodcast) await audioPlayer.seek(position);
         } catch (_) {
           if (!isPodcast) {
             _livePlaybackStarting = false;
