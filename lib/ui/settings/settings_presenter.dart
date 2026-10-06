@@ -124,14 +124,6 @@ class SettingsPresenter {
     _launchURL(twitterUrl);
   }
 
-  onInstagramClicked() {
-    _launchURL("https://www.instagram.com/cuacfm");
-  }
-
-  onTikTokClicked() {
-    _launchURL("https://www.tiktok.com/@cuacfm");
-  }
-
   onWebPageClicked(String stationWeb) {
     _launchURL(stationWeb);
   }
@@ -212,12 +204,12 @@ class SettingsPresenter {
 
   onLiveNotificationStatus(bool status) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('live_shows_info', status);
     if (status) {
-      notificationSubscription.subscribeToTopic("live_shows_info");
+      await notificationSubscription.subscribeToTopic("live_shows_info");
     } else {
-      notificationSubscription.unsubscribeFromTopic("live_shows_info");
+      await notificationSubscription.unsubscribeFromTopic("live_shows_info");
     }
+    await prefs.setBool('live_shows_info', status);
   }
 
   //private methods
@@ -225,10 +217,7 @@ class SettingsPresenter {
   _getLiveNotificationStatus() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var result = prefs.getBool('live_shows_info');
-    if (result == null) {
-      onLiveNotificationStatus(true);
-    }
-    return result == null ? true : result;
+    return result ?? false;
   }
 
   _getDarkModeStatus() async {

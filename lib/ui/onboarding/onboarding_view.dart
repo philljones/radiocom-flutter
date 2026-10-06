@@ -1,4 +1,5 @@
 import 'package:cuacfm/main.dart';
+import 'package:cuacfm/utils/push_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -22,6 +23,8 @@ class _OnboardingViewState extends State<OnboardingView> {
   // Welcome, live listening, favourites, alerts, and language.
   static const _totalPages = 4;
   String? _selectedLocale;
+  bool _requestingNotifications = false;
+  bool _notificationsAllowed = false;
 
   @override
   void dispose() {
@@ -31,6 +34,30 @@ class _OnboardingViewState extends State<OnboardingView> {
 
   void _onPageChanged(int i) {
     setState(() => _currentPage = i);
+  }
+
+  Future<void> _enableNotifications() async {
+    setState(() => _requestingNotifications = true);
+    try {
+      final allowed = await requestPushPermission();
+      if (!mounted) return;
+      setState(() => _notificationsAllowed = allowed);
+      if (!allowed) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'You can enable notifications later in your device settings.'),
+        ));
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content:
+              Text('Unable to enable notifications. Please try again later.'),
+        ));
+      }
+    } finally {
+      if (mounted) setState(() => _requestingNotifications = false);
+    }
   }
 
   Future<void> _finish() async {
@@ -88,9 +115,25 @@ class _OnboardingViewState extends State<OnboardingView> {
                     _buildInfoPage(
                       icon: Icons.notifications_active,
                       text:
-                          "Turn on alerts for favourite programmes and receive a notification when a new episode is available.",
+                          "Turn on alerts for your favourite programmes and receive a notification when they go live.",
                       subtitle:
                           "You can pause all alerts at any time in Settings.",
+                      action: pushNotificationsEnabled
+                          ? Padding(
+                              padding: const EdgeInsets.only(top: 16),
+                              child: TextButton(
+                                onPressed: _requestingNotifications ||
+                                        _notificationsAllowed
+                                    ? null
+                                    : _enableNotifications,
+                                child: Text(_requestingNotifications
+                                    ? 'Enabling notifications…'
+                                    : _notificationsAllowed
+                                        ? 'Notifications enabled'
+                                        : 'Enable notifications'),
+                              ),
+                            )
+                          : null,
                     ),
                     _buildLocalePage(),
                   ],
@@ -151,7 +194,10 @@ class _OnboardingViewState extends State<OnboardingView> {
   // ── Pantallas 2-4: Información ────────────────────────────────────────────
 
   Widget _buildInfoPage(
-      {required IconData icon, required String text, String? subtitle}) {
+      {required IconData icon,
+      required String text,
+      String? subtitle,
+      Widget? action}) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
@@ -192,6 +238,7 @@ class _OnboardingViewState extends State<OnboardingView> {
               ),
             ),
           ],
+          if (action != null) action,
         ],
       ),
     );

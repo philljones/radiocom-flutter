@@ -1,23 +1,28 @@
-import 'package:cuacfm/utils/notification_subscription_contract.dart';
 import 'package:cuacfm/utils/push_notifications.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   tearDown(() => debugDefaultTargetPlatformOverride = null);
 
-  test('Personal Team iOS does not invoke Firebase or store subscriptions', () async {
+  test('paid-account iPhone builds support push', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
-    expect(pushNotificationsEnabled, isFalse);
-    final subscriptions = NotificationSubscription();
-    subscriptions.getToken();
-    await subscriptions.subscribeToTopic('test');
-    await subscriptions.unsubscribeFromTopic('test');
-    expect(await subscriptions.isSubscribed('test'), isFalse);
+    expect(pushNotificationsEnabled, isTrue);
   });
 
   test('Android keeps push enabled', () {
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
     expect(pushNotificationsEnabled, isTrue);
+  });
+
+  test('denied or undecided permissions cannot enable alerts', () {
+    expect(notificationPermissionGranted(AuthorizationStatus.denied), isFalse);
+    expect(notificationPermissionGranted(AuthorizationStatus.notDetermined),
+        isFalse);
+    expect(
+        notificationPermissionGranted(AuthorizationStatus.authorized), isTrue);
+    expect(
+        notificationPermissionGranted(AuthorizationStatus.provisional), isTrue);
   });
 }

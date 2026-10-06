@@ -64,9 +64,10 @@ void main() async {
 
   if (pushNotificationsEnabled) {
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    await FirebaseMessaging.instance.requestPermission();
     // Notificación cando a app estaba pechada
-    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage()
+        .timeout(const Duration(seconds: 3), onTimeout: () => null)
+        .catchError((_) => null);
     if (initialMessage != null) {
       final rssUrl = initialMessage.data['rss_url'] as String?;
       final episodeId = initialMessage.data['episode_id'] as String?;

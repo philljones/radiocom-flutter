@@ -14,6 +14,7 @@ import 'package:cuacfm/utils/top_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:injector/injector.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'settings_presenter_detail.dart';
 
 enum LegalType { TERMS, PRIVACY, LICENSE, NONE }
@@ -192,6 +193,42 @@ class SettingsDetailState extends State<SettingsDetail>
     var licenses = License.getAll();
     List<Widget> licenseList = [];
     licenseList.add(SizedBox(height: 10));
+    licenseList.add(Padding(
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
+      child: Column(
+        children: [
+          Text(
+            'Original project',
+            style: TextStyle(
+              color: _colors.font,
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            'Aber Radio is based on the radiocom-flutter app developed for '
+            'CUAC FM. Thank you to the original developers and contributors. '
+            'The original project is licensed under GNU GPLv3.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: _colors.fontGrey),
+          ),
+          TextButton(
+            onPressed: () => launchUrl(
+              Uri.parse('https://github.com/ficiverson/radiocom-flutter'),
+              mode: LaunchMode.externalApplication,
+            ),
+            child: Text(
+              'View original project',
+              style: TextStyle(
+                color: _colors.font,
+                decoration: TextDecoration.underline,
+              ),
+            ),
+          ),
+        ],
+      ),
+    ));
     licenses.forEach((license) {
       licenseList.add(Container(
           margin: EdgeInsets.fromLTRB(0.0, 2.0, 0.0, 0.0),

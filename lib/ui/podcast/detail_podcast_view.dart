@@ -535,6 +535,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
                 onTap: !pushNotificationsEnabled
                     ? null
                     : () async {
+                        try {
                         if (_isNotificationEnabled) {
                           await _notificationService
                               .unsubscribeFromTopic(widget.program.rssUrl);
@@ -546,6 +547,15 @@ class DetailPodcastState extends State<DetailPodcastPage>
                           setState(() {
                             _isNotificationEnabled = !_isNotificationEnabled;
                           });
+                        } catch (error) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                              content: Text(error is StateError
+                                  ? error.message.toString()
+                                  : 'Unable to update alerts. Please try again.'),
+                            ));
+                          }
+                        }
                       },
                 child: Column(
                   children: [

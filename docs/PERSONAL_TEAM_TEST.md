@@ -1,24 +1,23 @@
-# Temporary Personal Team iPhone test
+# Historical Personal Team setup
 
-Branch: `codex/personal-team-no-push`.
+The temporary free-account push restriction has been removed now that Aber Radio
+uses a paid Apple Developer account. The app requests notification permission
+only when the listener chooses Enable notifications or turns on a programme alert.
 
-This build disables iOS push notifications so a free Apple Personal Team can
-sign the app. The push entitlement and remote-notification background mode are
-removed; audio background mode remains. Firebase Messaging auto-initialization
-is disabled in Info.plist, and iOS permission, token, message, and topic calls
-are skipped. Android messaging remains enabled.
+Before installing or distributing a push-enabled build:
 
-The existing local Xcode edits select Phillip's Personal Team and the Debug
-bundle ID `uk.co.abergavennyradio.app`. The baseline Firebase configuration is
-still for the original CUAC bundle ID. Register the final bundle ID in Firebase
-and download a matching configuration before restoring messaging.
+- Enable Push Notifications for App ID `uk.co.abergavennyradio.app` on team `L2QV7RR6D7`.
+- Register that exact iOS bundle ID in Firebase project `abergavenny-radio` and
+  replace `ios/Runner/GoogleService-Info.plist` with its downloaded configuration.
+- Upload an Apple APNs authentication key to that Firebase iOS app, including its
+  key ID and the Apple team ID. Configure the environments needed for device
+  development and TestFlight delivery.
+- Refresh signing profiles. The exported app must have the APNs entitlement
+  appropriate to its distribution environment.
 
-To restore push with paid signing, restore the `aps-environment` entitlement,
-the `remote-notification` background mode, and Firebase Messaging auto-init;
-then re-enable iOS in `lib/utils/push_notifications.dart` together. Revisit the
-Personal Team regression test when doing so.
+The existing Firebase configuration still identifies `org.cuacfm.radio.coruna`;
+that must be replaced before testing push delivery.
 
-On the physical phone, start the stream, return to Home, and lock the screen.
-Verify audio continues and test the lock-screen pause/play controls. These
-checks require observation on the phone; a successful build alone does not
-verify them.
+Test permission acceptance and denial, programme subscriptions, pausing alerts,
+foreground/background delivery, and opening an episode from a notification.
+Do not treat a successful build as confirmation of push delivery.

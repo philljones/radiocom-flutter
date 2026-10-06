@@ -3,6 +3,7 @@
     "welcome_msg_1": "Buenos días",
     "welcome_msg_2": "Buenas tardes",
     "welcome_msg_3": "Buenas noches",
+    "welcome_msg_4": "Hola",
     "outstanding_msg": "Actualidad",
     "live_msg": "Escuchar en Directo",
     "recent_msg": "Nuevo esta semana",
@@ -63,6 +64,7 @@
     "days_ago": "Hace %s días"
   },
   "settings": {
+    "version": "Versión",
     "rating_title": "¿Estás disfrutando de la app y de nuestras emisiones?",
     "rating_body": "Considera valorarnos en la tienda de aplicaciones para que más gente descubra Aber Radio.",
     "station_section": {

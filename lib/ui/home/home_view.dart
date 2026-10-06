@@ -31,6 +31,7 @@ import 'package:injector/injector.dart';
 import 'package:intl/intl.dart';
 import 'package:cuacfm/ui/episode-detail/episode_detail_view.dart';
 import 'package:cuacfm/utils/html_to_text.dart';
+import 'package:cuacfm/utils/home_greeting.dart';
 import 'dart:convert';
 import 'package:cuacfm/main.dart'
     show
@@ -520,7 +521,12 @@ class MyHomePageState extends State<MyHomePage>
     final episodeId = pendingNotificationEpisodeId.value;
     pendingNotificationRssUrl.value = null;
     pendingNotificationEpisodeId.value = null;
-    _navigateToEpisode(program, episodeId);
+    if (episodeId == null) {
+      if (mounted) setState(() => _navigatingFromNotification = false);
+      _presenter.onPodcastClicked(program);
+    } else {
+      _navigateToEpisode(program, episodeId);
+    }
   }
 
   Future<void> _navigateToEpisode(Program program, String? episodeId) async {
@@ -2883,24 +2889,9 @@ class MyHomePageState extends State<MyHomePage>
   }
 
   String _getWelcomeText() {
-    String welcomeText = SafeMap.safe(_localization.translateMap('home'), [
-      "welcome_msg_1",
+    return SafeMap.safe(_localization.translateMap('home'), [
+      homeGreetingKey(DateTime.now()),
     ]);
-    TimeOfDay now = TimeOfDay.now();
-    if (now.hour >= 7 && DateTime.now().hour <= 12) {
-      welcomeText = SafeMap.safe(_localization.translateMap('home'), [
-        "welcome_msg_1",
-      ]);
-    } else if (now.hour > 12 && DateTime.now().hour <= 20) {
-      welcomeText = SafeMap.safe(_localization.translateMap('home'), [
-        "welcome_msg_2",
-      ]);
-    } else {
-      welcomeText = SafeMap.safe(_localization.translateMap('home'), [
-        "welcome_msg_3",
-      ]);
-    }
-    return welcomeText;
   }
 
   _updateRecentPodcasts(List<TimeTable> programsTimeTable) {

@@ -12,24 +12,43 @@ abstract class NotificationSubscriptionContract {
 }
 
 class NotificationSubscription implements NotificationSubscriptionContract {
-
   NotificationSubscription();
 
   @override
   void getToken() {
     if (!pushNotificationsEnabled) return;
-    FirebaseMessaging.instance.getToken().then((token) {
-      if (Foundation.kDebugMode) print('FCM token: $token');
-    });
+    _refreshToken();
+  }
+
+  Future<void> _refreshToken() async {
+    try {
+      final messaging = FirebaseMessaging.instance;
+      if (!await pushDeviceReady(messaging)) return;
+      await messaging.getToken();
+    } catch (error) {
+      if (Foundation.kDebugMode)
+        Foundation.debugPrint('Push registration unavailable: $error');
+    }
   }
 
   @override
   Future<void> subscribeToTopic(String channelName) async {
     if (!pushNotificationsEnabled) return;
+    final messaging = FirebaseMessaging.instance;
+    if (!await requestPushPermission(messaging: messaging)) {
+      throw StateError(
+          'Notifications are disabled. Enable them in your device settings.');
+    }
+    if (!await pushDeviceReady(messaging)) {
+      throw StateError(
+          'Notifications are not ready yet. Please try again shortly.');
+    }
     final tag = _sanitizeTag(channelName);
     final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('notifications_paused') ?? false)) {
+      await messaging.subscribeToTopic(tag);
+    }
     await prefs.setBool('notif_$tag', true);
-    await FirebaseMessaging.instance.subscribeToTopic(tag);
   }
 
   @override
@@ -37,8 +56,10 @@ class NotificationSubscription implements NotificationSubscriptionContract {
     if (!pushNotificationsEnabled) return;
     final tag = _sanitizeTag(channelName);
     final prefs = await SharedPreferences.getInstance();
+    if (!(prefs.getBool('notifications_paused') ?? false)) {
+      await FirebaseMessaging.instance.unsubscribeFromTopic(tag);
+    }
     await prefs.setBool('notif_$tag', false);
-    await FirebaseMessaging.instance.unsubscribeFromTopic(tag);
   }
 
   @override

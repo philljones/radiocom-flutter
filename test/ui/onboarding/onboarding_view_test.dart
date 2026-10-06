@@ -21,8 +21,8 @@ void main() {
       expect(pages.controller!.page, page.toDouble());
       if (page == 3) {
         expect(
-          find.text('Turn on alerts for favourite programmes and receive a '
-              'notification when a new episode is available.'),
+          find.text('Turn on alerts for your favourite programmes and receive a '
+              'notification when they go live.'),
           findsOneWidget,
         );
       }

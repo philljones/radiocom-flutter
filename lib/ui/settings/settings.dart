@@ -19,6 +19,7 @@ import 'package:cuacfm/main.dart' show appThemeModeNotifier;
 import 'package:in_app_review/in_app_review.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:cuacfm/utils/push_notifications.dart';
 import 'package:cuacfm/utils/test_stream_switch.dart';
 
@@ -49,6 +50,7 @@ class SettingsState extends State<Settings>
   bool _notificationsPaused = false;
   int _alertsUnread = 0;
   bool _useTestStream = false;
+  String? _appVersion;
 
   SettingsState() {
     DependencyInjector().injectByView(this);
@@ -59,6 +61,16 @@ class SettingsState extends State<Settings>
     if (mode == ThemeMode.dark) return true;
     if (mode == ThemeMode.light) return false;
     return MediaQuery.of(context).platformBrightness == Brightness.dark;
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final info = await PackageInfo.fromPlatform();
+      if (!mounted) return;
+      setState(() => _appVersion = '${info.version} (${info.buildNumber})');
+    } catch (_) {
+      // Version information is optional and must not prevent the menu opening.
+    }
   }
 
   void _onAppSettingsChanged() {
@@ -151,6 +163,7 @@ class SettingsState extends State<Settings>
   @override
   void initState() {
     super.initState();
+    _loadAppVersion();
     if (Platform.isAndroid) {
       MethodChannel('cuacfm.flutter.io/changeScreen').invokeMethod(
           'changeScreen', {"currentScreen": "settings", "close": false});
@@ -199,6 +212,7 @@ class SettingsState extends State<Settings>
       final subscribed = prefs.getBool(key) ?? false;
       if (!subscribed) continue;
       final topic = key.replaceFirst('notif_', '');
+      if (topic == 'live_shows_info') continue;
       if (paused) {
         await FirebaseMessaging.instance.unsubscribeFromTopic(topic);
       } else {
@@ -718,42 +732,6 @@ class SettingsState extends State<Settings>
                                   height: 1,
                                   color: _colors.grey.withValues(alpha: 0.2)),
                             ),
-                            // Schedule info
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  SafeMap.safe(
-                                      _localization.translateMap("settings"),
-                                      ["config_section", "item2"]),
-                                  style: TextStyle(
-                                      letterSpacing: 0,
-                                      color: _colors.font,
-                                      fontWeight: FontWeight.w400,
-                                      fontSize: 16),
-                                ),
-                                Switch(
-                                  value: isLiveNotificationEnabled,
-                                  onChanged: !pushNotificationsEnabled
-                                      ? null
-                                      : (value) {
-                                          _presenter
-                                              .onLiveNotificationStatus(value);
-                                          setState(() =>
-                                              isLiveNotificationEnabled =
-                                                  value);
-                                        },
-                                  activeTrackColor: _colors.yellow,
-                                  activeThumbColor: Color(0xFF1A1A1A),
-                                ),
-                              ],
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 10),
-                              child: Divider(
-                                  height: 1,
-                                  color: _colors.grey.withValues(alpha: 0.2)),
-                            ),
                             // Pausar alertas
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -835,7 +813,7 @@ class SettingsState extends State<Settings>
                       // ── JOIN US ──────────────────────────────────────────────
                       GestureDetector(
                         onTap: () => _presenter.onWebPageClicked(
-                            "https://cuacfm.org/asociacion-cuac/unete/"),
+                            "https://aberradio.com/join-us"),
                         child: Container(
                           width: double.infinity,
                           decoration: BoxDecoration(
@@ -998,76 +976,6 @@ class SettingsState extends State<Settings>
                                         fontSize: 16),
                                   ),
                                   trailing: FaIcon(FontAwesomeIcons.facebook,
-                                      color: _colors.grey, size: 25.0)))),
-                      Material(
-                          color: _colors.transparent,
-                          child: InkWell(
-                              onTap: () {
-                                _presenter
-                                    .onTwitterClicked(_radioStation.blueskyUrl);
-                              },
-                              child: ListTile(
-                                  contentPadding:
-                                      EdgeInsets.symmetric(horizontal: 0),
-                                  title: Text(
-                                    SafeMap.safe(
-                                        _localization.translateMap("settings"),
-                                        ["social_section", "item2"]),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        letterSpacing: 0,
-                                        color: _colors.font,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16),
-                                  ),
-                                  trailing: FaIcon(FontAwesomeIcons.comment,
-                                      color: _colors.grey, size: 25.0)))),
-                      Material(
-                          color: _colors.transparent,
-                          child: InkWell(
-                              onTap: () {
-                                _presenter.onInstagramClicked();
-                              },
-                              child: ListTile(
-                                  contentPadding:
-                                      EdgeInsets.symmetric(horizontal: 0),
-                                  title: Text(
-                                    SafeMap.safe(
-                                        _localization.translateMap("settings"),
-                                        ["social_section", "item3"]),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        letterSpacing: 0,
-                                        color: _colors.font,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16),
-                                  ),
-                                  trailing: FaIcon(FontAwesomeIcons.instagram,
-                                      color: _colors.grey, size: 25.0)))),
-                      Material(
-                          color: _colors.transparent,
-                          child: InkWell(
-                              onTap: () {
-                                _presenter.onTikTokClicked();
-                              },
-                              child: ListTile(
-                                  contentPadding:
-                                      EdgeInsets.symmetric(horizontal: 0),
-                                  title: Text(
-                                    SafeMap.safe(
-                                        _localization.translateMap("settings"),
-                                        ["social_section", "item4"]),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        letterSpacing: 0,
-                                        color: _colors.font,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16),
-                                  ),
-                                  trailing: FaIcon(FontAwesomeIcons.tiktok,
                                       color: _colors.grey, size: 25.0)))),
                       SizedBox(height: 15),
                       Text(
@@ -1236,6 +1144,19 @@ class SettingsState extends State<Settings>
                                   ),
                                   trailing: FaIcon(FontAwesomeIcons.fileCode,
                                       color: _colors.grey, size: 25.0)))),
+                      if (_appVersion != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 24),
+                          child: SizedBox(
+                            width: double.infinity,
+                            child: Text(
+                              '${SafeMap.safe(_localization.translateMap("settings"), ["version"])} $_appVersion',
+                              key: const Key('app_version'),
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: _colors.grey, fontSize: 13),
+                            ),
+                          ),
+                        ),
                       SizedBox(height: 80)
                     ]))));
   }

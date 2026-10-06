@@ -1,6 +1,7 @@
 {
   "home": {
     "welcome_msg_1": "Bore da", "welcome_msg_2": "Prynhawn da", "welcome_msg_3": "Noswaith dda",
+    "welcome_msg_4": "Helo",
     "outstanding_msg": "Y newyddion diweddaraf", "live_msg": "Yn fyw", "now_playing": "Yn chwarae nawr", "recent_msg": "Newydd yr wythnos hon",
     "podcast_recent_msg": "Podlediadau diweddar", "join_msg": "Ymunwch â ni", "join_msg_detail": "Eisiau eich rhaglen radio eich hun?",
     "podcast_of_day_msg": "Darganfod podlediadau", "now_msg": "Amserlen", "view_schedule": "Gweld yr amserlen", "coming_up": "Nesaf", "schedule_now": "Nawr", "schedule_next": "Nesaf",
@@ -15,10 +16,11 @@
   "podcast_detail": {"empty_msg": "", "empty_episodes_msg": "Nid oes penodau ar hyn o bryd.", "no_description": "Nid oes disgrifiad o’r bennod hon eto.", "no_news_description": "Nid oes cynnwys ar gyfer y newyddion hwn eto.", "alerts": "Hysbysiadau"},
   "new": {"history_title": "Am Aber Radio", "minutes_ago": "%s munud yn ôl", "hours_ago": "%s awr yn ôl", "yesterday": "Ddoe", "days_ago": "%s diwrnod yn ôl"},
   "settings": {
+    "version": "Fersiwn",
     "rating_title": "Ydych chi’n mwynhau’r ap a’n darllediadau?", "rating_body": "Ystyriwch roi sgôr i ni yn y siop apiau fel y gall mwy o bobl ddarganfod Aber Radio.",
     "station_section": {"name": "YR ORSAF", "item1": "Hanes", "item2": "Oriel"},
     "alerts_section": {"name": "Hysbysiadau", "empty": "Dim hysbysiadau y mis hwn."},
-    "config_section": {"name": "GOSODIADAU", "item1": "Thema", "item1_light": "Golau", "item1_dark": "Tywyll", "item1_system": "System", "item2": "Gwybodaeth yr amserlen", "item4": "Oedi hysbysiadau", "item5": "Ffrwd brawf", "item3": "Iaith", "item3_system": "System"},
+    "config_section": {"name": "GOSODIADAU", "item1": "Thema", "item1_light": "Golau", "item1_dark": "Tywyll", "item1_system": "System", "item2": "Gwybodaeth yr amserlen", "item4": "Oedi hysbysiadau", "item5": "Ffrwd", "item3": "Iaith", "item3_system": "System"},
     "social_section": {"name": "RHWYDWEITHIAU CYMDEITHASOL", "item1": "Facebook", "item2": "Bluesky", "item3": "Instagram", "item4": "TikTok"},
     "more_info_section": {"name": "RHAGOR O WYBODAETH", "item1": "Gwefan", "item2": "Lleoliad", "item3": "Cysylltu"},
     "legal_info_section": {"name": "CYFREITHIOL", "item1": "Polisi preifatrwydd", "item2": "Telerau ac amodau", "item3": "Trwydded meddalwedd"}
