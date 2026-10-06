@@ -308,8 +308,23 @@ class CurrentPlayer implements CurrentPlayerContract {
   bool _livePlaybackRequested = false;
   bool _livePlaybackStarting = false;
   bool _liveSourcePrepared = false;
+  Timer? _liveStartupReadyTimer;
   bool _liveRecoveryInProgress = false;
   int _fadeSequence = 0;
+
+  void _settleLiveStartup() {
+    if (!_livePlaybackStarting || !_liveSourcePrepared || !_isLiveReady ||
+        _liveStartupReadyTimer != null) return;
+    // Live MP3 clocks may stay at zero. Use stable native readiness instead.
+    _liveStartupReadyTimer = Timer(const Duration(milliseconds: 300), () {
+      _liveStartupReadyTimer = null;
+      if (_livePlaybackStarting && _livePlaybackRequested && _isLiveReady) {
+        _livePlaybackStarting = false;
+        playerState = AudioPlayerState.play;
+        onUpdate?.call();
+      }
+    });
+  }
 
   bool get _isLiveReady =>
       !isPodcast &&
@@ -394,6 +409,8 @@ class CurrentPlayer implements CurrentPlayerContract {
       if (!isPodcast) {
         _livePlaybackRequested = true;
         _livePlaybackStarting = true;
+        _liveStartupReadyTimer?.cancel();
+        _liveStartupReadyTimer = null;
         _liveSourcePrepared = false;
         onUpdate?.call();
       }
@@ -404,8 +421,13 @@ class CurrentPlayer implements CurrentPlayerContract {
 
       _stateSubscription = audioPlayer.playerStateStream.listen((event) async {
         if (!isPodcast) {
+          if (!event.playing || event.processingState != ProcessingState.ready) {
+            _liveStartupReadyTimer?.cancel();
+            _liveStartupReadyTimer = null;
+          }
           if (_liveSourcePrepared &&
               event.playing && event.processingState == ProcessingState.ready) {
+            _settleLiveStartup();
             if (playerState != AudioPlayerState.play) {
               playerState = AudioPlayerState.play;
               onUpdate?.call();
@@ -481,16 +503,6 @@ class CurrentPlayer implements CurrentPlayerContract {
             }
           }
         } else {
-          // Ready can briefly precede another buffering event on iOS. Keep
-          // startup loading until the new stream's playback clock advances.
-          if (_livePlaybackStarting &&
-              _liveSourcePrepared &&
-              p > Duration.zero &&
-              _isLiveReady) {
-            _livePlaybackStarting = false;
-            playerState = AudioPlayerState.play;
-            onUpdate?.call();
-          }
           position = Duration(seconds: 1);
           duration = Duration(hours: 24);
         }
@@ -515,6 +527,7 @@ class CurrentPlayer implements CurrentPlayerContract {
             await audioPlayer.play();
           } else {
             unawaited(audioPlayer.play());
+            _settleLiveStartup();
             _startWrappedSession();
             _logPlay();
           }
@@ -625,6 +638,8 @@ class CurrentPlayer implements CurrentPlayerContract {
   void stop() {
     _cancelFade();
     _livePlaybackRequested = false;
+    _liveStartupReadyTimer?.cancel();
+    _liveStartupReadyTimer = null;
     _livePlaybackStarting = false;
     _stop();
   }
@@ -707,6 +722,8 @@ class CurrentPlayer implements CurrentPlayerContract {
   Future pause() async {
     if (!isPodcast) {
       _livePlaybackRequested = false;
+      _liveStartupReadyTimer?.cancel();
+      _liveStartupReadyTimer = null;
       _livePlaybackStarting = false;
     }
     if (playerState == AudioPlayerState.play) {
@@ -738,6 +755,8 @@ class CurrentPlayer implements CurrentPlayerContract {
   void release() async {
     _cancelFade();
     _livePlaybackRequested = false;
+    _liveStartupReadyTimer?.cancel();
+    _liveStartupReadyTimer = null;
     _livePlaybackStarting = false;
     playerState = AudioPlayerState.stop;
     position = Duration(seconds: 0);

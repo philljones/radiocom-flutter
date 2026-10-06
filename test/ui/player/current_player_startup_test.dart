@@ -54,7 +54,7 @@ class NativePlayer extends Fake implements AudioPlayer {
 }
 
 void main() {
-  test('startup stays loading across ready-buffering-ready until clock advances; later stall offers Play', () async {
+  test('startup stays loading across ready-buffering-ready without clock updates; later stall offers Play', () async {
     await setupFirebaseCoreMocks();
     final native = NativePlayer();
     final injector = Injector.appInstance;
@@ -72,7 +72,7 @@ void main() {
     native.emit(true, ProcessingState.ready);
     native.positions.add(Duration.zero);
     expect(player.isBuffering(), isTrue);
-    native.positions.add(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 350));
     expect(player.isBuffering(), isFalse);
     expect(player.isPlaying(), isTrue);
     native.emit(true, ProcessingState.buffering);
@@ -80,7 +80,7 @@ void main() {
     expect(player.isPlaying(), isFalse);
     expect(await player.restartLiveStream(), isTrue);
     expect(player.isBuffering(), isTrue);
-    native.positions.add(const Duration(milliseconds: 200));
+    await Future<void>.delayed(const Duration(milliseconds: 350));
     expect(player.isPlaying(), isTrue);
     expect(player.isBuffering(), isFalse);
     player.stop();
