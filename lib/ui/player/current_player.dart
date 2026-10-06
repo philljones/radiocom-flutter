@@ -406,12 +406,8 @@ class CurrentPlayer implements CurrentPlayerContract {
         if (!isPodcast) {
           if (_liveSourcePrepared &&
               event.playing && event.processingState == ProcessingState.ready) {
-            final wasStarting = _livePlaybackStarting;
-            _livePlaybackStarting = false;
             if (playerState != AudioPlayerState.play) {
               playerState = AudioPlayerState.play;
-              onUpdate?.call();
-            } else if (wasStarting) {
               onUpdate?.call();
             }
           } else if (_livePlaybackRequested &&
@@ -485,6 +481,16 @@ class CurrentPlayer implements CurrentPlayerContract {
             }
           }
         } else {
+          // Ready can briefly precede another buffering event on iOS. Keep
+          // startup loading until the new stream's playback clock advances.
+          if (_livePlaybackStarting &&
+              _liveSourcePrepared &&
+              p > Duration.zero &&
+              _isLiveReady) {
+            _livePlaybackStarting = false;
+            playerState = AudioPlayerState.play;
+            onUpdate?.call();
+          }
           position = Duration(seconds: 1);
           duration = Duration(hours: 24);
         }
