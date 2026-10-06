@@ -51,6 +51,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
   bool _descriptionExpanded = false;
   bool _isFavorite = false;
   bool _isNotificationEnabled = false;
+  bool _updatingAlerts = false;
   Color _paletteColor = Colors.transparent;
   SnackBar? snackBarConnection;
   late CuacLocalization _localization;
@@ -481,7 +482,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // Botón favorito
-              GestureDetector(
+              _ProgrammeAction(
                 onTap: () {
                   setState(() {
                     if (_isFavorite) {
@@ -531,22 +532,24 @@ class DetailPodcastState extends State<DetailPodcastPage>
               ),
 
               // Botón notificacións
-              GestureDetector(
-                onTap: !pushNotificationsEnabled
+              _ProgrammeAction(
+                onTap: !pushNotificationsEnabled || _updatingAlerts
                     ? null
                     : () async {
+                        final enableAlerts = !_isNotificationEnabled;
+                        setState(() => _updatingAlerts = true);
                         try {
-                        if (_isNotificationEnabled) {
-                          await _notificationService
-                              .unsubscribeFromTopic(widget.program.rssUrl);
-                        } else {
-                          await _notificationService
-                              .subscribeToTopic(widget.program.rssUrl);
-                        }
-                        if (mounted)
-                          setState(() {
-                            _isNotificationEnabled = !_isNotificationEnabled;
-                          });
+                          if (_isNotificationEnabled) {
+                            await _notificationService
+                                .unsubscribeFromTopic(widget.program.rssUrl);
+                          } else {
+                            await _notificationService
+                                .subscribeToTopic(widget.program.rssUrl);
+                          }
+                          if (mounted)
+                            setState(() {
+                              _isNotificationEnabled = enableAlerts;
+                            });
                         } catch (error) {
                           if (mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -555,11 +558,26 @@ class DetailPodcastState extends State<DetailPodcastPage>
                                   : 'Unable to update alerts. Please try again.'),
                             ));
                           }
+                        } finally {
+                          if (mounted) setState(() => _updatingAlerts = false);
                         }
                       },
                 child: Column(
                   children: [
-                    Icon(
+                    if (_updatingAlerts)
+                      SizedBox(
+                        width: 28,
+                        height: 28,
+                        child: Padding(
+                          padding: const EdgeInsets.all(3),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: _colors.yellow,
+                          ),
+                        ),
+                      )
+                    else
+                      Icon(
                       _isNotificationEnabled
                           ? Icons.notifications_active
                           : Icons.notifications_none,
@@ -591,7 +609,7 @@ class DetailPodcastState extends State<DetailPodcastPage>
                   color: _colors.fontGrey.withValues(alpha: 0.15)),
 
               // Botón compartir
-              GestureDetector(
+              _ProgrammeAction(
                 onTap: () => _presenter.onShareClicked(widget.program),
                 child: Column(
                   children: [
@@ -835,4 +853,27 @@ class DetailPodcastState extends State<DetailPodcastPage>
         " " +
         date.year.toString();
   }
+}
+
+// Give each programme action a visible press response and a generous tap area.
+class _ProgrammeAction extends StatelessWidget {
+  const _ProgrammeAction({required this.onTap, required this.child});
+
+  final VoidCallback? onTap;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(12),
+          highlightColor: Colors.grey.withValues(alpha: 0.18),
+          splashColor: Colors.grey.withValues(alpha: 0.25),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+            child: child,
+          ),
+        ),
+      );
 }
