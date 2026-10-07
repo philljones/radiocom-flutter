@@ -1440,7 +1440,11 @@ class MyHomePageState extends State<MyHomePage>
                       ? SafeMap.safe(
                           _localization.translateMap("home"), ["schedule_next"])
                       : "Next";
+                  final program = findPodcastByName(next.rssUrl);
                   return _buildScheduleCard(
+                    onTap: program == null
+                        ? null
+                        : () => _presenter.onPodcastClicked(program),
                     label: nextLabel,
                     logoUrl: next.logoUrl,
                     name: next.name,
@@ -1890,79 +1894,88 @@ class MyHomePageState extends State<MyHomePage>
     required String name,
     DateTime? start,
     DateTime? end,
+    VoidCallback? onTap,
   }) {
     final timeStr = (start != null && end != null)
         ? '${start.hour.toString().padLeft(2, '0')}:${start.minute.toString().padLeft(2, '0')} – ${end.hour.toString().padLeft(2, '0')}:${end.minute.toString().padLeft(2, '0')}'
         : null;
 
-    return Container(
-      height: 90,
-      decoration: BoxDecoration(
-        color: _colors.palidwhitedark,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(12.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: SizedBox(
-              width: 60,
-              height: 60,
-              child: CustomImage(
-                radius: 0,
-                background: false,
-                backgroundColor: Colors.white,
-                fit: BoxFit.cover,
-                resPath: logoUrl,
+    return Material(
+      color: Colors.transparent,
+      borderRadius: BorderRadius.circular(12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Ink(
+          height: 90,
+          decoration: BoxDecoration(
+            color: _colors.palidwhitedark,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.all(12.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: SizedBox(
+                  width: 60,
+                  height: 60,
+                  child: CustomImage(
+                    radius: 0,
+                    background: false,
+                    backgroundColor: Colors.white,
+                    fit: BoxFit.cover,
+                    resPath: logoUrl,
+                  ),
+                ),
               ),
-            ),
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: _colors.fontGrey,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0,
-                  ),
-                ),
-                SizedBox(height: 2),
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: _colors.font,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                    height: 1.2,
-                    letterSpacing: 0,
-                  ),
-                ),
-                if (timeStr != null) ...[
-                  SizedBox(height: 2),
-                  Text(
-                    timeStr,
-                    style: TextStyle(
-                      color: _colors.fontGrey,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 0,
+              SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      label,
+                      style: TextStyle(
+                        color: _colors.fontGrey,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0,
+                      ),
                     ),
-                  ),
-                ],
-              ],
-            ),
+                    SizedBox(height: 2),
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: _colors.font,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        height: 1.2,
+                        letterSpacing: 0,
+                      ),
+                    ),
+                    if (timeStr != null) ...[
+                      SizedBox(height: 2),
+                      Text(
+                        timeStr,
+                        style: TextStyle(
+                          color: _colors.fontGrey,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                          letterSpacing: 0,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
