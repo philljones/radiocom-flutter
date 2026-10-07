@@ -917,29 +917,6 @@ class SettingsState extends State<Settings>
                                   ),
                                   trailing: Icon(Icons.radio,
                                       color: _colors.grey, size: 25.0)))),
-                      Material(
-                          color: _colors.transparent,
-                          child: InkWell(
-                              onTap: () {
-                                _presenter.onGalleryClicked();
-                              },
-                              child: ListTile(
-                                  contentPadding:
-                                      EdgeInsets.symmetric(horizontal: 0),
-                                  title: Text(
-                                    SafeMap.safe(
-                                        _localization.translateMap("settings"),
-                                        ["station_section", "item2"]),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                        letterSpacing: 0,
-                                        color: _colors.font,
-                                        fontWeight: FontWeight.w400,
-                                        fontSize: 16),
-                                  ),
-                                  trailing: FaIcon(FontAwesomeIcons.images,
-                                      color: _colors.grey, size: 25.0)))),
                       SizedBox(height: 20),
                       Text(
                         SafeMap.safe(_localization.translateMap("settings"),
