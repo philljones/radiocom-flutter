@@ -1,0 +1,22 @@
+name: Release branch policy
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, edited]
+permissions:
+  contents: read
+jobs:
+  source:
+    name: Require dev as release source
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check source branch
+        env:
+          SOURCE_BRANCH: ${{ github.event.pull_request.head.ref }}
+          SOURCE_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          TARGET_REPO: ${{ github.repository }}
+        run: |
+          if [ "$SOURCE_BRANCH" != "dev" ] || [ "$SOURCE_REPO" != "$TARGET_REPO" ]; then
+            echo 'Release pull requests must come from dev in this repository.'
+            exit 1
+          fi
