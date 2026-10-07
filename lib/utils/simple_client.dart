@@ -112,7 +112,7 @@ class SimpleClient {
         respBody = json.decode(responseUTF8);
       } else if (responseType == HTTPResponseType.XML) {
         var xml2json = new Xml2Json();
-        xml2json.parse(response.body);
+        xml2json.parse(utf8.decode(response.bodyBytes));
         var resultDecode = json.decode(xml2json.toGData());
         if (resultDecode.containsKey("rss")) {
           if(resultDecode["rss"]["channel"]["item"] is List){
