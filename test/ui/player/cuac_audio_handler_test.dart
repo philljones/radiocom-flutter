@@ -101,6 +101,20 @@ void main() {
     fakePlayer.fakeClose();
   });
 
+  test('live connection feedback restores the track after buffering', () async {
+    handler.setNowPlaying(_testMediaItem(isLive: true), isLive: true);
+    fakePlayer._playing = true;
+    fakePlayer._processingState = ProcessingState.buffering;
+    fakePlayer.emitPlaying(true);
+    await Future<void>.delayed(Duration.zero);
+    expect(handler.mediaItem.value?.title, 'Connecting…');
+    fakePlayer._processingState = ProcessingState.ready;
+    fakePlayer.emitPlaying(true);
+    await Future<void>.delayed(Duration.zero);
+    expect(handler.mediaItem.value?.title, 'Live Radio');
+    expect(handler.playbackState.value.controls.first, MediaControl.pause);
+  });
+
   // -------------------------------------------------------------------------
   // setNowPlaying
   // -------------------------------------------------------------------------

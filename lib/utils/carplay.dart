@@ -46,7 +46,17 @@ Future<bool> startCarPlayLive(CuacRepositoryContract repository,
     player.isPodcast = false;
     player.now = now ?? player.now ?? Now.mock();
     player.playbackSource = 'carplay';
-    return await player.restartLiveStream();
+    if (!await player.restartLiveStream()) return false;
+    // Keep Apple's list-selection spinner until audio is actually ready.
+    final deadline = DateTime.now().add(const Duration(seconds: 30));
+    while (!player.isStreamingAudio() || player.isBuffering()) {
+      if (DateTime.now().isAfter(deadline)) {
+        player.stop();
+        return false;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    return true;
   } catch (_) {
     return false;
   }
