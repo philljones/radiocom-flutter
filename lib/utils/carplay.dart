@@ -1,3 +1,5 @@
+import 'package:audio_service/audio_service.dart';
+import 'package:cuacfm/ui/player/cuac_audio_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:injector/injector.dart';
@@ -11,6 +13,21 @@ const _carPlay = MethodChannel('uk.co.abergavennyradio/carplay');
 /// Audio is ready independently of whether a phone screen or onboarding is visible.
 Future<void> configureCarPlay() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
+  final player = Injector.appInstance.get<CurrentPlayerContract>();
+  // Publish a stopped station before the phone UI has loaded its programme.
+  if (!player.isPodcast && player.now == null) {
+    player.now = Now.mock();
+    Injector.appInstance.get<CuacAudioHandler>().setNowPlaying(
+      MediaItem(
+        id: 'aber-radio-live',
+        title: 'Aber Radio',
+        album: 'Aber Radio',
+        artist: 'Listen Live',
+        artUri: Uri.parse('https://aberradio.com/fb_cover_photo.png'),
+      ),
+      isLive: true,
+    );
+  }
   _carPlay.setMethodCallHandler((call) async {
     if (call.method != 'listenLive') throw MissingPluginException();
     return startCarPlayLive(

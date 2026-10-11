@@ -1,3 +1,6 @@
+import 'package:cuacfm/domain/repository/radiocom_repository_contract.dart';
+import 'package:cuacfm/models/radiostation.dart';
+import 'package:cuacfm/utils/carplay.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cuacfm/ui/player/current_player.dart';
 import 'package:injector/injector.dart';
@@ -102,7 +105,11 @@ class CuacAudioHandler extends BaseAudioHandler {
           await currentPlayer.resume();
         }
       } else {
-        await currentPlayer.restartLiveStream();
+        await startCarPlayLive(
+          Injector.appInstance.get<CuacRepositoryContract>(),
+          currentPlayer,
+          Injector.appInstance.get<RadioStation>(),
+        );
       }
     } catch (_) {
       await _player.play();

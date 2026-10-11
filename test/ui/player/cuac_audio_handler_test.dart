@@ -1,3 +1,8 @@
+import '../../utils/carplay_test.dart' as carplay_fakes;
+import 'package:injector/injector.dart';
+import 'package:cuacfm/domain/repository/radiocom_repository_contract.dart';
+import 'package:cuacfm/models/radiostation.dart';
+import 'package:cuacfm/ui/player/current_player.dart';
 import 'dart:async';
 
 import 'package:audio_service/audio_service.dart';
@@ -99,6 +104,28 @@ void main() {
 
   tearDown(() {
     fakePlayer.fakeClose();
+  });
+
+  test('remote Play loads the stream without a phone Home screen', () async {
+    final injector = Injector.appInstance;
+    final repository = carplay_fakes.Repository();
+    final currentPlayer = carplay_fakes.Player();
+    final station = RadioStation.base();
+    injector.registerSingleton<CuacRepositoryContract>(() => repository);
+    injector.registerSingleton<CurrentPlayerContract>(() => currentPlayer);
+    injector.registerSingleton<RadioStation>(() => station);
+    try {
+      await handler.play();
+      expect(repository.stationRequests, 1);
+      expect(station.streamUrl, repository.url);
+      expect(currentPlayer.now, isNotNull);
+      expect(currentPlayer.restarts, 1);
+      expect(fakePlayer.playCalls, 0);
+    } finally {
+      injector.removeByKey<CuacRepositoryContract>();
+      injector.removeByKey<CurrentPlayerContract>();
+      injector.removeByKey<RadioStation>();
+    }
   });
 
   test('live connection feedback restores the track after buffering', () async {
