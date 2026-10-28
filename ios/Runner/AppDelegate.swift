@@ -81,9 +81,26 @@ class AppDelegate: FlutterAppDelegate {
             print(error)
         }
         
+        NotificationCenter.default.addObserver(
+            self, selector: #selector(audioRouteChanged(_:)),
+            name: .AVAudioSessionRouteChange, object: nil
+        )
+
         let launched = super.application(application, didFinishLaunchingWithOptions: launchOptions)
         startRadioEngine()
         return launchOptions?[.shortcutItem] == nil && launched
+    }
+
+    @objc private func audioRouteChanged(_ notification: Notification) {
+        let reason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt ?? 0
+        logAudioRoute("route change reason=\(reason)")
+    }
+
+    func logAudioRoute(_ context: String) {
+        let session = AVAudioSession.sharedInstance()
+        // Port types only: avoid logging personal Bluetooth/device names.
+        let outputs = session.currentRoute.outputs.map { $0.portType }.joined(separator: ",")
+        NSLog("AberRadio audio %@ category=%@ outputs=%@", context, session.category, outputs)
     }
 
     func startCarPlayLive(completion: @escaping (Bool) -> Void) {
@@ -154,6 +171,7 @@ class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
     func templateApplicationScene(_ templateApplicationScene: CPTemplateApplicationScene,
                                   didConnect interfaceController: CPInterfaceController) {
         controller = interfaceController
+        (UIApplication.shared.delegate as? AppDelegate)?.logAudioRoute("CarPlay connected")
         let live = CPListItem(text: "Listen Live", detailText: "Aber Radio")
         live.handler = { [weak self] _, completion in
             guard let self = self, !self.starting else { completion(); return }
