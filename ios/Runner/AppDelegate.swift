@@ -68,19 +68,15 @@ class AppDelegate: FlutterAppDelegate {
             UNUserNotificationCenter.current().delegate = self
         }
 
-       //set audio session to be on background always
         application.beginReceivingRemoteControlEvents()
+        // Configure media playback without activating an idle session on the
+        // phone before CarPlay connects. just_audio activates it on Play.
         do {
-            if #available(iOS 10.0, *) {
-                try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: [.mixWithOthers,.allowBluetooth,.allowAirPlay,.allowBluetoothA2DP])
-            } else {
-                try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback, with: [.mixWithOthers,.allowBluetooth])
-            }
-            try AVAudioSession.sharedInstance().setActive(true)
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSessionCategoryPlayback)
         } catch {
-            print(error)
+            NSLog("AberRadio audio category configuration failed: %@", error.localizedDescription)
         }
-        
+
         let launched = super.application(application, didFinishLaunchingWithOptions: launchOptions)
         startRadioEngine()
         return launchOptions?[.shortcutItem] == nil && launched
