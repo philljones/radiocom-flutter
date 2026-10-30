@@ -21,6 +21,7 @@ import 'package:cuacfm/ui/player/current_player.dart';
 import 'package:cuacfm/ui/player/current_timer.dart';
 import 'package:cuacfm/remote-data-source/network/radioco_api.dart';
 import 'package:cuacfm/utils/connection_contract.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 import 'package:injector/injector.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -326,31 +327,58 @@ class HomePresenter {
     });
   }
 
-  /// Refresh just the current programme/track after an SSE notification.
-  /// Unlike a full home resume, this does not reload news and the schedule.
-  refreshNowPlaying() {
-    _getLiveProgram(false, onlyNow: true);
+  Future<void>? _nowRefreshTask;
+  bool _nowRefreshPending = false;
+
+  /// Coalesce bursts into one request and a final catch-up, without reloading
+  /// news/podcasts or letting a previous stream's response overwrite this one.
+  Future<void> refreshNowPlaying() {
+    _nowRefreshPending = true;
+    return _nowRefreshTask ??= _drainNowPlaying().whenComplete(() {
+      _nowRefreshTask = null;
+    });
   }
 
-  _getLiveProgram(bool refreshAll, {bool onlyNow = false}) {
-    invoker.execute(getLiveDataUseCase).listen((result) {
-      if (result is Success) {
-        if (!currentPlayer.isPodcast) {
-          currentPlayer.now = result.data;
-          currentPlayer.currentSong = result.data.name;
-          currentPlayer.currentImage = result.data.logoUrl;
+  Future<void> _drainNowPlaying() async {
+    do {
+      _nowRefreshPending = false;
+      final source = TestStreamSwitch.selectionRevision;
+      try {
+        final result = await invoker.execute(getLiveDataUseCase).first;
+        if (source == TestStreamSwitch.selectionRevision && result is Success) {
+          _applyLiveProgramResult(result);
         }
-        _homeView.onLoadLiveData(result.data);
-      } else {
-        if (!currentPlayer.isPodcast) {
-          currentPlayer.now = Now.mock();
-          currentPlayer.currentSong = Now.mock().name;
-          currentPlayer.currentImage = Now.mock().logoUrl;
-        }
-        _homeView.onLiveDataError((result as Error).status);
+      } catch (_) {
+        // Keep the last good metadata on transient failure. Audio is independent.
       }
-      if (!onlyNow) _getRecentPodcast(refreshAll);
+    } while (_nowRefreshPending);
+  }
+
+  _getLiveProgram(bool refreshAll) {
+    final source = TestStreamSwitch.selectionRevision;
+    invoker.execute(getLiveDataUseCase).listen((result) {
+      if (source != TestStreamSwitch.selectionRevision) return;
+      _applyLiveProgramResult(result);
+      _getRecentPodcast(refreshAll);
     });
+  }
+
+  void _applyLiveProgramResult(Result result) {
+    if (result is Success) {
+      if (!currentPlayer.isPodcast) {
+        currentPlayer.now = result.data;
+        currentPlayer.currentSong = result.data.name;
+        currentPlayer.currentImage = result.data.logoUrl;
+      }
+      _homeView.onLoadLiveData(result.data);
+    } else {
+      if (!currentPlayer.isPodcast) {
+        currentPlayer.now = Now.mock();
+        currentPlayer.currentSong = Now.mock().name;
+        currentPlayer.currentImage = Now.mock().logoUrl;
+      }
+      _homeView.onLiveDataError((result as Error).status);
+    }
   }
 
   _getOutstanding() {

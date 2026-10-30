@@ -260,23 +260,16 @@ class MyHomePageState extends State<MyHomePage>
     );
   }
 
-  Future<void> _startNowPlayingEvents() async {
-    // The packaged radio app targets iOS and Android. Avoid opening sockets
-    // in desktop widget tests; never couple metadata delivery to audio playback.
-    if (Foundation.kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return;
-    final isTest = await TestStreamSwitch.isUsingTestStream();
-    if (!mounted || (!isContentUpdated && !_presenter.currentPlayer.isPlaying())) {
-      return;
-    }
-    final suffix = isTest ? '?mount=test' : '';
-    _nowEvents.start(
-      Uri.parse(
-        'https://api.aberradio.com/api/2/radiocom/transmissions/now/events$suffix',
-      ),
-      () {
-        if (mounted && (isContentUpdated || _presenter.currentPlayer.isPlaying())) {
-          _presenter.refreshNowPlaying();
-        }
+  void _startNowPlayingEvents() {
+    // Native mobile sockets only; metadata never controls audio playback.
+    if (!mounted || Foundation.kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return;
+    _nowEvents.sync(
+      url: TestStreamSwitch.nowEventsUrl,
+      isForeground: isContentUpdated,
+      isLivePlaying: !_presenter.currentPlayer.isPodcast &&
+          _presenter.currentPlayer.isPlaying(),
+      onEvent: () {
+        if (mounted) _presenter.refreshNowPlaying();
       },
     );
   }
@@ -294,7 +287,7 @@ class MyHomePageState extends State<MyHomePage>
       case AppLifecycleState.paused:
         isContentUpdated = false;
         // Retain updates for lock-screen metadata while live audio plays.
-        if (!_presenter.currentPlayer.isPlaying()) _nowEvents.stop();
+        _startNowPlayingEvents();
         break;
       default:
         break;
@@ -303,6 +296,7 @@ class MyHomePageState extends State<MyHomePage>
 
   @override
   void dispose() {
+    TestStreamSwitch.removeListener(_startNowPlayingEvents);
     _nowEvents.stop();
     connectionSubscription.cancel();
     _presenter.currentPlayer.onUpdate = null;
@@ -450,13 +444,12 @@ class MyHomePageState extends State<MyHomePage>
       }
     };
 
+    TestStreamSwitch.addListener(_startNowPlayingEvents);
     _startNowPlayingEvents();
 
     _presenter.currentPlayer.onUpdate = () {
       if (mounted) {
-        if (!isContentUpdated && !_presenter.currentPlayer.isPlaying()) {
-          _nowEvents.stop();
-        }
+        _startNowPlayingEvents();
         setState(() {
           if (_presenter.currentPlayer.isPlaying()) {
             isLoadingPlay = false;
