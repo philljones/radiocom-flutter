@@ -7,7 +7,8 @@ const bool testStreamSwitchEnabled = bool.fromEnvironment(
 
 class TestStreamSwitch {
   static const String liveStreamUrl = 'https://stream.aberradio.com/live.mp3';
-  static const String testStreamUrl = 'https://stream.aberradio.com/test.mp3';
+  static const String testStreamUrl =
+      'https://stream-test.aberradio.com/test.mp3';
   static const String _preferenceKey = 'use_test_stream';
   static bool _initialized = false;
   static bool _useTestStream = false;
@@ -31,8 +32,16 @@ class TestStreamSwitch {
     return streamUrlFor(_useTestStream);
   }
 
-  static String nowEndpointFor(String endpoint, bool useTestStream) =>
-      useTestStream ? '$endpoint&mount=test' : endpoint;
+  static String nowUrlFor(String productionUrl, bool useTestStream) {
+    if (!useTestStream) return productionUrl;
+    final production = Uri.parse(productionUrl);
+    return production.replace(
+      scheme: 'https',
+      host: 'api-test.aberradio.com',
+      port: 443,
+      queryParameters: {...production.queryParameters, 'mount': 'test'},
+    ).toString();
+  }
 
   static Future<bool> isUsingTestStream() async {
     if (!testStreamSwitchEnabled) return false;
@@ -54,8 +63,8 @@ class TestStreamSwitch {
     return resolveCurrentStreamUrl(productionUrl);
   }
 
-  static Future<String> resolveNowEndpoint(String endpoint) async {
-    if (!testStreamSwitchEnabled) return endpoint;
-    return nowEndpointFor(endpoint, await isUsingTestStream());
+  static Future<String> resolveNowUrl(String productionUrl) async {
+    if (!testStreamSwitchEnabled) return productionUrl;
+    return nowUrlFor(productionUrl, await isUsingTestStream());
   }
 }

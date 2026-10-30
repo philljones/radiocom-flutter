@@ -783,7 +783,7 @@ class SettingsState extends State<Settings>
                                           fontSize: 16),
                                     ),
                                     Text(
-                                      _useTestStream ? "test.mp3" : "live.mp3",
+                                      _useTestStream ? "France · test.mp3" : "London · live.mp3",
                                       style: TextStyle(
                                           letterSpacing: 0,
                                           color: _colors.grey,

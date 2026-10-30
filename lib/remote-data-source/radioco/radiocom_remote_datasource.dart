@@ -55,8 +55,9 @@ class RadiocoRemoteDataSource implements RadiocoRemoteDataSourceContract {
   }
 
   Future<Now?> getLiveBroadcast() async {
-    final endpoint = await TestStreamSwitch.resolveNowEndpoint(radiocoAPI.live);
-    Uri url = Uri.parse(radiocoAPI.baseUrl + endpoint);
+    final nowUrl = await TestStreamSwitch.resolveNowUrl(
+        radiocoAPI.baseUrl + radiocoAPI.live);
+    Uri url = Uri.parse(nowUrl);
     try {
       var res = await this.client.get(url);
       return Now.fromInstance(res);
