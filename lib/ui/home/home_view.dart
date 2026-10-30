@@ -24,6 +24,7 @@ import 'package:cuacfm/utils/player_view.dart';
 import 'package:cuacfm/utils/radiocom_colors.dart';
 import 'package:cuacfm/utils/safe_map.dart';
 import 'package:cuacfm/utils/test_stream_switch.dart';
+import 'package:cuacfm/utils/now_playing_sse.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -105,7 +106,7 @@ class MyHomePageState extends State<MyHomePage>
   bool isContentUpdated = true;
   bool isDarkModeEnabled = false;
   bool _isPodcastPaused = false;
-  Timer? _liveRefreshTimer;
+  final NowPlayingEventStream _nowEvents = NowPlayingEventStream();
   CuacLocalization _localization = Injector.appInstance.get<CuacLocalization>();
   double _playButtonScale = 1.0;
   int _selectedScheduleDayOffset = 0;
@@ -259,6 +260,27 @@ class MyHomePageState extends State<MyHomePage>
     );
   }
 
+  Future<void> _startNowPlayingEvents() async {
+    // The packaged radio app targets iOS and Android. Avoid opening sockets
+    // in desktop widget tests; never couple metadata delivery to audio playback.
+    if (Foundation.kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return;
+    final isTest = await TestStreamSwitch.isUsingTestStream();
+    if (!mounted || (!isContentUpdated && !_presenter.currentPlayer.isPlaying())) {
+      return;
+    }
+    final suffix = isTest ? '?mount=test' : '';
+    _nowEvents.start(
+      Uri.parse(
+        'https://api.aberradio.com/api/2/radiocom/transmissions/now/events$suffix',
+      ),
+      () {
+        if (mounted && (isContentUpdated || _presenter.currentPlayer.isPlaying())) {
+          _presenter.refreshNowPlaying();
+        }
+      },
+    );
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
@@ -266,10 +288,13 @@ class MyHomePageState extends State<MyHomePage>
         if (!isContentUpdated) {
           isContentUpdated = true;
           _presenter.onHomeResumed();
+          _startNowPlayingEvents();
         }
         break;
       case AppLifecycleState.paused:
         isContentUpdated = false;
+        // Retain updates for lock-screen metadata while live audio plays.
+        if (!_presenter.currentPlayer.isPlaying()) _nowEvents.stop();
         break;
       default:
         break;
@@ -278,7 +303,7 @@ class MyHomePageState extends State<MyHomePage>
 
   @override
   void dispose() {
-    _liveRefreshTimer?.cancel();
+    _nowEvents.stop();
     connectionSubscription.cancel();
     _presenter.currentPlayer.onUpdate = null;
     _outstandingPageController.dispose();
@@ -425,12 +450,13 @@ class MyHomePageState extends State<MyHomePage>
       }
     };
 
-    _liveRefreshTimer = Timer.periodic(const Duration(seconds: 60), (_) {
-      if (mounted) _presenter.onHomeResumed();
-    });
+    _startNowPlayingEvents();
 
     _presenter.currentPlayer.onUpdate = () {
       if (mounted) {
+        if (!isContentUpdated && !_presenter.currentPlayer.isPlaying()) {
+          _nowEvents.stop();
+        }
         setState(() {
           if (_presenter.currentPlayer.isPlaying()) {
             isLoadingPlay = false;
@@ -625,6 +651,8 @@ class MyHomePageState extends State<MyHomePage>
   @override
   void onMenuReturn(BottomBarOption option) {
     if (!mounted) return;
+    // The optional test-stream switch may have changed in Settings.
+    _startNowPlayingEvents();
     setState(() {
       bottomBarOption = option;
     });
