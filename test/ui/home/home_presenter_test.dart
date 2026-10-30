@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:cuacfm/domain/result/result.dart';
+import 'package:cuacfm/utils/test_stream_switch.dart';
 import 'package:cuacfm/domain/repository/favorites_repository_contract.dart';
 import 'package:cuacfm/domain/repository/radiocom_repository_contract.dart';
 import 'package:cuacfm/injector/dependency_injector.dart';
@@ -574,4 +577,61 @@ void main() {
     verify(mockRepository.getOutStanding("https://api.aberradio.com/api/2/outstanding/1")).called(1);
     verify(mockRepository.getOutStanding("https://api.aberradio.com/api/2/outstanding/2")).called(1);
   });
+
+  test('SSE refresh updates live metadata without loading other home content', () async {
+    when(mockRepository.getLiveBroadcast()).thenAnswer((_) => MockRadiocoRepository.now());
+    mockPlayer.isPodcast = false;
+    await presenter.refreshNowPlaying();
+    expect(view.viewState, [HomeState.liveDataLoaded]);
+    verify(mockRepository.getLiveBroadcast()).called(1);
+    verifyNoMoreInteractions(mockRepository);
+  });
+
+  test('rapid SSE events coalesce to one in-flight request plus a catch-up', () async {
+    final pending = Completer<Result<Now>>();
+    var calls = 0;
+    when(mockRepository.getLiveBroadcast()).thenAnswer((_) {
+      calls++;
+      return calls == 1 ? pending.future : MockRadiocoRepository.now();
+    });
+    final first = presenter.refreshNowPlaying();
+    await Future<void>.delayed(Duration.zero);
+    final rest = List.generate(20, (_) => presenter.refreshNowPlaying());
+    expect(calls, 1);
+    pending.complete(Success(Now.mock(), Status.ok));
+    await Future.wait([first, ...rest]);
+    expect(calls, 2);
+    expect(view.viewState, [HomeState.liveDataLoaded, HomeState.liveDataLoaded]);
+  });
+
+  test('failed SSE refresh preserves the last good metadata', () async {
+    when(mockRepository.getLiveBroadcast()).thenAnswer((_) => MockRadiocoRepository.now(isEmpty: true));
+    mockPlayer.currentSong = 'Last good programme';
+    await presenter.refreshNowPlaying();
+    expect(mockPlayer.currentSong, 'Last good programme');
+    expect(view.viewState, isEmpty);
+  });
+
+  test('switching sources rejects an old response and fetches the new one', () async {
+    SharedPreferences.setMockInitialValues({});
+    await TestStreamSwitch.initialize();
+    await TestStreamSwitch.setUsingTestStream(false);
+    final pending = Completer<Result<Now>>();
+    final old = Now.mock()..trackTitle = 'London track';
+    final next = Now.mock()..trackTitle = 'France track';
+    var calls = 0;
+    when(mockRepository.getLiveBroadcast()).thenAnswer((_) {
+      calls++;
+      return calls == 1 ? pending.future : Future.value(Success(next, Status.ok));
+    });
+    final first = presenter.refreshNowPlaying();
+    await Future<void>.delayed(Duration.zero);
+    await TestStreamSwitch.setUsingTestStream(true);
+    final second = presenter.refreshNowPlaying();
+    pending.complete(Success(old, Status.ok));
+    await Future.wait([first, second]);
+    expect(calls, 2);
+    expect(view.data, [next]);
+    await TestStreamSwitch.setUsingTestStream(false);
+  }, skip: !testStreamSwitchEnabled);
 }
