@@ -1,3 +1,6 @@
+import 'package:cuacfm/domain/repository/radiocom_repository_contract.dart';
+import 'package:cuacfm/models/radiostation.dart';
+import 'package:cuacfm/utils/carplay.dart';
 import 'package:audio_service/audio_service.dart';
 import 'package:cuacfm/ui/player/current_player.dart';
 import 'package:injector/injector.dart';
@@ -19,6 +22,21 @@ class CuacAudioHandler extends BaseAudioHandler {
 
   final AudioPlayer _player;
   bool _isLive = false;
+  bool _playRequested = false;
+  MediaItem? _normalMediaItem;
+
+  void _updateConnectionFeedback() {
+    final item = _normalMediaItem;
+    if (!_isLive || item == null) return;
+    final connecting = _playRequested ||
+        _player.processingState == ProcessingState.loading ||
+        (_player.playing &&
+            _player.processingState == ProcessingState.buffering);
+    final title = connecting ? 'Connecting…' : item.title;
+    if (mediaItem.valueOrNull?.title != title) {
+      mediaItem.add(connecting ? item.copyWith(title: title) : item);
+    }
+  }
 
   CuacAudioHandler(this._player) {
     _player.playbackEventStream.listen((_) => _broadcastState());
@@ -33,11 +51,13 @@ class CuacAudioHandler extends BaseAudioHandler {
 
   void setNowPlaying(MediaItem item, {required bool isLive}) {
     _isLive = isLive;
+    _normalMediaItem = item;
     mediaItem.add(isLive ? item : item.copyWith(duration: _player.duration));
     _broadcastState();
   }
 
   void _broadcastState() {
+    _updateConnectionFeedback();
     // just_audio can keep `playing` true while a live stream is stalled in
     // buffering. Report that state as not playing so car and lock-screen
     // controls offer a working Play command that can rebuild the connection.
@@ -72,6 +92,10 @@ class CuacAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> play() async {
+    if (_isLive) {
+      _playRequested = true;
+      _updateConnectionFeedback();
+    }
     try {
       final currentPlayer = Injector.appInstance.get<CurrentPlayerContract>();
       if (currentPlayer.isPodcast) {
@@ -81,15 +105,23 @@ class CuacAudioHandler extends BaseAudioHandler {
           await currentPlayer.resume();
         }
       } else {
-        await currentPlayer.restartLiveStream();
+        await startCarPlayLive(
+          Injector.appInstance.get<CuacRepositoryContract>(),
+          currentPlayer,
+          Injector.appInstance.get<RadioStation>(),
+        );
       }
     } catch (_) {
       await _player.play();
+    } finally {
+      _playRequested = false;
+      _updateConnectionFeedback();
     }
   }
 
   @override
   Future<void> pause() async {
+    _playRequested = false;
     try {
       Injector.appInstance.get<CurrentPlayerContract>().pause();
     } catch (_) {}
@@ -98,6 +130,7 @@ class CuacAudioHandler extends BaseAudioHandler {
 
   @override
   Future<void> stop() async {
+    _playRequested = false;
     try {
       Injector.appInstance.get<CurrentPlayerContract>().stop();
     } catch (_) {}

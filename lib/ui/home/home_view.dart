@@ -24,6 +24,7 @@ import 'package:cuacfm/utils/player_view.dart';
 import 'package:cuacfm/utils/radiocom_colors.dart';
 import 'package:cuacfm/utils/safe_map.dart';
 import 'package:cuacfm/utils/test_stream_switch.dart';
+import 'package:cuacfm/utils/now_playing_sse.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -105,7 +106,7 @@ class MyHomePageState extends State<MyHomePage>
   bool isContentUpdated = true;
   bool isDarkModeEnabled = false;
   bool _isPodcastPaused = false;
-  Timer? _liveRefreshTimer;
+  final NowPlayingEventStream _nowEvents = NowPlayingEventStream();
   CuacLocalization _localization = Injector.appInstance.get<CuacLocalization>();
   double _playButtonScale = 1.0;
   int _selectedScheduleDayOffset = 0;
@@ -259,6 +260,20 @@ class MyHomePageState extends State<MyHomePage>
     );
   }
 
+  void _startNowPlayingEvents() {
+    // Native mobile sockets only; metadata never controls audio playback.
+    if (!mounted || Foundation.kIsWeb || !(Platform.isIOS || Platform.isAndroid)) return;
+    _nowEvents.sync(
+      url: TestStreamSwitch.nowEventsUrl,
+      isForeground: isContentUpdated,
+      isLivePlaying: !_presenter.currentPlayer.isPodcast &&
+          _presenter.currentPlayer.isPlaying(),
+      onEvent: () {
+        if (mounted) _presenter.refreshNowPlaying();
+      },
+    );
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     switch (state) {
@@ -266,10 +281,13 @@ class MyHomePageState extends State<MyHomePage>
         if (!isContentUpdated) {
           isContentUpdated = true;
           _presenter.onHomeResumed();
+          _startNowPlayingEvents();
         }
         break;
       case AppLifecycleState.paused:
         isContentUpdated = false;
+        // Retain updates for lock-screen metadata while live audio plays.
+        _startNowPlayingEvents();
         break;
       default:
         break;
@@ -278,7 +296,8 @@ class MyHomePageState extends State<MyHomePage>
 
   @override
   void dispose() {
-    _liveRefreshTimer?.cancel();
+    TestStreamSwitch.removeListener(_startNowPlayingEvents);
+    _nowEvents.stop();
     connectionSubscription.cancel();
     _presenter.currentPlayer.onUpdate = null;
     _outstandingPageController.dispose();
@@ -425,12 +444,12 @@ class MyHomePageState extends State<MyHomePage>
       }
     };
 
-    _liveRefreshTimer = Timer.periodic(const Duration(seconds: 60), (_) {
-      if (mounted) _presenter.onHomeResumed();
-    });
+    TestStreamSwitch.addListener(_startNowPlayingEvents);
+    _startNowPlayingEvents();
 
     _presenter.currentPlayer.onUpdate = () {
       if (mounted) {
+        _startNowPlayingEvents();
         setState(() {
           if (_presenter.currentPlayer.isPlaying()) {
             isLoadingPlay = false;
@@ -625,6 +644,8 @@ class MyHomePageState extends State<MyHomePage>
   @override
   void onMenuReturn(BottomBarOption option) {
     if (!mounted) return;
+    // The optional test-stream switch may have changed in Settings.
+    _startNowPlayingEvents();
     setState(() {
       bottomBarOption = option;
     });

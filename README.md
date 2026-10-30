@@ -13,11 +13,18 @@ Now support multiple languages
 ## Private test stream switch
 
 Normal builds use the production stream and do not show a stream selector. To
-include the private selector for `live.mp3` and `test.mp3`, build with:
+include the private London Live / France Test selector, build with:
 
 ```sh
 flutter build ios --release --dart-define=ABER_TEST_STREAM_SWITCH=true
 ```
+
+Live uses `https://stream.aberradio.com/live.mp3` and the London API.
+Test uses `https://stream-test.aberradio.com/test.mp3` and
+`https://api-test.aberradio.com/api/2/radiocom/transmissions/now` with
+`mount=test` for Now Playing. The existing metadata refresh updates the track;
+other content such as news and schedules keeps its normal API source. The choice
+is remembered across app restarts.
 
 Omit `ABER_TEST_STREAM_SWITCH` for App Store and other public builds.
 

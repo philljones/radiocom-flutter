@@ -17,24 +17,17 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.app.cuacfm.radio.coruna"
+        applicationId "uk.co.abergavennyradio.app"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 36
-        versionCode 33
-        versionName "3.6.4"
+        versionCode flutter.versionCode
+        versionName flutter.versionName
         multiDexEnabled true
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
-    //flutter build appbundle
-    signingConfigs {
-        release {
-            keyAlias "i*****"
-            keyPassword "1*******"
-            storeFile file("/Users/User/Desktop/keystore")
-            storePassword "*******e"
-        }
-    }
+    // Direct device testing uses the debug key. Configure a dedicated release
+    // key before Play Store distribution.
     buildTypes {
         release {
             signingConfig signingConfigs.debug
