@@ -326,7 +326,13 @@ class HomePresenter {
     });
   }
 
-  _getLiveProgram(bool refreshAll) {
+  /// Refresh just the current programme/track after an SSE notification.
+  /// Unlike a full home resume, this does not reload news and the schedule.
+  refreshNowPlaying() {
+    _getLiveProgram(false, onlyNow: true);
+  }
+
+  _getLiveProgram(bool refreshAll, {bool onlyNow = false}) {
     invoker.execute(getLiveDataUseCase).listen((result) {
       if (result is Success) {
         if (!currentPlayer.isPodcast) {
@@ -343,7 +349,7 @@ class HomePresenter {
         }
         _homeView.onLiveDataError((result as Error).status);
       }
-      _getRecentPodcast(refreshAll);
+      if (!onlyNow) _getRecentPodcast(refreshAll);
     });
   }
 
