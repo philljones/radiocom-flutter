@@ -1,3 +1,5 @@
+import 'package:audio_service/audio_service.dart';
+import 'package:cuacfm/ui/player/cuac_audio_handler.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:injector/injector.dart';
@@ -11,6 +13,21 @@ const _carPlay = MethodChannel('uk.co.abergavennyradio/carplay');
 /// Audio is ready independently of whether a phone screen or onboarding is visible.
 Future<void> configureCarPlay() async {
   if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
+  final player = Injector.appInstance.get<CurrentPlayerContract>();
+  // Publish a stopped station before the phone UI has loaded its programme.
+  if (!player.isPodcast && player.now == null) {
+    player.now = Now.mock();
+    Injector.appInstance.get<CuacAudioHandler>().setNowPlaying(
+      MediaItem(
+        id: 'aber-radio-live',
+        title: 'Aber Radio',
+        album: 'Aber Radio',
+        artist: 'Listen Live',
+        artUri: Uri.parse('https://aberradio.com/fb_cover_photo.png'),
+      ),
+      isLive: true,
+    );
+  }
   _carPlay.setMethodCallHandler((call) async {
     if (call.method != 'listenLive') throw MissingPluginException();
     return startCarPlayLive(
@@ -46,7 +63,17 @@ Future<bool> startCarPlayLive(CuacRepositoryContract repository,
     player.isPodcast = false;
     player.now = now ?? player.now ?? Now.mock();
     player.playbackSource = 'carplay';
-    return await player.restartLiveStream();
+    if (!await player.restartLiveStream()) return false;
+    // Keep Apple's list-selection spinner until audio is actually ready.
+    final deadline = DateTime.now().add(const Duration(seconds: 30));
+    while (!player.isStreamingAudio() || player.isBuffering()) {
+      if (DateTime.now().isAfter(deadline)) {
+        player.stop();
+        return false;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    return true;
   } catch (_) {
     return false;
   }
