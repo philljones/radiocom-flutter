@@ -1,7 +1,7 @@
 name: cuacfm
 description: A radio station with radioco integration.
 
-version: 1.0.0+39
+version: 4.0.0+40
 
 environment:
   sdk: ">=3.6.0 <4.0.0"
