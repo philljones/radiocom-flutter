@@ -9,7 +9,7 @@ void main() {
     expect(TestStreamSwitch.nowEventsUrlFor(false).toString(),
         'https://api.aberradio.com/api/2/radiocom/transmissions/now/events');
     expect(TestStreamSwitch.nowEventsUrlFor(true).toString(),
-        'https://api-test.aberradio.com/api/2/radiocom/transmissions/now/events?mount=test');
+        'https://api-test.aberradio.com/api/2/radiocom/transmissions/now/events?mount=live');
   });
 
   test('saved test choice and changes select the event source immediately',

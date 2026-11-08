@@ -612,6 +612,91 @@ void main() {
     expect(view.viewState, isEmpty);
   });
 
+  test('unchanged event snapshot is rechecked after two seconds', () async {
+    final old = Now.mock()..trackTitle = 'Old song';
+    final next = Now.mock()..trackTitle = 'New song';
+    when(mockPlayer.now).thenReturn(old);
+    var calls = 0;
+    when(mockRepository.getLiveBroadcast()).thenAnswer((_) async {
+      calls++;
+      return Success(calls == 1 ? old : next, Status.ok);
+    });
+    final refresh = presenter.refreshNowPlaying();
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    expect(calls, 1);
+    expect(view.data, [old]);
+    await refresh;
+    expect(calls, 2);
+    expect(view.data, [old, next]);
+  });
+
+  test('unchanged recheck does not schedule further retries', () async {
+    final old = Now.mock()..trackTitle = 'Same song';
+    when(mockPlayer.now).thenReturn(old);
+    when(mockRepository.getLiveBroadcast())
+        .thenAnswer((_) async => Success(old, Status.ok));
+    await presenter.refreshNowPlaying();
+    verify(mockRepository.getLiveBroadcast()).called(2);
+  });
+
+  test('artist change counts as new metadata without a retry', () async {
+    final old = Now.mock()..trackTitle = 'Song'..trackArtist = 'Artist one';
+    final next = Now.mock()..trackTitle = 'Song'..trackArtist = 'Artist two';
+    when(mockPlayer.now).thenReturn(old);
+    when(mockRepository.getLiveBroadcast())
+        .thenAnswer((_) async => Success(next, Status.ok));
+    await presenter.refreshNowPlaying();
+    verify(mockRepository.getLiveBroadcast()).called(1);
+    expect(view.data, [next]);
+  });
+
+  test('new event supersedes delayed recheck and refreshes immediately', () async {
+    final old = Now.mock()..trackTitle = 'Old song';
+    final next = Now.mock()..trackTitle = 'New song';
+    when(mockPlayer.now).thenReturn(old);
+    var calls = 0;
+    when(mockRepository.getLiveBroadcast()).thenAnswer((_) async {
+      calls++;
+      return Success(calls == 1 ? old : next, Status.ok);
+    });
+    final first = presenter.refreshNowPlaying();
+    await Future<void>.delayed(Duration.zero);
+    expect(calls, 1);
+    final second = presenter.refreshNowPlaying();
+    await Future.wait([first, second]).timeout(const Duration(seconds: 1));
+    expect(calls, 2);
+    expect(view.data, [old, next]);
+  });
+
+  test('leaving home cancels pending recheck and ignores future events', () async {
+    final old = Now.mock()..trackTitle = 'Same song';
+    when(mockPlayer.now).thenReturn(old);
+    when(mockRepository.getLiveBroadcast())
+        .thenAnswer((_) async => Success(old, Status.ok));
+    final refresh = presenter.refreshNowPlaying();
+    await Future<void>.delayed(Duration.zero);
+    presenter.stopNowPlayingRefresh();
+    await refresh.timeout(const Duration(seconds: 1));
+    await presenter.refreshNowPlaying();
+    verify(mockRepository.getLiveBroadcast()).called(1);
+  });
+
+  test('source switch invalidates a waiting delayed recheck', () async {
+    SharedPreferences.setMockInitialValues({});
+    await TestStreamSwitch.initialize();
+    await TestStreamSwitch.setUsingTestStream(false);
+    final old = Now.mock()..trackTitle = 'London song';
+    when(mockPlayer.now).thenReturn(old);
+    when(mockRepository.getLiveBroadcast())
+        .thenAnswer((_) async => Success(old, Status.ok));
+    final refresh = presenter.refreshNowPlaying();
+    await Future<void>.delayed(Duration.zero);
+    await TestStreamSwitch.setUsingTestStream(true);
+    await refresh;
+    verify(mockRepository.getLiveBroadcast()).called(1);
+    await TestStreamSwitch.setUsingTestStream(false);
+  }, skip: !testStreamSwitchEnabled);
+
   test('switching sources rejects an old response and fetches the new one', () async {
     SharedPreferences.setMockInitialValues({});
     await TestStreamSwitch.initialize();

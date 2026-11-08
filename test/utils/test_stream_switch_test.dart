@@ -12,7 +12,7 @@ void main() {
     );
     expect(
       TestStreamSwitch.streamUrlFor(true),
-      'https://stream-test.aberradio.com/test.mp3',
+      'https://stream-test.aberradio.com/live.mp3',
     );
   });
 
@@ -31,17 +31,17 @@ void main() {
     expect(url.queryParameters, {
       'format': 'json',
       'timezone': 'Europe/London',
-      'mount': 'test',
+      'mount': 'live',
     });
   });
 
-  test('test metadata sets one test mount even without an existing query', () {
+  test('test metadata sets one live mount even without an existing query', () {
     for (final source in [
       'https://api.aberradio.com/api/2/radiocom/transmissions/now',
       '$productionNowUrl&mount=live',
     ]) {
       final url = Uri.parse(TestStreamSwitch.nowUrlFor(source, true));
-      expect(url.queryParametersAll['mount'], ['test']);
+      expect(url.queryParametersAll['mount'], ['live']);
     }
   });
 
@@ -55,7 +55,7 @@ void main() {
     expect(
       await TestStreamSwitch.resolveStreamUrl('https://example.com/live.mp3'),
       testStreamSwitchEnabled
-          ? 'https://stream-test.aberradio.com/test.mp3'
+          ? 'https://stream-test.aberradio.com/live.mp3'
           : 'https://example.com/live.mp3',
     );
     final selected =
@@ -66,7 +66,7 @@ void main() {
             ? 'api-test.aberradio.com'
             : 'api.aberradio.com');
     expect(selected.queryParameters['mount'],
-        testStreamSwitchEnabled ? 'test' : null);
+        testStreamSwitchEnabled ? 'live' : null);
 
     await TestStreamSwitch.setUsingTestStream(false);
     expect(await TestStreamSwitch.resolveNowUrl(productionNowUrl),

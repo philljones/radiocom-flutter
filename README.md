@@ -20,9 +20,9 @@ flutter build ios --release --dart-define=ABER_TEST_STREAM_SWITCH=true
 ```
 
 Live uses `https://stream.aberradio.com/live.mp3` and the London API.
-Test uses `https://stream-test.aberradio.com/test.mp3` and
+Test uses `https://stream-test.aberradio.com/live.mp3` and
 `https://api-test.aberradio.com/api/2/radiocom/transmissions/now` with
-`mount=test` for Now Playing. The existing metadata refresh updates the track;
+`mount=live` for Now Playing. The existing metadata refresh updates the track;
 other content such as news and schedules keeps its normal API source. The choice
 is remembered across app restarts.
 
