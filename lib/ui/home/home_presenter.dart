@@ -329,29 +329,72 @@ class HomePresenter {
 
   Future<void>? _nowRefreshTask;
   bool _nowRefreshPending = false;
+  bool _nowRefreshDisposed = false;
+  Completer<void>? _nowRecheckWake;
+  Now? _lastLiveMetadata;
 
-  /// Coalesce bursts into one request and a final catch-up, without reloading
-  /// news/podcasts or letting a previous stream's response overwrite this one.
+  /// Coalesce bursts into one request and a final catch-up. An event can arrive
+  /// before the snapshot changes, so unchanged metadata gets one delayed retry.
   Future<void> refreshNowPlaying() {
+    if (_nowRefreshDisposed) return Future.value();
     _nowRefreshPending = true;
+    _wakeNowRecheck();
     return _nowRefreshTask ??= _drainNowPlaying().whenComplete(() {
       _nowRefreshTask = null;
     });
   }
 
+  void _wakeNowRecheck() {
+    final wake = _nowRecheckWake;
+    if (wake != null && !wake.isCompleted) wake.complete();
+  }
+
+  void stopNowPlayingRefresh() {
+    _nowRefreshDisposed = true;
+    _nowRefreshPending = false;
+    _wakeNowRecheck();
+  }
+
+  bool _sameSong(Now? previous, Now next) =>
+      previous != null &&
+      previous.name == next.name &&
+      previous.trackTitle == next.trackTitle &&
+      previous.trackArtist == next.trackArtist;
+
   Future<void> _drainNowPlaying() async {
     do {
       _nowRefreshPending = false;
       final source = TestStreamSwitch.selectionRevision;
+      final previous = _lastLiveMetadata ?? currentPlayer.now;
+      bool isCurrent() => !_nowRefreshDisposed &&
+          source == TestStreamSwitch.selectionRevision;
       try {
         final result = await invoker.execute(getLiveDataUseCase).first;
-        if (source == TestStreamSwitch.selectionRevision && result is Success) {
-          _applyLiveProgramResult(result);
+        if (!isCurrent() || result is! Success) continue;
+        final unchanged = _sameSong(previous, result.data);
+        _applyLiveProgramResult(result);
+        if (!unchanged || _nowRefreshPending) continue;
+
+        // A newer event wakes this delay and gets its own immediate refresh.
+        final wake = Completer<void>();
+        _nowRecheckWake = wake;
+        final timer = Timer(const Duration(seconds: 2), wake.complete);
+        try {
+          await wake.future;
+        } finally {
+          timer.cancel();
+          if (identical(_nowRecheckWake, wake)) _nowRecheckWake = null;
+        }
+        if (!isCurrent() || _nowRefreshPending) continue;
+        final recheck = await invoker.execute(getLiveDataUseCase).first;
+        if (isCurrent() && recheck is Success) {
+          _applyLiveProgramResult(recheck);
         }
       } catch (_) {
-        // Keep the last good metadata on transient failure. Audio is independent.
+        // Preserve good metadata on failure; audio is independent. Never retry
+        // recursively: each event has at most one delayed recheck.
       }
-    } while (_nowRefreshPending);
+    } while (_nowRefreshPending && !_nowRefreshDisposed);
   }
 
   _getLiveProgram(bool refreshAll) {
@@ -365,6 +408,7 @@ class HomePresenter {
 
   void _applyLiveProgramResult(Result result) {
     if (result is Success) {
+      _lastLiveMetadata = result.data;
       if (!currentPlayer.isPodcast) {
         currentPlayer.now = result.data;
         currentPlayer.currentSong = result.data.name;

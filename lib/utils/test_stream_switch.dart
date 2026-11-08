@@ -9,7 +9,7 @@ const bool testStreamSwitchEnabled = bool.fromEnvironment(
 class TestStreamSwitch {
   static const String liveStreamUrl = 'https://stream.aberradio.com/live.mp3';
   static const String testStreamUrl =
-      'https://stream-test.aberradio.com/test.mp3';
+      'https://stream-test.aberradio.com/live.mp3';
   static const String _preferenceKey = 'use_test_stream';
   static final _changes = ValueNotifier<int>(0);
   static int get selectionRevision => _changes.value;
@@ -27,7 +27,7 @@ class TestStreamSwitch {
   static Uri nowEventsUrlFor(bool useTestStream) => Uri.https(
       useTestStream ? 'api-test.aberradio.com' : 'api.aberradio.com',
       '/api/2/radiocom/transmissions/now/events',
-      useTestStream ? {'mount': 'test'} : null);
+      useTestStream ? {'mount': 'live'} : null);
 
   // Initialized by main before the home page is created; synchronous access
   // prevents a delayed lifecycle callback from restoring an obsolete source.
@@ -63,7 +63,7 @@ class TestStreamSwitch {
       scheme: 'https',
       host: 'api-test.aberradio.com',
       port: 443,
-      queryParameters: {...production.queryParameters, 'mount': 'test'},
+      queryParameters: {...production.queryParameters, 'mount': 'live'},
     ).toString();
   }
 

@@ -298,6 +298,7 @@ class MyHomePageState extends State<MyHomePage>
   void dispose() {
     TestStreamSwitch.removeListener(_startNowPlayingEvents);
     _nowEvents.stop();
+    _presenter.stopNowPlayingRefresh();
     connectionSubscription.cancel();
     _presenter.currentPlayer.onUpdate = null;
     _outstandingPageController.dispose();
