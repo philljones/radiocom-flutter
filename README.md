@@ -47,8 +47,9 @@ Some screenshots of the iOS Flutter version in dark mode
 
 ### Siri live playback (iOS 17 and later)
 
-Open Aber Radio once after installing to register its shortcut. Say
-“Hey Siri, start live radio with Abergavenny Radio” or “Hey Siri, tune in to
-Abergavenny Radio”. You can also run **Play Live** from Aber Radio in the Shortcuts
-app. The shortcut starts the live stream in the background. To use it
-while locked, enable **Allow Siri When Locked** in iPhone Settings.
+Say “Hey Siri, play Aber Radio” or “Hey Siri, play Abergavenny Radio”.
+The **Play Live** shortcut starts the stream in the background. If Siri
+is switched off on the **Aber Radio Shortcuts** settings screen, turn it
+on there. For locked playback, also enable **Allow Siri When Locked** in
+iPhone Settings. You can test the action directly from Shortcuts →
+App Shortcuts → Aber Radio → Play Live.

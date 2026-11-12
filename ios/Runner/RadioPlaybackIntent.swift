@@ -36,6 +36,7 @@ struct AberRadioShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: PlayAberRadioIntent(),
             phrases: [
+                "Play \(.applicationName)",
                 "Start live radio with \(.applicationName)",
                 "Tune in to \(.applicationName)",
                 "Listen to \(.applicationName)"
