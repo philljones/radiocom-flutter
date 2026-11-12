@@ -77,6 +77,8 @@
     "days_ago": "%s days ago"
   },
   "settings": {
+    "siri_title": "Listen with Siri",
+    "siri_hint": "If Siri doesn’t start the stream, enable Siri for Aber Radio in Shortcuts. To listen while locked, also turn on Allow Siri When Locked in iPhone Settings.",
     "version": "Version",
     "rating_title": "Are you enjoying the app and our broadcasts?",
     "rating_body": "Please consider rating us on the app store so more people can discover Aber Radio.",

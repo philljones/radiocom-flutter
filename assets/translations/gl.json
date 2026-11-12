@@ -64,6 +64,8 @@
     "days_ago": "Hai %s días"
   },
   "settings": {
+    "siri_title": "Escoita con Siri",
+    "siri_hint": "Se Siri non inicia a emisión, activa Siri para Aber Radio en Atallos. Para escoitar co iPhone bloqueado, activa tamén a opción que permite usar Siri coa pantalla bloqueada nos Axustes.",
     "version": "Versión",
     "rating_title": "Estás a gozar da app e das nosas emisións?",
     "rating_body": "Considera valorarnos na tenda de aplicacións para que máis xente descubra Aber Radio.",

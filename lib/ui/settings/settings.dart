@@ -22,6 +22,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:cuacfm/utils/push_notifications.dart';
 import 'package:cuacfm/utils/test_stream_switch.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class Settings extends StatefulWidget {
   Settings({Key? key}) : super(key: key);
@@ -51,6 +52,7 @@ class SettingsState extends State<Settings>
   int _alertsUnread = 0;
   bool _useTestStream = false;
   String? _appVersion;
+  bool _showSiriTip = false;
 
   SettingsState() {
     DependencyInjector().injectByView(this);
@@ -70,6 +72,19 @@ class SettingsState extends State<Settings>
       setState(() => _appVersion = '${info.version} (${info.buildNumber})');
     } catch (_) {
       // Version information is optional and must not prevent the menu opening.
+    }
+  }
+
+  Future<void> _loadSiriAvailability() async {
+    if (!Platform.isIOS) return;
+    try {
+      final info = await DeviceInfoPlugin().iosInfo;
+      final majorVersion = int.tryParse(info.systemVersion.split('.').first);
+      if (mounted && majorVersion != null && majorVersion >= 17) {
+        setState(() => _showSiriTip = true);
+      }
+    } catch (_) {
+      // Leave the tip hidden if shortcut support cannot be checked.
     }
   }
 
@@ -164,6 +179,7 @@ class SettingsState extends State<Settings>
   void initState() {
     super.initState();
     _loadAppVersion();
+    _loadSiriAvailability();
     if (Platform.isAndroid) {
       MethodChannel('cuacfm.flutter.io/changeScreen').invokeMethod(
           'changeScreen', {"currentScreen": "settings", "close": false});
@@ -505,6 +521,45 @@ class SettingsState extends State<Settings>
     );
   }
 
+  Widget _buildSiriTip() {
+    final strings = _localization.translateMap('settings');
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: _colors.palidwhitedark,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            SafeMap.safe(strings, ['siri_title']),
+            style: TextStyle(
+              color: _colors.font,
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            '“Hey Siri, play Abergavenny Radio”',
+            style: TextStyle(
+              color: _colors.font,
+              fontWeight: FontWeight.w600,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            SafeMap.safe(strings, ['siri_hint']),
+            style: TextStyle(color: _colors.font, fontSize: 14),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _themeChip(String value, String label) {
     final selected = _themeValue == value;
     return GestureDetector(
@@ -552,6 +607,10 @@ class SettingsState extends State<Settings>
                       if (_showRatingCard) ...[
                         _buildRatingCard(),
                         SizedBox(height: 16),
+                      ],
+                      if (_showSiriTip) ...[
+                        _buildSiriTip(),
+                        const SizedBox(height: 16),
                       ],
                       // ── ALERTAS ──────────────────────────────────────────────
                       Material(
