@@ -44,3 +44,9 @@ Some screenshots of the iOS Flutter version in dark mode
 <img style="margin:20px;" src="https://github.com/user-attachments/assets/d70967dd-cdb9-4a62-9015-d0c32f7a5ed3" width="200">
 <img style="margin:20px;" src="https://github.com/user-attachments/assets/3dede5b6-a216-44b9-a153-0d008db8e108" width="200">|
 </div>
+
+### Siri live playback (iOS 17 and later)
+
+Say “Hey Siri, play Aber Radio” or “Hey Siri, listen to Aber Radio”. The
+**Play Live** shortcut starts the live stream without opening the app. To
+use it while locked, enable **Allow Siri When Locked** in iPhone Settings.
