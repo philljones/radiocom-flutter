@@ -22,6 +22,13 @@
 	</array>
 	<key>CFBundleName</key>
 	<string>Aber Radio</string>
+	<key>INAlternativeAppNames</key>
+	<array>
+		<dict>
+			<key>INAlternativeAppName</key>
+			<string>Abergavenny Radio</string>
+		</dict>
+	</array>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
