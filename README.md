@@ -44,3 +44,14 @@ Some screenshots of the iOS Flutter version in dark mode
 <img style="margin:20px;" src="https://github.com/user-attachments/assets/d70967dd-cdb9-4a62-9015-d0c32f7a5ed3" width="200">
 <img style="margin:20px;" src="https://github.com/user-attachments/assets/3dede5b6-a216-44b9-a153-0d008db8e108" width="200">|
 </div>
+
+### Siri live playback (iOS 17 and later)
+
+The iOS app menu recommends “Hey Siri, play Abergavenny Radio”, confirmed
+to start playback on a locked iPhone. “Play Aber Radio” remains registered,
+but Siri may interpret the shorter name as a music request.
+The **Play Live** shortcut starts the stream in the background. If Siri
+is switched off on the **Aber Radio Shortcuts** settings screen, turn it
+on there. For locked playback, also enable **Allow Siri When Locked** in
+iPhone Settings. You can test the action directly from Shortcuts →
+App Shortcuts → Aber Radio → Play Live.

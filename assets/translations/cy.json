@@ -16,6 +16,8 @@
   "podcast_detail": {"empty_msg": "", "empty_episodes_msg": "Nid oes penodau ar hyn o bryd.", "no_description": "Nid oes disgrifiad o’r bennod hon eto.", "no_news_description": "Nid oes cynnwys ar gyfer y newyddion hwn eto.", "alerts": "Hysbysiadau"},
   "new": {"history_title": "Am Aber Radio", "minutes_ago": "%s munud yn ôl", "hours_ago": "%s awr yn ôl", "yesterday": "Ddoe", "days_ago": "%s diwrnod yn ôl"},
   "settings": {
+    "siri_title": "Gwrando gyda Siri",
+    "siri_hint": "Os nad yw Siri yn dechrau’r ffrwd, galluogwch Siri ar gyfer Aber Radio yn Shortcuts. I wrando pan fydd y ffôn wedi’i gloi, trowch Allow Siri When Locked ymlaen yng Ngosodiadau’r iPhone.",
     "version": "Fersiwn",
     "rating_title": "Ydych chi’n mwynhau’r ap a’n darllediadau?", "rating_body": "Ystyriwch roi sgôr i ni yn y siop apiau fel y gall mwy o bobl ddarganfod Aber Radio.",
     "station_section": {"name": "YR ORSAF", "item1": "Hanes", "item2": "Oriel"},

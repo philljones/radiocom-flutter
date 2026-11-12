@@ -34,13 +34,15 @@ Future<void> configureCarPlay() async {
       Injector.appInstance.get<CuacRepositoryContract>(),
       Injector.appInstance.get<CurrentPlayerContract>(),
       Injector.appInstance.get<RadioStation>(),
+      source: call.arguments == 'siri' ? 'siri' : 'carplay',
     );
   });
   await _carPlay.invokeMethod<void>('ready');
 }
 
 Future<bool> startCarPlayLive(CuacRepositoryContract repository,
-    CurrentPlayerContract player, RadioStation station) async {
+    CurrentPlayerContract player, RadioStation station,
+    {String source = 'carplay'}) async {
   try {
     if (!player.isPodcast && player.isStreamingAudio()) return true;
     if (station.streamUrl.trim().isEmpty) {
@@ -62,9 +64,9 @@ Future<bool> startCarPlayLive(CuacRepositoryContract repository,
     if (player.isPodcast) player.stop();
     player.isPodcast = false;
     player.now = now ?? player.now ?? Now.mock();
-    player.playbackSource = 'carplay';
+    player.playbackSource = source;
     if (!await player.restartLiveStream()) return false;
-    // Keep Apple's list-selection spinner until audio is actually ready.
+    // Report success to Siri or CarPlay only once audio is ready.
     final deadline = DateTime.now().add(const Duration(seconds: 30));
     while (!player.isStreamingAudio() || player.isBuffering()) {
       if (DateTime.now().isAfter(deadline)) {

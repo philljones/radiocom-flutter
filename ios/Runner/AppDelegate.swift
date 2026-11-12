@@ -10,7 +10,17 @@ class AppDelegate: FlutterAppDelegate {
     private(set) var radioEngine: FlutterEngine!
     private var carPlayChannel: FlutterMethodChannel?
     private var carPlayReady = false
-    private var pendingCarPlayStart: ((Bool) -> Void)?
+    private var liveStart: LiveStart?
+
+    private final class LiveStart {
+        let source: String
+        var completions: [(Bool) -> Void]
+
+        init(source: String, completion: @escaping (Bool) -> Void) {
+            self.source = source
+            completions = [completion]
+        }
+    }
 
     private let homeActionsChannelName = "uk.co.abergavennyradio/home_actions"
     private var homeActionsChannel: FlutterMethodChannel?
@@ -46,11 +56,11 @@ class AppDelegate: FlutterAppDelegate {
         carChannel.setMethodCallHandler { [weak self] call, result in
             guard let self = self else { result(nil); return }
             if call.method == "ready" {
+                let wasReady = self.carPlayReady
                 self.carPlayReady = true
                 result(nil)
-                if let pending = self.pendingCarPlayStart {
-                    self.pendingCarPlayStart = nil
-                    self.startCarPlayLive(completion: pending)
+                if !wasReady, let start = self.liveStart {
+                    self.invokeLivePlayback(start)
                 }
             } else { result(FlutterMethodNotImplemented) }
         }
@@ -87,6 +97,9 @@ class AppDelegate: FlutterAppDelegate {
         )
 
         let launched = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+        if #available(iOS 17.0, *) {
+            AberRadioShortcuts.updateAppShortcutParameters()
+        }
         startRadioEngine()
         return launchOptions?[.shortcutItem] == nil && launched
     }
@@ -103,19 +116,38 @@ class AppDelegate: FlutterAppDelegate {
         NSLog("AberRadio audio %@ category=%@ outputs=%@", context, session.category, outputs)
     }
 
-    func startCarPlayLive(completion: @escaping (Bool) -> Void) {
-        guard carPlayReady, let channel = carPlayChannel else {
-            pendingCarPlayStart = completion
-            DispatchQueue.main.asyncAfter(deadline: .now() + 30) { [weak self] in
-                guard let pending = self?.pendingCarPlayStart else { return }
-                self?.pendingCarPlayStart = nil
-                pending(false)
-            }
+    /// Siri and CarPlay share a single start, even when Flutter is still booting.
+    func startLivePlayback(source: String, completion: @escaping (Bool) -> Void) {
+        if let start = liveStart {
+            start.completions.append(completion)
             return
         }
-        channel.invokeMethod("listenLive", arguments: nil) { result in
-            completion(result as? Bool ?? false)
+        let start = LiveStart(source: source, completion: completion)
+        liveStart = start
+        if carPlayReady {
+            invokeLivePlayback(start)
+        } else {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 30) { [weak self, weak start] in
+                guard let self = self, let start = start, !self.carPlayReady else { return }
+                self.finishLivePlayback(start, success: false)
+            }
         }
+    }
+
+    private func invokeLivePlayback(_ start: LiveStart) {
+        guard let channel = carPlayChannel else {
+            finishLivePlayback(start, success: false)
+            return
+        }
+        channel.invokeMethod("listenLive", arguments: start.source) { [weak self] result in
+            self?.finishLivePlayback(start, success: result as? Bool ?? false)
+        }
+    }
+
+    private func finishLivePlayback(_ start: LiveStart, success: Bool) {
+        guard liveStart === start else { return }
+        liveStart = nil
+        start.completions.forEach { $0(success) }
     }
 
     override func application(_ application: UIApplication,
@@ -176,7 +208,7 @@ class CarPlaySceneDelegate: NSObject, CPTemplateApplicationSceneDelegate {
         live.handler = { [weak self] _, completion in
             guard let self = self, !self.starting else { completion(); return }
             self.starting = true
-            (UIApplication.shared.delegate as? AppDelegate)?.startCarPlayLive { [weak self] success in
+            (UIApplication.shared.delegate as? AppDelegate)?.startLivePlayback(source: "carplay") { [weak self] success in
                 guard let self = self else { completion(); return }
                 self.starting = false
                 completion()

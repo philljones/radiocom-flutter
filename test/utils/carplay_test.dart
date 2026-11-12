@@ -78,6 +78,17 @@ void main() {
     expect(player.restarts, 1);
     expect(player.playbackSource, 'carplay');
   });
+  test('Siri can start live audio before the app screen loads', () async {
+    final repository = Repository();
+    final player = Player();
+    final station = RadioStation.base();
+    expect(await startCarPlayLive(repository, player, station, source: 'siri'),
+        isTrue);
+    expect(station.streamUrl, repository.url);
+    expect(player.now, isNotNull);
+    expect(player.restarts, 1);
+    expect(player.playbackSource, 'siri');
+  });
   test('no configured stream fails without starting another station', () async {
     final repository = Repository()..url = '';
     final player = Player();
