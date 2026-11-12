@@ -97,6 +97,9 @@ class AppDelegate: FlutterAppDelegate {
         )
 
         let launched = super.application(application, didFinishLaunchingWithOptions: launchOptions)
+        if #available(iOS 17.0, *) {
+            AberRadioShortcuts.updateAppShortcutParameters()
+        }
         startRadioEngine()
         return launchOptions?[.shortcutItem] == nil && launched
     }

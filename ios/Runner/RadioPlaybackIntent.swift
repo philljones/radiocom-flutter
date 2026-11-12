@@ -10,6 +10,7 @@ struct PlayAberRadioIntent: AudioPlaybackIntent {
 
     @MainActor
     func perform() async throws -> some IntentResult {
+        NSLog("AberRadio Siri playback requested")
         guard let app = UIApplication.shared.delegate as? AppDelegate else {
             throw RadioPlaybackError.unavailable
         }
@@ -35,9 +36,9 @@ struct AberRadioShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: PlayAberRadioIntent(),
             phrases: [
-                "Play \(.applicationName)",
-                "Listen to \(.applicationName)",
-                "Play \(.applicationName) live"
+                "Start live radio with \(.applicationName)",
+                "Tune in to \(.applicationName)",
+                "Listen to \(.applicationName)"
             ],
             shortTitle: "Play Live",
             systemImageName: "play.circle"
